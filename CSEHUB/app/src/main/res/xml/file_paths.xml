@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/xml/file_paths.xml
+     NEW:  chat_docs  = app-private folder where downloaded chat documents are kept (filesDir/chat_docs/...).
+     KEPT: chat_open  = the old cache folder, only so any copy still open in a viewer from before the update keeps working; the app deletes that folder at start-up.
+     If your current file_paths.xml has other <...-path> entries for other features, keep them too. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <files-path name="chat_docs" path="chat_docs/" />
+    <cache-path name="chat_open" path="chat_open/" />
+</paths>
+
+

@@ -1,0 +1,88 @@
+    // ===================== COMMUNITY CHAT — two isolated rooms (LinkLearn, StudyChat) =====================
+    // MERGE: replace the existing `match /communityChat/{id}`, `match /chatReactions/{rid}` and `match /chatViews/{vid}` blocks
+    // (and their comments) in firestore.rules with this whole text. Put the three helper functions next to isOwner()/okClient().
+    // Room isolation is in the PATH: every exists() below is built from the same {room} wildcard, so a message / reaction / reply
+    // can never reference, or be written into, the other room.
+    // 'linklearn' = Global Chat (everyone); 'year1' / 'year2' = First / Second Year Community, open only to that year's students (admin: both).
+    function chatRoomOk(room){
+      return room == 'linklearn'
+        || (room == 'year1' && (isOwner() || qzGroup() == 'FY_ALL'))
+        || (room == 'year2' && (isOwner() || qzGroup() == 'SY_CSE_GROUP'));
+    }
+    // True when chatRestrictions/{uid} covers this room and has not expired (until == null means "until lifted").
+    function chatRestricted(room){
+      return exists(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid))
+        && room in get(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid)).data.get('rooms',[])
+        && (get(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid)).data.get('until',null)==null
+            || get(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid)).data.get('until',null) > request.time);
+    }
+    function chatReplyOk(room, d){
+      return !('replyTo' in d)
+        || (d.replyTo is map && d.replyTo.id is string && d.replyTo.id.size()>0 && d.replyTo.id.size()<=128
+            && (!('snippet' in d.replyTo) || (d.replyTo.snippet is string && d.replyTo.snippet.size()<=140))
+            && exists(/databases/$(db)/documents/chatRooms/$(room)/messages/$(d.replyTo.id)));
+    }
+
+    match /chatRooms/{room}/messages/{id}{
+      allow read: if request.auth!=null && chatRoomOk(room);
+      allow create: if chatRoomOk(room) && okClient() && !chatRestricted(room)
+        && request.resource.data.room==room
+        && request.resource.data.anonymousId==request.auth.uid
+        && request.resource.data.message is string
+        && request.resource.data.message.size()>0
+        && request.resource.data.message.size()<=1000
+        && chatReplyOk(room, request.resource.data);
+      allow update: if chatRoomOk(room) && request.auth!=null && resource.data.anonymousId==request.auth.uid
+        && request.resource.data.anonymousId==resource.data.anonymousId
+        && request.resource.data.room==room;
+      allow delete: if chatRoomOk(room) && (isOwner() || (request.auth!=null &&
+        (resource.data.anonymousId==request.auth.uid || resource.data.expiresAt <= request.time)));
+    }
+    // ---- Emoji reactions: one per user per message (doc id = msgId_uid), message must exist in THIS room ----
+    match /chatRooms/{room}/reactions/{rid}{
+      allow read: if request.auth!=null && chatRoomOk(room);
+      allow create, update: if chatRoomOk(room) && okClient() && !chatRestricted(room)
+        && request.resource.data.uid==request.auth.uid
+        && request.resource.data.room==room
+        && rid==request.resource.data.msgId+'_'+request.auth.uid
+        && request.resource.data.emoji in ['👍','❤️','😂','😮','😢','🙏']
+        && exists(/databases/$(db)/documents/chatRooms/$(room)/messages/$(request.resource.data.msgId));
+      allow delete: if chatRoomOk(room) && request.auth!=null && (resource.data.uid==request.auth.uid || isOwner() || resource.data.expiresAt <= request.time);
+    }
+    // ---- View-once log: create-only (no update) so a second open, even from another device, is refused ----
+    match /chatRooms/{room}/views/{vid}{
+      allow read: if chatRoomOk(room) && request.auth!=null && (resource==null || resource.data.uid==request.auth.uid);
+      allow create: if chatRoomOk(room) && okClient() && request.resource.data.uid==request.auth.uid
+        && vid==request.resource.data.msgId+'_'+request.auth.uid;
+      allow delete: if chatRoomOk(room) && (isOwner() || (request.auth!=null && resource.data.expiresAt <= request.time));
+    }
+    // ---- Moderation (all writes by Cloud Functions / Admin SDK only) ----
+    match /chatRestrictions/{uid}{
+      allow read: if request.auth!=null && (request.auth.uid==uid || isOwner());
+      allow write: if false;
+    }
+    match /chatReports/{id}{ allow read: if isOwner(); allow write: if false; }
+    match /chatModerationLog/{id}{ allow read: if isOwner(); allow write: if false; }
+    match /chatWarnings/{id}{
+      allow read: if request.auth!=null && (resource.data.uid==request.auth.uid || isOwner());
+      allow update: if request.auth!=null && resource.data.uid==request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seenAt']);
+      allow create, delete: if false;
+    }
+    // ---- LEGACY single chat: kept for existing data (read + delete/expiry only). New messages go to chatRooms/{room}. ----
+    match /communityChat/{id}{
+      allow read: if true;
+      allow create, update: if false;
+      allow delete: if isOwner() || (request.auth!=null &&
+        (resource.data.anonymousId==request.auth.uid || resource.data.expiresAt <= request.time));
+    }
+    match /chatReactions/{rid}{
+      allow read: if true;
+      allow create, update: if false;
+      allow delete: if request.auth!=null && (resource.data.uid==request.auth.uid || isOwner() || resource.data.expiresAt <= request.time);
+    }
+    match /chatViews/{vid}{
+      allow read: if request.auth!=null && (resource==null || resource.data.uid==request.auth.uid);
+      allow create: if false;
+      allow delete: if isOwner() || (request.auth!=null && resource.data.expiresAt <= request.time);
+    }

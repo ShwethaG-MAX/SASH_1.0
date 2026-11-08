@@ -1,0 +1,14 @@
+{
+  "name": "student-centro-test-functions",
+  "private": true,
+  "description": "Test feature backend for Student Centro (paper upload, question extraction, server-side scoring, Test leaderboard)",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": { "test": "node test.js", "deploy": "firebase deploy --only functions:test" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "1.1.1"
+  }
+}

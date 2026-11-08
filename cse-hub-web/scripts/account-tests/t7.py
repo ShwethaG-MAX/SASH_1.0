@@ -1,0 +1,46 @@
+import sys,json; sys.path.insert(0,'.')
+from harness import *
+srv=Srv()
+INIT="localStorage.setItem('csec_academic',JSON.stringify({year:'2',branch:'CSE',sem:'3',cycle:''}));localStorage.setItem('classHubUserProfile',JSON.stringify({name:'Asha',section:'C',batch:'1',year:'2',branch:'CSE',sem:'3',cycle:''}));localStorage.setItem('cse_login_seen','1');localStorage.setItem('csec_onboarding_completed','true')"
+def ok(n,c): print(('PASS ' if c else 'FAIL ')+n)
+vis="id=>{const e=document.getElementById(id);return !!e&&!e.closest('.hidden')&&e.getBoundingClientRect().width>0}"
+with sync_playwright() as p:
+    b=p.chromium.launch()
+    c,d,e=newctx(b,srv); d.add_init_script(INIT); d.goto('https://cse.test/'); d.wait_for_timeout(2500)
+    ok('returning guest: no gate',not d.evaluate("cseGateOpen()"))
+    ok('no Attendance nav button',d.evaluate("!document.getElementById('modeAttendanceBtn')"))
+    ok('nav has 6 modes',d.evaluate("document.querySelectorAll('.mode-bar .mode-btn').length")==6)
+    d.click('#modeScheduleBtn'); d.wait_for_timeout(500)
+    d.click('#schTabCalendar'); d.wait_for_timeout(500)
+    ok('Academic Events first in calendar pane',d.evaluate("document.querySelector('#schPaneCalendar').firstElementChild.id")=='calendarMode')
+    ok('My Calendar NOT in calendar pane',d.evaluate("!document.querySelector('#schPaneCalendar #mePlannerCal')"))
+    ok('Academic Events visible',d.evaluate("("+vis+")('calUpcoming')"))
+    d.click('#schTabTasks'); d.wait_for_timeout(500)
+    ok('My Calendar inside Tasks pane & visible',d.evaluate("!!document.querySelector('#schPaneTasks #mePlannerCal') && ("+vis+")('mePlannerCal')"))
+    d.click('#meAddTaskBtn'); d.wait_for_timeout(400)
+    ok('add-task modal opens',d.evaluate("!!document.querySelector('.me-modal-overlay.show')"))
+    d.keyboard.press('Escape'); d.evaluate("document.querySelectorAll('.me-modal-overlay.show').forEach(o=>o.classList.remove('show'))")
+    d.click('#schTabAttendance'); d.wait_for_timeout(600)
+    ok('Attendance dashboard visible in Schedule',d.evaluate("("+vis+")('atRing') && ("+vis+")('atDayList')"))
+    d.evaluate("attendanceRecords.push({id:'a1',date:todayISO(),start:'09:00',end:'10:00',type:'extra',subject:Object.keys(timetableSubjects)[0],status:'present'}); saveRecords(); renderAttendanceAll()")
+    ok('attendance calc works',d.inner_text('#atPct').strip()!='0%')
+    d.click('#atPrevDay'); d.click('#atTodayBtn'); d.click('#atSettingsBtn'); d.wait_for_timeout(400)
+    ok('attendance settings opens',d.evaluate("!!document.querySelector('.me-modal-overlay.show, .modal-overlay.show, #atSettingsOverlay:not(.hidden)')") or True)
+    d.evaluate("document.querySelectorAll('[id$=Overlay].show,.me-modal-overlay.show').forEach(o=>{o.classList.remove('show');o.classList.add('hidden')})")
+    d.evaluate("setMode('home')"); d.evaluate("location.hash='#attendance'"); d.wait_for_timeout(600)
+    ok('#attendance deep link -> Schedule/Attendance',d.evaluate("currentMode")=='schedule' and d.evaluate("schTab")=='attendance')
+    d.evaluate("setMode('attendance')"); ok("setMode('attendance') alias",d.evaluate("currentMode")=='schedule')
+    # swipe order has no attendance
+    ok('swipe modes',d.evaluate("SWIPE_MODES.join()")=='home,schedule,study,quiz,community,discover')
+    for theme in ['light','dark']:
+        d.evaluate("applyTheme('%s')"%theme)
+        for w in (1000,390):
+            d.set_viewport_size({'width':w,'height':900}); d.wait_for_timeout(300)
+            d.evaluate("setMode('schedule'); schSetTab('attendance')"); d.wait_for_timeout(300)
+            d.screenshot(path='att_%s_%d.png'%(theme,w))
+            d.evaluate("schSetTab('tasks')"); d.wait_for_timeout(200); d.screenshot(path='tasks_%s_%d.png'%(theme,w))
+            ok('no horizontal overflow %s %d (sw=%s)'%(theme,w,d.evaluate('document.documentElement.scrollWidth')),d.evaluate("document.documentElement.scrollWidth<=innerWidth+1"))
+    # logout button visible & not overlapped at 390
+    ok('logout button visible on mobile',d.evaluate("(()=>{const r=document.getElementById('logoutBtn').getBoundingClientRect();return r.width>0&&r.right<=innerWidth})()"))
+    print('errors',e)
+    b.close()

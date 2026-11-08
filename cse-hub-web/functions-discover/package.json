@@ -1,0 +1,12 @@
+{
+  "name": "student-hub-discover-functions",
+  "private": true,
+  "description": "Discover backend for Student Hub (article ingestion, daily refresh, anonymous comments, moderation)",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": { "test": "node test.js", "deploy": "firebase deploy --only functions:discover", "logs": "firebase functions:log" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

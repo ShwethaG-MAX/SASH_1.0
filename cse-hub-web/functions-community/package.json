@@ -1,0 +1,12 @@
+{
+  "name": "student-centro-community-functions",
+  "private": true,
+  "description": "Community chat reporting + moderation for Student Centro (LinkLearn and StudyChat rooms)",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": { "test": "node test.js", "deploy": "firebase deploy --only functions:community", "logs": "firebase functions:log" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

@@ -1,0 +1,22 @@
+Subject: Data Structures
+Unit 1 Arrays and Linked Lists
+1. Which data structure uses LIFO order? [2 marks]
+A) Queue
+B) Stack
+C) Tree
+D) Graph
+2. Time complexity of accessing an array element by index is
+A. O(n)
+B. O(log n)
+C. O(1)
+D. O(n^2)
+Unit 2 Trees
+3. A binary tree with n nodes has at most how many leaves? (A) n (B) n/2 (C) n-1 (D) log n
+Answer: A
+4. In-order traversal of a BST yields
+A) random order
+B) sorted order
+C) reverse order
+D) level order
+Answer Key
+1-B 2-C 4-B

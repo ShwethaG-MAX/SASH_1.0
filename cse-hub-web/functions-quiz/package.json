@@ -1,0 +1,12 @@
+{
+  "name": "student-hub-quiz-functions",
+  "private": true,
+  "description": "Daily Quiz backend for Student Hub (callables, schedulers, AI question generation)",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": { "deploy": "firebase deploy --only functions:quiz", "logs": "firebase functions:log" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

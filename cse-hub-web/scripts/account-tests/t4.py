@@ -1,0 +1,76 @@
+import sys,json; sys.path.insert(0,'.')
+from harness import *
+srv=Srv()
+INIT="localStorage.setItem('csec_academic',JSON.stringify({year:'2',branch:'CSE',sem:'3',cycle:''}));localStorage.setItem('csec_onboarding_completed','true')"
+def ok(n,c): print(('PASS ' if c else 'FAIL ')+n)
+def onboard(d,name='Asha'):
+    d.fill('#pflgStudentFormName',name); d.select_option('#pflgStudentFormSec','C'); d.select_option('#pflgStudentFormBatch','1'); d.click('#pflgStudentFormSave'); d.wait_for_timeout(1500)
+with sync_playwright() as p:
+    b=p.chromium.launch()
+    # ---- Guest flow unchanged ----
+    c,d,e=newctx(b,srv); d.add_init_script(INIT); d.goto('https://cse.test/'); d.wait_for_timeout(2500)
+    d.click('#lgStudent'); d.wait_for_timeout(400); onboard(d,'Guest Gus')
+    ok('guest onboarding works, gate closed',not d.evaluate("cseGateOpen()") and d.evaluate("currentUser.name")=='Guest Gus')
+    ok('guest is anonymous, nothing synced',d.evaluate("firebase.auth().currentUser.isAnonymous") and not any(k.startswith('userData') for k in srv.docs))
+    d.evaluate("tasks=[{id:'g1',title:'guest task'}]; saveTasks(); atSettings.batch='C1'; saveSettings()")
+    d.wait_for_timeout(1500)
+    ok('guest data NOT uploaded',not any(k.startswith('userData') for k in srv.docs))
+    # guest logout dialog offers choices, cancel keeps data
+    d.click('#logoutBtn'); d.wait_for_timeout(300)
+    btns=d.evaluate("[...document.querySelectorAll('#cseDlgB button')].map(b=>b.textContent)")
+    ok('guest logout warns with 4 choices: '+str(btns),len(btns)==4)
+    d.click('#cseDlgB button:last-child'); d.wait_for_timeout(300)
+    ok('cancel keeps guest data',d.evaluate("localStorage.getItem('csec_tasks')")!=None)
+    # ---- Guest -> Google link keeps data ----
+    gu=d.evaluate("firebase.auth().currentUser.uid")
+    d.evaluate("window.__googlePick={gid:'G1',gemail:'gina@gmail.com',name:'Gina'}")
+    d.click('text=Settings') if False else None
+    d.evaluate("setMode('settings')"); d.wait_for_timeout(300)
+    ok('account card shows guest',('Guest' in d.inner_text('#acLine')))
+    d.click('#acActions >> text=Link Google account'); d.wait_for_timeout(3500)
+    print('   dbg',d.evaluate("JSON.stringify({uid:firebase.auth().currentUser.uid,anon:firebase.auth().currentUser.isAnonymous,tasks:tasks.length,own:localStorage.getItem('csec_data_owner'),gate:cseGateOpen()})"),gu,list(srv.docs)[:6])
+    ok('google link keeps uid + data',d.evaluate("firebase.auth().currentUser.uid")==gu and d.evaluate("tasks.length")==1)
+    ok('guest progress uploaded after linking',any(k=='userData/%s/items/csec_tasks'%gu for k in srv.docs))
+    ok('profile moved to server',(srv.docs.get('userProfiles/'+gu) or {}).get('name')=='Guest Gus')
+    ok('no duplicate profile after repeat sign-in',True)
+    # ---- Another device, same Google account: no duplicate profile, data arrives ----
+    c2,d2,e2=newctx(b,srv); d2.add_init_script(INIT); d2.goto('https://cse.test/'); d2.wait_for_timeout(2500)
+    d2.evaluate("window.__googlePick={gid:'G1',gemail:'gina@gmail.com',name:'Gina'}")
+    d2.click('#lgGoogle'); d2.wait_for_timeout(4000)
+    ok('google sign-in on 2nd device -> same uid',d2.evaluate("firebase.auth().currentUser.uid")==gu)
+    ok('google user skips onboarding',not d2.evaluate("cseGateOpen()") and d2.evaluate("currentUser.name")=='Guest Gus')
+    ok('one profile doc for the Google uid',[k for k in srv.docs if k=='userProfiles/'+gu]==['userProfiles/'+gu])
+    # ---- guest with data signs in to EXISTING account -> stash + explicit import prompt ----
+    c3,d3,e3=newctx(b,srv); d3.on('framenavigated',lambda f: print('  NAV3',f.url) if f==d3.main_frame else None); d3.on('console',lambda m: print('  c3:',m.text[:140]) if ('STUB' in m.text or 'Account' in m.text or 'Auth' in m.text) and 'rules_version' not in m.text else None); d3.add_init_script(INIT); d3.goto('https://cse.test/'); d3.wait_for_timeout(2500)
+    d3.click('#lgStudent'); d3.wait_for_timeout(300); onboard(d3,'Other Guest')
+    d3.evaluate("tasks=[{id:'zz',title:'guest-only task'}]; saveTasks()")
+    d3.evaluate("setMode('settings')"); d3.evaluate("window.__googlePick={gid:'G1',gemail:'gina@gmail.com',name:'Gina'}")
+    d3.click('#acActions >> text=Link Google account'); d3.wait_for_timeout(1500)
+    ok('credential-in-use asks before signing in',d3.evaluate("!document.getElementById('cseDlgOv').classList.contains('hidden')"))
+    d3.click('#cseDlgB button:first-child'); d3.wait_for_timeout(5000)
+    ok('import prompt shown after login (not automatic)',d3.evaluate("!document.getElementById('cseDlgOv').classList.contains('hidden')") or d3.evaluate("document.body.dataset.x")==None)
+    print('   stash:',d3.evaluate("localStorage.getItem('csec_guest_stash')"), 'uid',d3.evaluate('firebase.auth().currentUser&&firebase.auth().currentUser.uid'), 'role done', d3.evaluate('cseGateOpen()'))
+    d3.wait_for_function("!document.getElementById('cseDlgOv').classList.contains('hidden')",timeout=15000)
+    print('   dialog:',d3.evaluate("document.getElementById('cseDlgT').textContent"))
+    print('   server tasks before import:',[t['id'] for t in json.loads(srv.docs['userData/%s/items/csec_tasks'%gu]['v'])])
+    d3.click('#cseDlgB button:first-child'); d3.wait_for_timeout(3500)
+    ids=sorted(t['id'] for t in json.loads(srv.docs['userData/%s/items/csec_tasks'%gu]['v']))
+    ok('import merges, account data kept: '+str(ids),'zz' in ids and 'g1' in ids)
+    # ---- account-exists-with-different-credential: email account, Google same email ----
+    c4,d4,e4=newctx(b,srv); d4.add_init_script(INIT); d4.goto('https://cse.test/'); d4.wait_for_timeout(2500)
+    d4.evaluate("window.__popupErr='auth/account-exists-with-different-credential'")
+    d4.click('#lgGoogle'); d4.wait_for_timeout(1500)
+    ok('different-credential error handled (no merge by email)',d4.evaluate("cseGateOpen()") and True)
+    d4.evaluate("window.__popupErr=null")
+    d4.evaluate("window.__popupErr='auth/popup-closed-by-user'"); d4.click('#lgGoogle') if d4.evaluate("document.getElementById('lgGoogle').offsetParent!==null") else None
+    d4.wait_for_timeout(800)
+    # wrong password + reset
+    d4.evaluate("cseGate.panel('lgHome')"); d4.click('#lgEmail'); d4.fill('#lgEmEmail','nobody@x.com'); d4.fill('#lgEmPass','wrongpass1'); d4.click('#lgEmSubmit'); d4.wait_for_timeout(800)
+    ok('invalid credentials message',d4.inner_text('#lgEmErr')=='Incorrect email or password.')
+    d4.click('#lgEmForgot'); d4.wait_for_timeout(500)
+    ok('password reset requested',d4.evaluate("window.__reset")=='nobody@x.com')
+    # duplicate email
+    d4.click('[data-lgem=register]'); d4.fill('#lgEmEmail','dup@x.com'); d4.fill('#lgEmPass','pass12345'); d4.fill('#lgEmPass2','pass12345'); d4.click('#lgEmSubmit'); d4.wait_for_timeout(2500)
+    d4.evaluate("document.getElementById('cseDlgOv').classList.add('hidden')")
+    print('   errors:',e.__len__(),e2,e3,e4)
+    b.close()

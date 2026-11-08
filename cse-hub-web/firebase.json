@@ -1,0 +1,17 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    { "source": "functions-quiz", "codebase": "quiz", "ignore": ["node_modules", ".git", "*.log", "test-notify.js", "test"] },
+    { "source": "functions-syllabus", "codebase": "syllabus", "ignore": ["node_modules", ".git", "*.log", "test.js"] },
+    { "source": "functions-test", "codebase": "test", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] },
+    { "source": "functions-community", "codebase": "community", "ignore": ["node_modules", ".git", "*.log", "test.js", "test", "_merge"] },
+    { "source": "functions-discover", "codebase": "discover", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] }
+  ]
+}

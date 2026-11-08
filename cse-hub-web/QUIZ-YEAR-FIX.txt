@@ -1,0 +1,8 @@
+DAILY QUIZ — YEAR FILTERING FIX
+Changed files:  functions-quiz/lib/core.js   public/index.html   firestore.rules
+New (not deployed): tests-quiz-year/
+
+Deploy (same order as README-UPDATE.txt):
+  firebase deploy --only functions:quiz
+  firebase deploy --only firestore:rules
+  firebase deploy --only hosting

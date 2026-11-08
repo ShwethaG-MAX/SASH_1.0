@@ -1,0 +1,12 @@
+{
+  "name": "student-centro-xp-functions",
+  "private": true,
+  "description": "XP summary backend for Student Centro (legacy Syllabus Test XP + Daily Quiz XP)",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": { "test": "node test.js", "deploy": "firebase deploy --only functions:syllabus", "logs": "firebase functions:log" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

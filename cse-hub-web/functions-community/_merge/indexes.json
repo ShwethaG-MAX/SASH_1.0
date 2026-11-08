@@ -1,0 +1,9 @@
+[
+  { "collectionGroup": "chatReports", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+  { "collectionGroup": "chatReports", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "room", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+  { "collectionGroup": "chatReports", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "room", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+  { "collectionGroup": "chatReports", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "reporterUid", "order": "ASCENDING" }, { "fieldPath": "createdAtMs", "order": "ASCENDING" } ] },
+  { "collectionGroup": "chatWarnings", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "uid", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+  { "collectionGroup": "chatModerationLog", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "reportId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+  { "collectionGroup": "chatModerationLog", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "targetUid", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] }
+]

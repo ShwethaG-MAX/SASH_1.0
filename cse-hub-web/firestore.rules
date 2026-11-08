@@ -1,0 +1,444 @@
+rules_version='2';
+service cloud.firestore{
+  match /databases/{db}/documents{
+    // Owner = Firebase Auth custom claim owner:true, set ONLY via Admin SDK (see OWNER_SETUP.md)
+    function isOwner(){ return request.auth!=null && request.auth.token.owner==true; }
+    // CR = email/password account that has a crAccounts/{uid} doc. That doc can only be created together with redeeming a valid single-use crInvites/{token} (see below).
+    function isCR(){ return request.auth!=null && request.auth.token.firebase.sign_in_provider=='password' && exists(/databases/$(db)/documents/crAccounts/$(request.auth.uid)); }
+    function crSection(){ return get(/databases/$(db)/documents/crAccounts/$(request.auth.uid)).data.section; }
+    // Version gate: caller's userProfiles.clientVersion must be >= appConfig/version.minimumSupportedVersionCode.
+    // No appConfig/version doc = gate off. A profile with no clientVersion = old client = version 1.
+    // NOTE: clientVersion is written by the client, so this stops old/honest clients, not a deliberately modified one.
+    function clientVer(){ return exists(/databases/$(db)/documents/userProfiles/$(request.auth.uid))
+      ? get(/databases/$(db)/documents/userProfiles/$(request.auth.uid)).data.get('clientVersion',1) : 1; }
+    function cfgOk(){ return !exists(/databases/$(db)/documents/appConfig/version)
+      || clientVer() >= get(/databases/$(db)/documents/appConfig/version).data.minimumSupportedVersionCode; }
+    function okClient(){ return request.auth!=null && (isOwner() || cfgOk()); }
+    // ===================== COMMUNITY CHAT — two isolated rooms (LinkLearn, StudyChat) =====================
+    // MERGE: replace the existing `match /communityChat/{id}`, `match /chatReactions/{rid}` and `match /chatViews/{vid}` blocks
+    // (and their comments) in firestore.rules with this whole text. Put the three helper functions next to isOwner()/okClient().
+    // Room isolation is in the PATH: every exists() below is built from the same {room} wildcard, so a message / reaction / reply
+    // can never reference, or be written into, the other room.
+    // Rooms: 'linklearn' = Global Chat (everyone), 'year1' / 'year2' = First / Second Year Community.
+    // A year room is open ONLY to students whose stored year matches (qzGroup() reads userProfiles/{uid}.year); the admin may open both.
+    function chatRoomOk(room){
+      return room == 'linklearn'
+        || (room == 'year1' && (isOwner() || qzGroup() == 'FY_ALL'))
+        || (room == 'year2' && (isOwner() || qzGroup() == 'SY_CSE_GROUP'));
+    }
+    // True when chatRestrictions/{uid} covers this room and has not expired (until == null means "until lifted").
+    function chatRestricted(room){
+      return exists(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid))
+        && room in get(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid)).data.get('rooms',[])
+        && (get(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid)).data.get('until',null)==null
+            || get(/databases/$(db)/documents/chatRestrictions/$(request.auth.uid)).data.get('until',null) > request.time);
+    }
+    function chatReplyOk(room, d){
+      return !('replyTo' in d)
+        || (d.replyTo is map && d.replyTo.id is string && d.replyTo.id.size()>0 && d.replyTo.id.size()<=128
+            && (!('snippet' in d.replyTo) || (d.replyTo.snippet is string && d.replyTo.snippet.size()<=140))
+            && exists(/databases/$(db)/documents/chatRooms/$(room)/messages/$(d.replyTo.id)));
+    }
+
+    match /chatRooms/{room}/messages/{id}{
+      allow read: if request.auth!=null && chatRoomOk(room);
+      allow create: if chatRoomOk(room) && okClient() && !chatRestricted(room)
+        && request.resource.data.room==room
+        && request.resource.data.anonymousId==request.auth.uid
+        && request.resource.data.message is string
+        && request.resource.data.message.size()>0
+        && request.resource.data.message.size()<=1000
+        && chatReplyOk(room, request.resource.data);
+      allow update: if chatRoomOk(room) && request.auth!=null && resource.data.anonymousId==request.auth.uid
+        && request.resource.data.anonymousId==resource.data.anonymousId
+        && request.resource.data.room==room;
+      allow delete: if chatRoomOk(room) && (isOwner() || (request.auth!=null &&
+        (resource.data.anonymousId==request.auth.uid || resource.data.expiresAt <= request.time)));
+    }
+    // ---- Emoji reactions: one per user per message (doc id = msgId_uid), message must exist in THIS room ----
+    match /chatRooms/{room}/reactions/{rid}{
+      allow read: if request.auth!=null && chatRoomOk(room);
+      allow create, update: if chatRoomOk(room) && okClient() && !chatRestricted(room)
+        && request.resource.data.uid==request.auth.uid
+        && request.resource.data.room==room
+        && rid==request.resource.data.msgId+'_'+request.auth.uid
+        && request.resource.data.emoji in ['👍','❤️','😂','😮','😢','🙏']
+        && exists(/databases/$(db)/documents/chatRooms/$(room)/messages/$(request.resource.data.msgId));
+      allow delete: if chatRoomOk(room) && request.auth!=null && (resource.data.uid==request.auth.uid || isOwner() || resource.data.expiresAt <= request.time);
+    }
+    // ---- View-once log: create-only (no update) so a second open, even from another device, is refused ----
+    match /chatRooms/{room}/views/{vid}{
+      allow read: if chatRoomOk(room) && request.auth!=null && (resource==null || resource.data.uid==request.auth.uid);
+      allow create: if chatRoomOk(room) && okClient() && request.resource.data.uid==request.auth.uid
+        && vid==request.resource.data.msgId+'_'+request.auth.uid;
+      allow delete: if chatRoomOk(room) && (isOwner() || (request.auth!=null && resource.data.expiresAt <= request.time));
+    }
+    // ---- Moderation (all writes by Cloud Functions / Admin SDK only) ----
+    match /chatRestrictions/{uid}{
+      allow read: if request.auth!=null && (request.auth.uid==uid || isOwner());
+      allow write: if false;
+    }
+    match /chatReports/{id}{ allow read: if isOwner(); allow write: if false; }
+    match /chatModerationLog/{id}{ allow read: if isOwner(); allow write: if false; }
+    match /chatWarnings/{id}{
+      allow read: if request.auth!=null && (resource.data.uid==request.auth.uid || isOwner());
+      allow update: if request.auth!=null && resource.data.uid==request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seenAt']);
+      allow create, delete: if false;
+    }
+    // ---- LEGACY single chat: kept for existing data (read + delete/expiry only). New messages go to chatRooms/{room}. ----
+    match /communityChat/{id}{
+      allow read: if true;
+      allow create, update: if false;
+      allow delete: if isOwner() || (request.auth!=null &&
+        (resource.data.anonymousId==request.auth.uid || resource.data.expiresAt <= request.time));
+    }
+    match /chatReactions/{rid}{
+      allow read: if true;
+      allow create, update: if false;
+      allow delete: if request.auth!=null && (resource.data.uid==request.auth.uid || isOwner() || resource.data.expiresAt <= request.time);
+    }
+    match /chatViews/{vid}{
+      allow read: if request.auth!=null && (resource==null || resource.data.uid==request.auth.uid);
+      allow create: if false;
+      allow delete: if isOwner() || (request.auth!=null && resource.data.expiresAt <= request.time);
+    }
+    // ---- Exam Chat: anonymous questions / answers / "+" reactions ----
+    match /examQuestions/{qid}{
+      allow read: if true;
+      allow create: if okClient()
+        && request.resource.data.keys().hasOnly(['anonymousId','question','youtubeUrl','createdAt','expiresAt'])
+        && request.resource.data.anonymousId==request.auth.uid
+        && request.resource.data.question is string && request.resource.data.question.size()>0 && request.resource.data.question.size()<=1000
+        && request.resource.data.youtubeUrl is string
+        && (request.resource.data.youtubeUrl=='' || (request.resource.data.youtubeUrl.size()<=300 && request.resource.data.youtubeUrl.matches('^https?://[^ ]+$')))
+        && request.resource.data.createdAt==request.time;
+      allow update: if false;
+      allow delete: if isOwner() || (request.auth!=null && resource.data.anonymousId==request.auth.uid);
+      match /answers/{aid}{
+        allow read: if true;
+        allow create: if okClient()
+          && request.resource.data.keys().hasOnly(['anonymousId','answer','youtubeUrl','createdAt'])
+          && request.resource.data.anonymousId==request.auth.uid
+          && request.resource.data.answer is string && request.resource.data.answer.size()>0 && request.resource.data.answer.size()<=1000
+          && request.resource.data.youtubeUrl is string
+          && (request.resource.data.youtubeUrl=='' || (request.resource.data.youtubeUrl.size()<=300 && request.resource.data.youtubeUrl.matches('^https?://[^ ]+$')))
+          && request.resource.data.createdAt==request.time;
+        allow update: if false;
+        allow delete: if isOwner() || (request.auth!=null && (resource.data.anonymousId==request.auth.uid
+          || get(/databases/$(db)/documents/examQuestions/$(qid)).data.anonymousId==request.auth.uid));
+      }
+      match /reactions/{rid}{
+        allow read: if true;
+        allow create: if okClient() && rid==request.auth.uid
+          && request.resource.data.keys().hasOnly(['anonymousId','createdAt'])
+          && request.resource.data.anonymousId==request.auth.uid
+          && request.resource.data.createdAt==request.time;
+        allow update: if false;
+        allow delete: if isOwner() || (request.auth!=null && (rid==request.auth.uid
+          || get(/databases/$(db)/documents/examQuestions/$(qid)).data.anonymousId==request.auth.uid));
+      }
+    }
+    // single collection-group listeners (answers + reactions) instead of one listener per question
+    match /{path=**}/answers/{aid}{ allow read: if true; }
+    match /{path=**}/reactions/{rid}{ allow read: if true; }
+    match /communityLinks/{id}{
+      allow read: if true;
+      allow create: if okClient()
+        && request.resource.data.anonymousId==request.auth.uid
+        && request.resource.data.title.size()>0 && request.resource.data.title.size()<=120
+        && request.resource.data.url.matches('^https?://.+');
+      allow update: if request.auth!=null && resource.data.anonymousId==request.auth.uid
+        && request.resource.data.anonymousId==resource.data.anonymousId;
+      allow update: if isOwner() && request.resource.data.anonymousId==resource.data.anonymousId
+        && request.resource.data.title is string && request.resource.data.title.size()>0 && request.resource.data.title.size()<=120
+        && request.resource.data.url is string && request.resource.data.url.matches('^https?://[^ ]+$');
+      // "Delete from everyone": uploader or owner
+      allow delete: if isOwner() || (request.auth!=null && resource.data.anonymousId==request.auth.uid);
+    }
+    match /studyMaterials/{id}{
+      allow read: if true;
+      allow create: if okClient()
+        && request.resource.data.anonymousId==request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size()>0 && request.resource.data.title.size()<=120
+        && request.resource.data.url is string
+        && request.resource.data.url.size()<=500
+        && request.resource.data.url.matches('^https?://[^ ]+$')
+        && request.resource.data.subject is string
+        && request.resource.data.subject.size()>0 && request.resource.data.subject.size()<=60
+        && (!('description' in request.resource.data) || (request.resource.data.description is string && request.resource.data.description.size()<=400))
+        && (!('folder' in request.resource.data) || (request.resource.data.folder is string && request.resource.data.folder.size()<=60))
+        && (!('resourceType' in request.resource.data) || (request.resource.data.resourceType is string && request.resource.data.resourceType.size()<=30));
+      allow update: if request.auth!=null && resource.data.anonymousId==request.auth.uid
+        && request.resource.data.anonymousId==resource.data.anonymousId
+        && request.resource.data.title is string
+        && request.resource.data.title.size()>0 && request.resource.data.title.size()<=120
+        && request.resource.data.url is string && request.resource.data.url.size()<=500
+        && request.resource.data.url.matches('^https?://[^ ]+$');
+      allow update: if isOwner() && request.resource.data.anonymousId==resource.data.anonymousId
+        && request.resource.data.title is string && request.resource.data.title.size()>0 && request.resource.data.title.size()<=120
+        && request.resource.data.url is string && request.resource.data.url.size()<=500 && request.resource.data.url.matches('^https?://[^ ]+$');
+      allow delete: if isOwner() || (request.auth!=null && resource.data.anonymousId==request.auth.uid);
+    }
+    // Owner-only edits/hides of the built-in Drive links (doc id = built-in resource id)
+    match /resourceOverrides/{id}{
+      allow read: if true;
+      allow create, update, delete: if isOwner();
+    }
+    match /adminActivityLogs/{id}{
+      allow read: if isOwner();
+      allow create: if isOwner() && request.resource.data.ownerUid==request.auth.uid;
+      allow update, delete: if false;
+    }
+    // Section isolation: the server-side section is userProfiles/{uid}.section (written by the app, same doc announcements use).
+    // Second-year sections are the letters A–G (unchanged). First-year sections are namespaced 'FY-<name>' (e.g. FY-A1_A7, FY-B) so they never collide with second-year B/E/G.
+    // Second-year CSE AIML / ISE sections are namespaced 'SY-<branch>_<section>' (SY-AIML_H, SY-ISE_A/B/C) so they never collide with CSE A/B/C.
+    function isSectionKey(s){ return s in ['A','B','C','D','E','F','G'] || (s is string && s.matches('^(FY|SY)-[A-Z0-9_]{1,12}$')); }
+    function mySection(){ return get(/databases/$(db)/documents/userProfiles/$(request.auth.uid)).data.section; }
+    match /userProfiles/{uid}{
+      allow read: if isOwner() || (request.auth!=null && request.auth.uid==uid);
+      allow create, update: if request.auth!=null && request.auth.uid==uid
+        && !('role' in request.resource.data) && !('admin' in request.resource.data) && !('owner' in request.resource.data) && !('cr' in request.resource.data)
+        && (!('clientVersion' in request.resource.data) || request.resource.data.clientVersion is int)
+        && (!('section' in request.resource.data) || isSectionKey(request.resource.data.section))
+        && (!('year' in request.resource.data) || request.resource.data.year in ['1','2'])
+        && (!('branch' in request.resource.data) || request.resource.data.branch in ['','CSE','CSEAIML','ISE','ECE','EEE','EI','CV','IP','ENV','BT','CTM','ME','PST','CSBS'])
+        && (!('cycle' in request.resource.data) || request.resource.data.cycle in ['C','P',''])
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size()>=1 && request.resource.data.name.size()<=40))
+        && (!('batch' in request.resource.data) || request.resource.data.batch in ['1','2'])
+        && (!('annReadAt' in request.resource.data) || request.resource.data.annReadAt is timestamp)
+        // a CR's section can never differ from the one on their crAccounts doc (checked after the batch, so signup is covered too)
+        && (!existsAfter(/databases/$(db)/documents/crAccounts/$(uid)) || !('section' in request.resource.data)
+            || request.resource.data.section==getAfter(/databases/$(db)/documents/crAccounts/$(uid)).data.section);
+    }
+    // ---- Cross-device account sync: one doc per synced key, readable/writable ONLY by that Auth UID, never by guests (anonymous) ----
+    // Nothing here is ever used for authorization; roles still come only from the owner claim / crAccounts. Even the owner cannot read other students' data.
+    match /userData/{uid}/items/{itemId}{
+      allow read: if request.auth!=null && request.auth.uid==uid;
+      allow create, update: if request.auth!=null && request.auth.uid==uid
+        && request.auth.token.firebase.sign_in_provider!='anonymous'
+        && itemId.matches('^(csec_[a-z0-9_]{1,48}|fyStudyCycle)$')
+        && request.resource.data.keys().hasOnly(['k','v','t','dev','updatedAt'])
+        && request.resource.data.k==itemId
+        && request.resource.data.v is string && request.resource.data.v.size()<=800000
+        && request.resource.data.t is number
+        && request.resource.data.dev is string && request.resource.data.dev.size()<=64
+        && request.resource.data.updatedAt==request.time;
+      allow delete: if request.auth!=null && request.auth.uid==uid;
+    }
+    match /classPollVotes/{id}{
+      // reads: only docs of the caller's own section (queries MUST filter by it); old docs without a section are never readable
+      allow read: if okClient() && resource.data.section is string && resource.data.section==mySection();
+      allow create, update: if okClient()
+        && request.resource.data.uid==request.auth.uid
+        && request.resource.data.vote in ['interesting','notInteresting']
+        && request.resource.data.section is string
+        && request.resource.data.section==mySection()
+        && request.resource.data.occurrenceId.matches(request.resource.data.section+'_.*')
+        && id == request.resource.data.occurrenceId + '_' + request.auth.uid;
+      allow delete: if request.auth!=null && resource.data.expiresAt <= request.time;
+    }
+    match /dailyPollVotes/{id}{
+      allow read: if okClient() && resource.data.section is string && resource.data.section==mySection();
+      allow create, update: if okClient()
+        && request.resource.data.uid==request.auth.uid
+        && request.resource.data.vote in ['great','good','okay','boring']
+        && request.resource.data.section is string
+        && request.resource.data.section==mySection()
+        && id == request.resource.data.date + '_' + request.resource.data.section + '_' + request.auth.uid;
+      allow delete: if request.auth!=null && resource.data.expiresAt <= request.time;
+    }
+    // Owner announcements: shown to every signed-in user (all sections); only the owner can write/delete.
+    match /ownerAnnouncements/{id}{
+      allow read: if request.auth!=null;
+      allow create: if isOwner() && request.resource.data.authorUid==request.auth.uid
+        && request.resource.data.text is string && request.resource.data.text.size()>0 && request.resource.data.text.size()<=500
+        && request.resource.data.link is string && request.resource.data.link.size()<=400;
+      allow update: if false;
+      allow delete: if isOwner();
+    }
+    // Announcements (per section). Derived from the client code; if your live rules already had an announcements block, keep that one instead.
+    match /announcements/{id}{
+      allow read: if isOwner() || (isCR() && resource.data.section==crSection()) || (okClient() && resource.data.section is string && resource.data.section==mySection());
+      allow create: if okClient() && (isOwner() || isCR())
+        && request.resource.data.authorUid==request.auth.uid
+        && request.resource.data.createdBy==request.auth.uid
+        && request.resource.data.createdByRole==(isOwner() ? 'admin' : 'cr')
+        && request.resource.data.section is string && (isOwner() || request.resource.data.section==crSection())
+        && request.resource.data.text is string && request.resource.data.text.size()>0 && request.resource.data.text.size()<=500
+        && request.resource.data.authorName is string && request.resource.data.authorName.size()<=40;
+      allow delete: if isOwner() || (isCR() && resource.data.section==crSection());
+      allow update: if false;
+    }
+    // CR invites: owner creates a random single-use token; the invited CR redeems it once (account doc + invite update in ONE batch).
+    match /crInvites/{token}{
+      allow get: if request.auth!=null;
+      allow list: if isOwner();
+      allow create: if isOwner() && token.size()>=24 && isSectionKey(request.resource.data.section)
+        && request.resource.data.used==false && request.resource.data.createdBy==request.auth.uid && request.resource.data.expiresAt is timestamp;
+      allow update: if request.auth!=null && resource.data.used==false && resource.data.expiresAt>request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used','usedBy','usedAt'])
+        && request.resource.data.used==true && request.resource.data.usedBy==request.auth.uid
+        && getAfter(/databases/$(db)/documents/crAccounts/$(request.auth.uid)).data.token==token;
+      allow delete: if isOwner();
+    }
+    match /crAccounts/{uid}{
+      allow read: if request.auth!=null && (request.auth.uid==uid || isOwner());
+      allow create: if request.auth!=null && request.auth.uid==uid && request.auth.token.firebase.sign_in_provider=='password'
+        && request.resource.data.keys().hasOnly(['section','token','username','createdAt'])
+        && get(/databases/$(db)/documents/crInvites/$(request.resource.data.token)).data.used==false
+        && get(/databases/$(db)/documents/crInvites/$(request.resource.data.token)).data.expiresAt>request.time
+        && get(/databases/$(db)/documents/crInvites/$(request.resource.data.token)).data.section==request.resource.data.section
+        && getAfter(/databases/$(db)/documents/crInvites/$(request.resource.data.token)).data.usedBy==uid;
+      allow update: if false;
+      allow delete: if isOwner();
+    }
+    // ---- Study Chat / LinkLearn push notifications ----
+    // Private per-user inbox: ONE item per answer to MY question (id = answer id). Written ONLY by the Cloud Function (Admin SDK).
+    // Holds no answer text and no answerer identity. Only the owner can read it, so answers can never leak to other users.
+    match /userInbox/{uid}/items/{itemId}{
+      allow read: if request.auth!=null && request.auth.uid==uid;
+      allow delete: if request.auth!=null && request.auth.uid==uid;
+      allow create, update: if false;
+    }
+    // FCM token of this device. Write-only for its owner, never readable by any client (the Cloud Function reads it with the Admin SDK).
+    match /deviceTokens/{uid}{
+      allow read: if false;
+      allow create, update: if request.auth!=null && request.auth.uid==uid
+        && request.resource.data.keys().hasOnly(['token','answers','quiz','quizResults','platform','updatedAt'])
+        && request.resource.data.token is string && request.resource.data.token.size()>20 && request.resource.data.token.size()<=400
+        && request.resource.data.answers is bool && request.resource.data.platform=='android'
+        && (!('quiz' in request.resource.data) || request.resource.data.quiz is bool)
+        && (!('quizResults' in request.resource.data) || request.resource.data.quizResults is bool)
+        && request.resource.data.updatedAt==request.time;
+      allow delete: if request.auth!=null && request.auth.uid==uid;
+    }
+    // Idempotency keys written by the Cloud Functions so a retried event never notifies twice. No client access.
+    match /notifEvents/{id}{ allow read, write: if false; }
+
+    // ---- Daily Quiz: every write comes from Cloud Functions (Admin SDK). Clients can NEVER write quiz, answer, XP, rank or leaderboard data. ----
+    // Leaderboard rows (written by quizSubmit / the finaliser): a student can read ONLY their own academic year's group; the owner/admin can read both.
+    // qzGroup() mirrors deriveGroup() in functions-quiz/lib/core.js: the year stored on userProfiles/{uid} decides; the section key is only a
+    // legacy fallback when no year is stored; a year that contradicts the section, or a missing/invalid year, gives 'NONE' (no access, never a default year).
+    function qzGroup(){
+      let p = get(/databases/$(db)/documents/userProfiles/$(request.auth.uid)).data;
+      let yr = string(p.get('year', ''));
+      let sec = p.get('section', '');
+      let secYr = sec.matches('^FY-.*') ? '1' : ((sec.matches('^[A-G]$') || sec.matches('^SY-.*')) ? '2' : '');
+      let y = yr != '' ? yr : secYr;
+      return (yr != '' && secYr != '' && yr != secYr) ? 'NONE' : (y == '1' ? 'FY_ALL' : (y == '2' ? 'SY_CSE_GROUP' : 'NONE'));
+    }
+    match /quizBoards/{key}/entries/{uid}{ allow read: if isOwner() || (request.auth!=null && key.matches('.*_' + qzGroup())); allow write: if false; }
+    match /dailyQuizResults/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.groupId==qzGroup()); allow write: if false; }
+    match /weeklyQuizResults/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.groupId==qzGroup()); allow write: if false; }
+    // A student can read only their OWN attempt and ledger rows.
+    match /quizAttempts/{id}{ allow read: if request.auth!=null && resource.data.uid==request.auth.uid; allow write: if false; }
+    match /quizXpLedger/{id}{ allow read: if request.auth!=null && resource.data.uid==request.auth.uid; allow write: if false; }
+    // Server-only: settings, quizzes (questions are served by callable), answer keys, drafts, pool, logs, audit, rate limits. Admin uses callables that check the owner claim.
+    match /quizSettings/{id}{ allow read, write: if false; }
+    match /dailyQuizzes/{id}{ allow read, write: if false; }
+    match /quizAnswerKeys/{id}{ allow read, write: if false; }
+    match /quizDrafts/{id}{ allow read, write: if false; }
+    match /quizQuestionPool/{id}{ allow read, write: if false; }
+    match /quizQuestionHashes/{id}{ allow read, write: if false; }
+    match /quizGenerationLogs/{id}{ allow read, write: if false; }
+    match /quizCorrections/{id}{ allow read, write: if false; }
+    match /quizAdminAudit/{id}{ allow read, write: if false; }
+    match /quizProfiles/{id}{ allow read, write: if false; }
+    match /quizRate/{id}{ allow read, write: if false; }
+    // ---- Syllabus Test (chapter-wise MCQs). Admin writes use the owner claim; scoring/attempts are written ONLY by the sylSubmit Cloud Function. ----
+    match /branches/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.visible==true); allow write: if isOwner(); }
+    match /academicYears/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.visible==true); allow write: if isOwner(); }
+    match /subjects/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.published==true); allow write: if isOwner(); }
+    match /units/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.published==true); allow write: if isOwner(); }
+    // ---- LEGACY Syllabus Test (replaced by "Test"). Kept read-only so existing data and the XP already earned are not lost; nothing can write here any more. ----
+    match /syllabusQuestions/{id}{ allow read: if isOwner(); allow write: if false; }
+    match /syllabusKeys/{id}{ allow read: if isOwner(); allow write: if false; }
+    match /syllabusConfig/{id}{ allow read: if request.auth!=null; allow write: if false; }
+    // A student can read only their OWN attempts/progress; clients can never write them.
+    match /syllabusQuizAttempts/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.uid==request.auth.uid); allow write: if false; }
+    match /userSyllabusProgress/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.uid==request.auth.uid); allow write: if false; }
+
+    // ---- Legacy Syllabus Test XP (historic, no longer growing). Clients can never write these; students read only their own rows. ----
+    // userXp/{uid} = Syllabus Test XP earned before Test replaced it (read by xpGetSummary for the XP popup).
+    match /userXp/{uid}{ allow read: if request.auth!=null && (request.auth.uid==uid || isOwner()); allow write: if false; }
+    match /syllabusXpLedger/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.uid==request.auth.uid); allow write: if false; }
+
+    // ================= TEST (replaces Syllabus Test) — see API-CONTRACT.md section A =================
+    // Each submitted test awards XP. Scoring, attempts, XP and the leaderboards are written ONLY by the `test` / `quiz` Cloud Functions.
+    function tOkLetter(v){ return v in ['','A','B','C','D','E','F']; }
+    match /tests/{id}{
+      allow read: if isOwner() || (request.auth!=null && resource.data.status=='published');
+      // The owner can edit details only; status / questionCount / sourceFile / extraction change only through the callables.
+      allow update: if isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title','description','totalQuestions','durationMin','maxMarks','updatedAt'])
+        && request.resource.data.title is string && request.resource.data.title.size()>0 && request.resource.data.title.size()<=120
+        && request.resource.data.description is string && request.resource.data.description.size()<=400
+        && request.resource.data.durationMin is int && request.resource.data.durationMin>=1 && request.resource.data.durationMin<=600
+        && request.resource.data.totalQuestions is int && request.resource.data.totalQuestions>=1 && request.resource.data.totalQuestions<=300
+        && (request.resource.data.maxMarks==null || (request.resource.data.maxMarks is number && request.resource.data.maxMarks>0));
+      allow create, delete: if false;
+    }
+    // Questions: owner only. Students receive them from testStart (never directly), so nobody can read a paper before starting.
+    match /testQuestions/{id}{
+      allow read: if isOwner();
+      allow create: if isOwner() && request.resource.data.testId is string && request.resource.data.text is string && request.resource.data.text.size()<=2000
+        && request.resource.data.options is list && request.resource.data.options.size()<=6;
+      allow update: if isOwner() && request.resource.data.testId==resource.data.testId && request.resource.data.text is string && request.resource.data.text.size()<=2000
+        && request.resource.data.options is list && request.resource.data.options.size()<=6;
+      allow delete: if isOwner();
+    }
+    match /testKeys/{id}{
+      allow read, delete: if isOwner();
+      allow create, update: if isOwner() && request.resource.data.testId is string && tOkLetter(request.resource.data.correctAnswer);
+    }
+    match /testAttempts/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.uid==request.auth.uid); allow write: if false; }
+    match /testResults/{id}{ allow read: if request.auth!=null; allow write: if false; }
+    match /testStats/{uid}{ allow read: if request.auth!=null; allow write: if false; }
+    // xpTotals/{uid} = all-time XP split by source (quizXP, testXP, legacyXP, totalXP). Read by the Overall leaderboard; written only by Cloud Functions.
+    match /xpTotals/{uid}{ allow read: if request.auth!=null; allow write: if false; }
+
+    // ---- Discover: shared article library + anonymous comments + per-student interests/saved ----
+    // Articles and comments are written ONLY by Cloud Functions (Admin SDK). A comment document holds text/createdAt/parentId and NOTHING that identifies the author;
+    // the author link lives in server-only collections. Clients can only read the shared data and manage their OWN interests + saved list.
+    function dvInterests(){ return ['ai','ml','datascience','programming','softeng','webdev','appdev','cybersecurity','cs','cloud','space','physics','math','biotech','discoveries','envscience','business','finance','worldnews','innovation','education','psychology','productivity','engineering']; }
+    match /discoverArticles/{aid}{
+      allow read: if okClient();
+      allow write: if false;
+      match /comments/{cid}{ allow read: if okClient(); allow write: if false; }
+    }
+    match /discoverUsers/{uid}{
+      allow read: if request.auth!=null && request.auth.uid==uid;
+      allow create, update: if okClient() && request.auth.uid==uid
+        && request.resource.data.keys().hasOnly(['interests','onboarded','updatedAt'])
+        && request.resource.data.interests is list && request.resource.data.interests.size()<=24
+        && request.resource.data.interests.hasOnly(dvInterests())
+        && request.resource.data.onboarded is bool
+        && request.resource.data.updatedAt==request.time;
+      allow delete: if false;
+      // Private bookmarks: only the owner can read, create or delete them.
+      match /saved/{aid}{
+        allow read: if request.auth!=null && request.auth.uid==uid;
+        allow create: if okClient() && request.auth.uid==uid && aid.matches('^a_[0-9a-f]{20}$')
+          && request.resource.data.keys().hasOnly(['savedAt']) && request.resource.data.savedAt==request.time;
+        allow delete: if request.auth!=null && request.auth.uid==uid;
+        allow update: if false;
+      }
+      // Ids of MY comments (so the app can show "You" + a delete button). Written by the Cloud Function only.
+      match /myComments/{cid}{ allow read: if request.auth!=null && request.auth.uid==uid; allow write: if false; }
+    }
+    match /discoverMeta/{id}{ allow read: if okClient(); allow write: if false; }
+    // Server-only: author links, auto-hidden comments, reports, rate limits.
+    match /discoverCommentAuthors/{id}{ allow read, write: if false; }
+    match /discoverHidden/{id}{ allow read, write: if false; }
+    match /discoverReports/{id}{ allow read, write: if false; }
+    match /discoverRate/{id}{ allow read, write: if false; }
+
+    // Remote version config: anyone may read (needed before auth/profile exist); only the owner edits it.
+    match /appConfig/{id}{
+      allow read: if true;
+      allow write: if isOwner();
+    }
+  }
+}

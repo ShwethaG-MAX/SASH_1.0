@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "221968776813",
+    "project_id": "cse-c-hub",
+    "storage_bucket": "cse-c-hub.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221968776813:android:e03a79d465d0f280068964",
+        "android_client_info": {
+          "package_name": "com.study.csehub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqz0iPQKnd1J-QtvbqpGMafYvKzZJIznY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
