@@ -1645,16 +1645,6 @@ footer{background:linear-gradient(180deg,transparent,rgba(227,232,237,.55));}
 .sch-pane #calendarMode>section{padding-bottom:0}
 @media (max-width:480px){.sch-tab{font-size:.72rem;padding:9px 2px;flex-direction:column;gap:2px}}
 .sch-pane #attendanceMode{margin-top:0}
-#hmStudentCard.hm-card{align-self:center;width:100%;max-width:330px;padding:9px 12px;border-radius:16px;display:flex;align-items:center;gap:10px}
-#hmStudentCard.hm-card.hidden{display:none}
-#hmStudentCard.editing.hm-card{display:block;max-width:none;padding:20px}
-#hmStudentCard .hs-av{width:36px;height:36px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk";font-weight:700;font-size:.95rem}
-#hmStudentCard .hs-info{min-width:0;flex:1;text-align:left}
-#hmStudentCard .hs-name{font-family:"Space Grotesk";font-weight:700;font-size:.95rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#hmStudentCard .hs-meta{color:var(--muted);font-size:.75rem;line-height:1.3;margin-top:1px}
-#hmStudentCard .hs-edit{flex-shrink:0;background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
-#hmStudentCard .hs-edit:hover,#hmStudentCard .hs-edit:focus-visible{border-color:var(--cyan);color:var(--cyan)}
-#hmStudentCard .hs-edit svg{width:16px;height:16px}
 </style>
 <style id="modeFxStyle">
 /* ===== Mode-nav fixes: no sticky hover tint on touch, swipe works from any scroll position ===== */
@@ -2923,7 +2913,7 @@ html:root :is(.totop,.backup-btn,.burger){
 </style>
 <script>try{var __h=location.hash.replace('#','');if(__h==='connect'||__h.indexOf('connect/')===0||__h==='discover'){window.__secBoot='connect';window.__cnBoot=__h;}}catch(e){}</script>
 <style id="sectionNavStyles">
-/* ===== Primary sections: Campus | Connect (added) ===== */
+/* ===== Primary sections: Campus | Home | Connect ===== */
 .sec-nav{--sc:var(--accent);position:relative;display:inline-flex;align-items:center;gap:2px;padding:4px;margin:0 auto;border-radius:999px;background:var(--p-glass,var(--card));border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,42,69,.06),inset 0 1px 0 rgba(255,255,255,.45);isolation:isolate;flex:0 0 auto}
 [data-theme="dark"] .sec-nav{box-shadow:0 1px 2px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)}
 .sec-nav[data-active="connect"]{--sc:var(--brown-dark,#A9835C)}
@@ -2955,7 +2945,11 @@ html:root :is(.totop,.backup-btn,.burger){
 @keyframes secBlink{0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes secShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 /* outside Campus the Campus chrome is simply hidden (DOM, state and listeners stay untouched) */
-body[data-section="connect"] :is(.mode-bar-wrap,#mainPanel,.totop,#shxFab,#shx,.mode-graphics){display:none !important}
+body[data-section="connect"] :is(.mode-bar-wrap:not(#cnModeWrap),#mainPanel,.totop,#shxFab,#shx,.mode-graphics){display:none !important}
+body:not([data-section="connect"]) #cnModeWrap{display:none !important}   /* Connect's mode bar is the Campus mode bar, shown only in Connect */
+#cnModeWrap .mode-bar{animation:fadeIn .35s ease}
+.cn-pane:not(.hidden){animation:fadeIn .35s ease}   /* smooth switch between Posting / Teams / Discover */
+@media (max-width:820px){body[data-section="connect"] .cn-toast{bottom:calc(var(--bn-total,60px) + 12px)}}   /* toast clears the bottom mode bar, like Campus */
 @media (max-width:820px){
   .nav-inner{flex-wrap:wrap;row-gap:6px}
   .sec-nav{order:3;display:flex;flex:0 0 100%;width:100%;margin:0}
@@ -2990,6 +2984,100 @@ footer#siteFooter .foot-bottom{margin-top:0;padding-top:0;border-top:0}
 html.is-app{--top-inset:0px}
 nav{padding-top:calc(var(--top-inset) + 6px) !important}
 @media (max-width:820px){nav{padding-top:calc(var(--top-inset) + 4px) !important}}
+/* ===== Home: one shared section between Campus and Connect ===== */
+.sec-nav[data-active="home"],.sec-btn[data-sec="home"]{--sc:color-mix(in srgb,var(--accent) 62%,var(--brown-dark,#A9835C))}
+.sec-btn .unread-badge{top:0;right:4px}
+body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
+@media (max-width:820px){body[data-section="home"]{padding-bottom:env(safe-area-inset-bottom,0px)}}
+
+/* ===== Home dashboard: Next Classes | Sheynix | Upcoming Events (existing tokens + .hm-card surfaces) ===== */
+#homeMode .hm-wrap.hm-dash-wrap{max-width:1180px;padding:28px 0 48px;gap:16px}
+#homeMode #annList:empty{display:none}
+#homeMode :is(#annList,#annCompose,#hmNameCard){width:100%;max-width:760px;margin-left:auto;margin-right:auto;box-sizing:border-box}
+.hm-dash{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,300px) minmax(0,1fr);gap:18px;align-items:stretch}
+.hm-dcard{display:flex;flex-direction:column;min-width:0;min-height:380px;margin:0;box-sizing:border-box}
+#homeMode .hm-dcard.hm-card{padding:20px}
+.hm-dhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.hm-dtitle{display:flex;align-items:center;gap:10px;margin:0;font-family:"Space Grotesk",Inter,sans-serif;font-size:1.06rem;font-weight:700;letter-spacing:-.01em;line-height:1.2;color:var(--text)}
+.hm-dico{width:32px;height:32px;flex:none;border-radius:10px;display:inline-grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.hm-dico svg{width:17px;height:17px}
+.hm-events .hm-dico{color:var(--brown-dark,#A9835C);background:color-mix(in srgb,var(--brown-dark,#A9835C) 15%,transparent)}
+.hm-dmeta{min-height:1.1em;margin:0 0 14px 42px;font-size:.76rem;color:var(--muted);line-height:1.4}
+.hm-dbody{display:flex;flex-direction:column;gap:10px;flex:1}
+.hm-dfoot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
+.hm-dlink{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 10px;border:0;border-radius:10px;background:transparent;color:var(--accent);font:600 .82rem Inter,system-ui,sans-serif;cursor:pointer;transition:background .2s ease,color .2s ease}
+.hm-dlink:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.hm-dlink:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hm-events .hm-dlink{color:var(--brown-dark,#A9835C)}
+.hm-events .hm-dlink:hover{background:color-mix(in srgb,var(--brown-dark,#A9835C) 12%,transparent)}
+.hm-dnote{margin-top:2px;font-size:.76rem;color:var(--muted)}
+
+/* class rows */
+.hm-cls{display:grid;grid-template-columns:68px minmax(0,1fr);gap:4px 12px;padding:12px;border-radius:14px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 72%,transparent);transition:border-color .25s ease,box-shadow .25s ease;animation:fadeIn .35s ease}
+.hm-cls-time{font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:.86rem;line-height:1.15;color:var(--text);white-space:nowrap}
+.hm-cls-time small{display:block;margin-top:4px;font:500 .72rem Inter,system-ui,sans-serif;color:var(--muted)}
+.hm-cls-tag{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.hm-live{width:7px;height:7px;border-radius:50%;background:currentColor;animation:secBlink 1.8s ease-in-out infinite}
+.hm-cls-name{font-weight:600;font-size:.92rem;line-height:1.3;color:var(--text);overflow-wrap:anywhere}
+.hm-cls-sub{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px;font-size:.75rem;line-height:1.35;color:var(--muted)}
+.hm-cls-sub>span{display:inline-flex;align-items:center;gap:4px;min-width:0}
+.hm-cls-sub svg{width:12px;height:12px;flex:none}
+.hm-cls-code{font-family:"Space Grotesk",Inter,sans-serif;font-weight:600;letter-spacing:.02em}
+.hm-cls-flag{padding:0 7px;border-radius:999px;border:1px solid var(--line);font-weight:600}
+.hm-cls.is-now{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));background:color-mix(in srgb,var(--accent) 9%,var(--card));box-shadow:0 8px 20px -14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.hm-cls.is-next{border-color:color-mix(in srgb,var(--accent) 34%,var(--line))}
+.hm-cls-bar{grid-column:1/-1;height:4px;margin-top:8px;border-radius:4px;background:color-mix(in srgb,var(--accent) 15%,transparent);overflow:hidden}
+.hm-cls-bar i{display:block;height:100%;border-radius:inherit;background:var(--accent);transition:width .6s ease}
+
+/* empty states */
+.hm-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 8px;text-align:center;color:var(--muted)}
+.hm-empty .e{width:46px;height:46px;margin-bottom:4px;border-radius:14px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 11%,transparent)}
+.hm-events .hm-empty .e{color:var(--brown-dark,#A9835C);background:color-mix(in srgb,var(--brown-dark,#A9835C) 13%,transparent)}
+.hm-empty .e svg{width:22px;height:22px}
+.hm-empty b{font-size:.95rem;color:var(--text)}
+.hm-empty p{max-width:30ch;margin:0;font-size:.82rem;line-height:1.5}
+
+/* event rows */
+.hm-ev{display:grid;grid-template-columns:50px minmax(0,1fr) 18px;align-items:center;gap:12px;width:100%;min-height:68px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--card) 72%,transparent);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:border-color .25s ease,transform .2s ease,box-shadow .25s ease;animation:fadeIn .35s ease}
+.hm-ev:hover{border-color:color-mix(in srgb,var(--brown-dark,#A9835C) 50%,var(--line));transform:translateY(-1px);box-shadow:0 8px 20px -14px color-mix(in srgb,var(--brown-dark,#A9835C) 70%,transparent)}
+.hm-ev:active{transform:scale(.99)}
+.hm-ev:focus-visible{outline:2px solid var(--brown-dark,#A9835C);outline-offset:2px}
+.hm-ev-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:50px;height:52px;border-radius:12px;line-height:1;color:var(--brown-dark,#A9835C);background:color-mix(in srgb,var(--brown-dark,#A9835C) 14%,transparent)}
+.hm-ev-date b{font-family:"Space Grotesk",Inter,sans-serif;font-size:1.15rem}
+.hm-ev-date small{margin-top:4px;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.hm-ev-info{display:flex;flex-direction:column;min-width:0}
+.hm-ev-t{font-weight:600;font-size:.9rem;line-height:1.3;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hm-ev-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:5px;font-size:.74rem;color:var(--muted)}
+.hm-ev-k{padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--brown-dark,#A9835C) 32%,transparent);color:var(--brown-dark,#A9835C);font-weight:600}
+.hm-ev-go{display:grid;place-items:center;color:var(--muted)}
+.hm-ev-go svg{width:16px;height:16px}
+
+/* Sheynix card: compact, centred character + one button (character, animations and chat are the existing ones) */
+#homeMode #living-avatar.hm-dcard{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px 16px 20px;border-radius:22px}
+#homeMode #living-avatar .av-stage{width:190px;height:200px;margin:0 auto}
+#homeMode #living-avatar .av-bubble{position:absolute;z-index:3;top:12px;left:12px;right:12px;max-width:none;min-height:0;margin:0;padding:8px 12px;font-size:.8rem;pointer-events:none}
+#homeMode #living-avatar .av-bubble:before{display:none}
+#homeMode #living-avatar .av-actions{margin-top:14px}
+#homeMode #living-avatar .av-talk{min-height:44px;padding:10px 24px;font-size:.9rem}
+#homeMode #av-chat.on{width:100%;box-sizing:border-box}
+
+/* tablet: Sheynix across the top, the two lists side by side */
+@media (max-width:1080px){
+  .hm-dash{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  #homeMode #living-avatar.hm-dcard{grid-column:1/-1;order:-1;min-height:0;padding-top:58px}
+  .hm-dcard{min-height:340px}
+}
+/* phone: one column — Sheynix, Next Classes, Upcoming Events */
+@media (max-width:680px){
+  #homeMode .hm-wrap.hm-dash-wrap{padding:16px 0 28px;gap:14px}
+  .hm-dash{grid-template-columns:minmax(0,1fr);gap:14px}
+  .hm-dcard{min-height:0}
+  #homeMode .hm-dcard.hm-card{padding:16px}
+  #homeMode #living-avatar.hm-dcard{padding:58px 14px 16px}
+  #homeMode #living-avatar .av-stage{width:170px;height:180px}
+  .hm-empty{padding:12px 6px}
+}
+@media (prefers-reduced-motion:reduce){.hm-cls,.hm-ev{animation:none}.hm-live{animation:none}.hm-ev:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -3102,6 +3190,7 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
     <div class="sec-nav" id="secNav" role="tablist" aria-label="Sections" data-active="campus" data-no-swipe>
       <span class="sec-ind" aria-hidden="true"></span>
       <button type="button" class="sec-btn active" id="secBtnCampus" data-sec="campus" role="tab" aria-selected="true" aria-current="page" aria-controls="mainPanel"><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.5 9 12 14l9.5-5L12 4Z" fill="currentColor" fill-opacity=".25"/><path d="M6.5 11.4v4.2c0 1.4 2.5 2.9 5.5 2.9s5.5-1.5 5.5-2.9v-4.2" fill="currentColor" fill-opacity=".12"/><path d="M21.5 9v5.5"/></svg></span><span>Campus</span></button>
+      <button type="button" class="sec-btn" id="secBtnHome" data-sec="home" role="tab" aria-selected="false" tabindex="-1" aria-controls="homeMode"><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.6 12 3.6l8.5 7"/><path d="M5.6 9.2v9.6c0 .9.7 1.6 1.6 1.6h3.3v-5.6h3v5.6h3.3c.9 0 1.6-.7 1.6-1.6V9.2" fill="currentColor" fill-opacity=".22"/></svg></span><span>Home</span><span class="unread-badge hidden" id="homeNavBadge" aria-hidden="true"></span></button>
       <button type="button" class="sec-btn" id="secBtnConnect" data-sec="connect" role="tab" aria-selected="false" tabindex="-1" aria-controls="sectionConnect"><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 10.2-3.4-2.8M14 10.2l3.4-2.8M12 15v3"/><circle cx="12" cy="12" r="3" fill="currentColor" fill-opacity=".28"/><circle cx="5" cy="6" r="2" fill="currentColor" fill-opacity=".2"/><circle cx="19" cy="6" r="2" fill="currentColor" fill-opacity=".2"/><circle cx="12" cy="20" r="2" fill="currentColor" fill-opacity=".2"/></svg></span><span>Connect</span></button>
     </div>
     <div class="nav-actions">
@@ -3120,22 +3209,24 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
 
 <div class="mode-bar-wrap">
   <div class="mode-bar" role="tablist" aria-label="Site mode">
-    <button class="mode-btn active" id="modeHomeBtn" role="tab" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span> <span class="mb-full">Home</span><span class="mb-short">Home</span><span class="unread-badge hidden" id="homeNavBadge" aria-hidden="true"></span></button>
-    <button class="mode-btn" id="modeScheduleBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> <span class="mb-full">Schedule</span><span class="mb-short">Schedule</span></button>
+    <button class="mode-btn active" id="modeScheduleBtn" role="tab" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> <span class="mb-full">Schedule</span><span class="mb-short">Schedule</span></button>
     <button class="mode-btn" id="modeStudyBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span> <span class="mb-full">Study Materials</span><span class="mb-short">Materials</span></button>
     <button class="mode-btn" id="modeQuizBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span> <span class="mb-full">Contests</span><span class="mb-short">Contests</span></button>
     <button class="mode-btn" id="modeCommunityBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> <span class="mb-full">Community</span><span class="mb-short">Community</span><span class="unread-badge community-unread-badge hidden" id="commNavBadge" aria-hidden="true"></span></button>
   </div>
 </div>
 
+<div class="mode-bar-wrap" id="cnModeWrap">
+  <div class="mode-bar" role="tablist" aria-label="Connect modes">
+    <button type="button" class="mode-btn active" role="tab" data-cn="posting" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span> <span class="mb-full">Posting</span><span class="mb-short">Posting</span></button>
+    <button type="button" class="mode-btn" role="tab" data-cn="teams" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span> <span class="mb-full">Teams</span><span class="mb-short">Teams</span></button>
+    <button type="button" class="mode-btn" role="tab" data-cn="discover" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></svg></span> <span class="mb-full">Discover</span><span class="mb-short">Discover</span></button>
+  </div>
+</div>
+
 <section class="sec-page cn-page hidden" id="sectionConnect" role="tabpanel" aria-labelledby="secBtnConnect" data-sec="connect" data-no-swipe>
   <div class="cn-shell">
     <header class="cn-head"><div class="eyebrow">CAMPUS LOOP</div><h1>Connect</h1><p>Share your work, find teammates and discover articles and events.</p></header>
-    <div class="cn-tabs" role="tablist" aria-label="Connect sections">
-      <button type="button" class="cn-tab active" role="tab" data-cn="posting" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Posting</button>
-      <button type="button" class="cn-tab" role="tab" data-cn="teams" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Teams</button>
-      <button type="button" class="cn-tab" role="tab" data-cn="discover" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></svg>Discover</button>
-    </div>
     <div class="cn-subtabs hidden" id="cnSub" role="tablist" aria-label="Discover sections">
       <button type="button" class="cn-tab active" role="tab" data-cnsub="articles" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>Articles</button>
       <button type="button" class="cn-tab" role="tab" data-cnsub="events" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</button>
@@ -3189,11 +3280,18 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
 
 <main class="wrap" id="mainPanel">
 <div id="homeMode">
-  <div class="hm-wrap">
+  <div class="hm-wrap hm-dash-wrap">
 <div id="annList" class="ann-list" aria-live="polite"></div>
-<div class="hm-card hm-student hidden" id="hmStudentCard" aria-label="Student information"></div>
-<section id="living-avatar" data-state="idle" aria-label="Your guide">
-<div class="av-hi" id="av-hi">Hello! 🔥</div>
+    <div class="hm-card hm-name-card hidden" id="hmNameCard"></div>
+    <div class="hm-card" id="annCompose"><div class="hm-card-title">📢 ANNOUNCEMENTS</div><div class="hm-sub" id="annTarget"></div><textarea id="annText" maxlength="500" rows="2" placeholder="Write an announcement..." aria-label="Announcement text"></textarea><div class="ann-row"><small id="annCount">0/500</small><button type="button" class="btn btn-primary" id="annPost">Post Announcement</button></div></div>
+    <div class="hm-dash" role="region" aria-label="Home dashboard">
+      <section class="hm-card hm-dcard hm-classes" id="hmNextCard" aria-labelledby="hmNextTitle">
+        <header class="hm-dhead"><h2 class="hm-dtitle" id="hmNextTitle"><span class="hm-dico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>Next Classes</h2></header>
+        <div class="hm-dmeta" id="hmNextMeta"></div>
+        <div class="hm-dbody" id="hmNextList" aria-live="polite"></div>
+        <div class="hm-dfoot"><button type="button" class="hm-dlink" data-hm-go="timetable">Open Timetable <span aria-hidden="true">→</span></button></div>
+      </section>
+<section id="living-avatar" class="hm-dcard hm-shx" data-state="idle" aria-label="Sheynix, your study companion">
 <div class="av-stage"><div class="av-aura"></div><i class="av-rip"></i><i class="av-rip r2"></i><i class="av-ember" style="left:30%;--x:-14px"></i><i class="av-ember" style="left:62%;--x:18px;animation-delay:-1.6s"></i><i class="av-ember" style="left:78%;--x:8px;animation-delay:-3s"></i><i class="av-ember" style="left:45%;--x:-6px;animation-delay:-2.3s"></i><div class="av-shadow"></div><i class="av-spark" style="--a:-60deg"></i><i class="av-spark" style="--a:-25deg"></i><i class="av-spark" style="--a:15deg"></i><i class="av-spark" style="--a:50deg"></i>
 <div class="av-fig" id="av-fig" role="button" tabindex="0" aria-label="Poke your guide"><div class="av-dragon" id="av-dragon" aria-hidden="true"></div><div class="av-fury"><svg class="cd-svg" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sheynix, your fire guide"><defs><radialGradient id="bS1" cx="35%" cy="28%" r="78%"><stop offset="0" stop-color="#FF9A4D"/><stop offset=".45" stop-color="#E8451F"/><stop offset="1" stop-color="#8E1B0C"/></radialGradient>
 <radialGradient id="beS1" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#FFF0C2"/><stop offset="1" stop-color="#FFC25E"/></radialGradient>
@@ -3206,32 +3304,15 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
 <radialGradient id="irW1"><stop offset="0" stop-color="#FFB48A"/><stop offset=".6" stop-color="#D8452A"/><stop offset="1" stop-color="#6E150C"/></radialGradient>
 <radialGradient id="gW1"><stop offset="0" stop-color="#5FD8FF" stop-opacity=".8"/><stop offset="1" stop-color="#5FD8FF" stop-opacity="0"/></radialGradient></defs><g class="cd-all"><g class="cd-tail"><path d="M140 198C172 208 198 190 188 160C185 150 175 150 172 158C176 170 168 184 140 186Z" fill="url(#bW1)"/></g><ellipse cx="116" cy="152" rx="54" ry="56" fill="url(#shW1)" stroke="#F6EBC3" stroke-width="3"/><path d="M130 110L142 150M146 120L158 156M112 108L120 148" stroke="#5a2a0c" stroke-width="2" opacity=".5" fill="none"/><ellipse cx="76" cy="213" rx="21" ry="10" fill="#2C8FCB"/><ellipse cx="124" cy="213" rx="21" ry="10" fill="#2C8FCB"/><path d="M60 218l3-6 3 6z" fill="#fff"/><path d="M70 218l3-6 3 6z" fill="#fff"/><path d="M80 218l3-6 3 6z" fill="#fff"/><path d="M114 218l3-6 3 6z" fill="#fff"/><path d="M124 218l3-6 3 6z" fill="#fff"/><path d="M134 218l3-6 3 6z" fill="#fff"/><ellipse cx="100" cy="162" rx="54" ry="50" fill="url(#bW1)"/><ellipse cx="100" cy="166" rx="42" ry="44" fill="url(#plW1)" stroke="#FFF3C9" stroke-width="5"/><polygon points="100,146 118,156 118,176 100,186 82,176 82,156" fill="none" stroke="#C9A445" stroke-width="2.5"/><path d="M100 146V124M118 156L138 146M118 176L138 188M100 186V208M82 176L62 188M82 156L62 146" stroke="#C9A445" stroke-width="2.5" stroke-linecap="round"/><g class="cd-arm l"><ellipse cx="50" cy="152" rx="11" ry="20" transform="rotate(25 50 152)" fill="url(#bW1)"/></g><g class="cd-arm r"><ellipse cx="150" cy="152" rx="11" ry="20" transform="rotate(-25 150 152)" fill="url(#bW1)"/></g><g class="cd-head"><circle cx="100" cy="30" r="38" fill="url(#gW1)" class="cd-hglow"/><g class="cd-flame"><path d="M100 2C108 14 113 20 110 27C107 32 93 32 90 27C87 20 92 14 100 2Z" fill="url(#fW1)" stroke="#8EE3FF" stroke-width="1.5"/><ellipse cx="97" cy="20" rx="2.2" ry="4" fill="#fff" opacity=".8"/></g><ellipse cx="100" cy="86" rx="60" ry="48" fill="url(#bW1)"/><ellipse cx="78" cy="60" rx="20" ry="8" fill="#fff" opacity=".32" transform="rotate(-20 78 60)"/><ellipse cx="62" cy="104" rx="9" ry="6" fill="#9BE0F5" opacity=".6"/><ellipse cx="138" cy="104" rx="9" ry="6" fill="#9BE0F5" opacity=".6"/><g class="cd-eye l"><ellipse cx="74" cy="86" rx="14" ry="16" fill="#1a0a08"/><g class="cd-pupil"><circle cx="74" cy="87" r="10" fill="url(#irW1)"/><circle cx="74" cy="87" r="5" fill="#1a0a08"/><circle cx="70" cy="80" r="3.4" fill="#fff"/><circle cx="78" cy="91" r="1.6" fill="#fff"/></g><ellipse class="cd-lid l" cx="74" cy="86" rx="15.5" ry="17.5" fill="#3DB5E8"/></g><g class="cd-eye r"><ellipse cx="126" cy="86" rx="14" ry="16" fill="#1a0a08"/><g class="cd-pupil"><circle cx="126" cy="87" r="10" fill="url(#irW1)"/><circle cx="126" cy="87" r="5" fill="#1a0a08"/><circle cx="122" cy="80" r="3.4" fill="#fff"/><circle cx="130" cy="91" r="1.6" fill="#fff"/></g><ellipse class="cd-lid r" cx="126" cy="86" rx="15.5" ry="17.5" fill="#3DB5E8"/></g><path class="cd-brow l" d="M62 66Q74 61 86 65" stroke="#0B3A6A" stroke-width="3" stroke-linecap="round" fill="none"/><path class="cd-brow r" d="M114 65Q126 61 138 66" stroke="#0B3A6A" stroke-width="3" stroke-linecap="round" fill="none"/><path class="cd-smile" d="M84 108Q100 122 116 108" stroke="#0B3A6A" stroke-width="3.5" stroke-linecap="round" fill="none"/><g class="cd-open"><path d="M86 108Q100 130 114 108Z" fill="#0B3A6A"/><ellipse cx="100" cy="118" rx="7" ry="3.6" fill="#FF9DB0"/></g></g></g></svg></div></div></div>
 <div class="av-bubble" id="av-bubble" aria-live="polite"></div>
-<div class="av-actions"><button type="button" data-go="timetable">🗓 Timetable</button><button type="button" data-go="me">✅ Tasks</button><button type="button" data-go="calendar">📅 Calendar</button><button type="button" class="av-talk" id="av-talk">Talk to Sheynix 🔥</button></div>
+<div class="av-actions"><button type="button" class="av-talk" id="av-talk">Talk to Sheynix</button></div>
 <div id="av-chat"><div id="av-log" aria-live="polite"></div><div class="av-chips"></div><form id="av-form" autocomplete="off"><input id="av-in" type="text" placeholder="Ask about your classes, tasks…" aria-label="Ask your guide"><button id="av-send" type="submit" aria-label="Send">🔥</button></form></div>
 </section>
-
-    <div class="hm-card" id="hmClassCard"></div>
-    <div class="hm-card hm-name-card hidden" id="hmNameCard"></div>
-    <div class="hm-stats" id="hmStats"></div>
-    <div class="hm-card" id="annCompose"><div class="hm-card-title">📢 ANNOUNCEMENTS</div><div class="hm-sub" id="annTarget"></div><textarea id="annText" maxlength="500" rows="2" placeholder="Write an announcement..." aria-label="Announcement text"></textarea><div class="ann-row"><small id="annCount">0/500</small><button type="button" class="btn btn-primary" id="annPost">Post Announcement</button></div></div>
-    <div class="hm-row2">
-      <div class="hm-card" id="hmHectCard"></div>
-      <div class="hm-card" id="hmFreeCard"></div>
-    </div>
-    <div class="hm-card">
-      <div class="hm-card-title">📚 TODAY'S PENDING CLASSES</div>
-      <div id="hmPending"></div>
-    </div>
-    <div class="hm-card" id="hmPoll"></div>
-    <div class="hm-card" id="hmDailyPoll"></div>
-    <div class="hm-card">
-      <div class="hm-card-title">📈 LAST 7 DAYS — CLASS FEEDBACK</div>
-      <select class="hm-hist-filter" id="hmHistFilter"><option value="All">All Subjects</option></select>
-      <div class="hm-hist-list" id="hmHistList"></div>
-    </div>
-    <div class="hm-card">
-      <div class="hm-card-title">📈 RECENT DAILY FEEDBACK</div>
-      <div class="hm-hist-list" id="hmDailyHistList"></div>
+      <section class="hm-card hm-dcard hm-events" id="hmEventsCard" aria-labelledby="hmEventsTitle">
+        <header class="hm-dhead"><h2 class="hm-dtitle" id="hmEventsTitle"><span class="hm-dico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Upcoming Events</h2></header>
+        <div class="hm-dmeta">From Connect → Events</div>
+        <div class="hm-dbody" id="hmEventsList" aria-live="polite"></div>
+        <div class="hm-dfoot"><button type="button" class="hm-dlink" id="hmEventsAll">View All Events <span aria-hidden="true">→</span></button></div>
+      </section>
     </div>
   </div>
 </div>
@@ -4618,9 +4699,10 @@ const tNarrow = () => !!(window.matchMedia && matchMedia('(max-width:820px)').ma
 const TOUR_STEPS = [
   {type:'welcome', icon:'✨', title:'Welcome!', text:"Welcome to your personal academic workspace.<br>Let's take a quick tour and show you everything you can do."},
   /* Home */
-  {type:'mode-navigation', icon:'🏠', title:'Home', mode:'home', target:()=>tq('#modeHomeBtn'), text:'Your main dashboard and starting point for the website.'},
-  {type:'feature', icon:'📊', title:'Class Feedback', mode:'home', target:()=>tq('#hmPoll'), text:'During class hours, you can quickly rate the class that is currently taking place using the class feedback poll. <b>It only opens while a class is actually running</b>; outside class hours it simply shows that voting is closed.'},
-  {type:'feature', icon:'🌙', title:'Recent Daily Feedback', mode:'home', target:()=>{const l=tq('#hmDailyHistList');return l&&l.closest('.hm-card');}, text:'After 7 PM, you can answer a quick poll \u2014 \u201CHow was today\u2019s class?\u201D \u2014 and share how your classes went today. <b>The poll only appears after 7 PM</b>; recent daily results are collected here.'},
+  {type:'mode-navigation', icon:'🏠', title:'Home', mode:'home', target:()=>tq('#secBtnHome'), text:'Your main dashboard, shared by Campus and Connect.'},
+  {type:'feature', icon:'📚', title:'Next Classes', mode:'home', target:()=>tq('#hmNextCard'), text:'Your next classes from your own timetable, with time, room and faculty. The class in progress is highlighted and the list updates as the day goes on.'},
+  {type:'feature', icon:'✨', title:'Sheynix', mode:'home', target:()=>tq('#living-avatar'), text:'Your study companion. Tap <b>Talk to Sheynix</b> to ask about your classes, tasks, calendar or attendance.'},
+  {type:'feature', icon:'📅', title:'Upcoming Events', mode:'home', target:()=>tq('#hmEventsCard'), text:'The next three events from <b>Connect → Events</b>. Tap one to open its details, or use <b>View All Events</b>.'},
   /* Schedule */
   {type:'mode-navigation', icon:'🗓️', title:'Schedule', mode:'schedule', target:()=>tq('#modeScheduleBtn'), text:'Your timetable, event calendar, tasks and attendance all live together here.'},
   {type:'feature', icon:'🗒️', title:'Timetable', mode:'schedule', target:()=>{schSetTab('timetable');const d=tq('#ttDesktop'),m=tq('#ttMobile');return tVis(d)?d:m;}, text:'This is your class schedule. Lab slots change with Batch 1 / Batch 2.'},
@@ -4647,7 +4729,7 @@ const TOUR_STEPS = [
   {type:'feature', icon:'📖', title:'Exam Q&A & Resources', mode:'community', target:()=>{ try{ openCommPanel('home'); }catch(e){} return tq('#commOpenExam'); }, text:'Ask exam questions and share useful videos, document links and tutorials here.'},
   /* Settings (reached only through the hamburger menu) */
   {type:'mode-navigation', icon:'⚙️', title:'Settings', mode:'settings', target:()=>tq('#burger'), text:'Open the menu (☰) and choose Settings to manage your website preferences and personal settings.'},
-  {type:'feature', icon:'🎓', title:'Batch Setting', mode:'home', me:true, target:()=>meOn()?tq('#hmStudentEditBtn'):tq('#hmNameCard'), text:'Choose your batch number here. Your timetable changes according to your selected batch.', noProfile:'You choose your batch when you create your profile.'},
+  {type:'feature', icon:'🎓', title:'Batch Setting', mode:'settings', me:true, target:()=>tq('#stNameCard'), text:'Choose your batch number here. Your timetable changes according to your selected batch.', noProfile:'You choose your batch when you create your profile.'},
   {type:'feature', icon:'🌗', title:'Theme Switch', mode:'settings', target:()=>tq('#themeQuickBtn'), text:'Tap the \uD83C\uDFA8 button to pick your colour theme (Default, Blaze or Aqua) and Light or Dark mode, all in one place.'},
   {type:'feature', icon:'👆', title:'Swipe Navigation', swipe:true, text:'On mobile, swipe left or right to quickly switch between the main sections.'},
   {type:'final', icon:'🎉', title:"You're ready!", text:'You now know your way around Campus Loop. Students, Class Representatives and Admins each get their own tools after signing in.'}
@@ -5956,31 +6038,11 @@ function commitProfile(p){
 }
 
 // Home card: setup form when the profile is incomplete, otherwise the personalised summary + Edit Profile.
-let hmEditingProfile = false;
-// Compact student-information card that sits directly above the Sheynix character (moved here from the old Me page).
-function renderHomeStudentCard(){
-  const card = document.getElementById('hmStudentCard');
-  if(!card) return;
-  card.classList.remove('editing');
-  if(!hasValidProfile()){ card.classList.add('hidden'); card.innerHTML = ''; return; }   // setup form lives in the Home name card below
-  const branch = currentUser.year === '1' ? (fyBranchShort(currentUser.branch) || 'First Year') : (syBranchShort(currentUser.branch) || 'CSE');
-  const yr = currentUser.year === '1' ? '1st Year' : '2nd Year';
-  const meta = [branch, yr, 'Sec ' + secDisp(getActiveSection()), 'Batch ' + currentUser.batch].join(' · ');
-  card.classList.remove('hidden');
-  card.innerHTML = `<div class="hs-av" aria-hidden="true">${escapeHtml(currentUser.name.charAt(0).toUpperCase())}</div>
-    <div class="hs-info"><div class="hs-name">${escapeHtml(currentUser.name)}</div><div class="hs-meta">${escapeHtml(meta)}</div></div>
-    <button type="button" class="hs-edit" id="hmStudentEditBtn" aria-label="Edit profile" title="Edit profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
-  document.getElementById('hmStudentEditBtn').addEventListener('click', ()=>{
-    card.classList.add('editing');
-    renderProfileForm('hmStudentCard', {editing:true, onCancel:renderHomeStudentCard});
-  });
-}
 function renderHomeNameCard(){
-  renderHomeStudentCard();
   const card = document.getElementById('hmNameCard');
   if(!card) return;
   // The "Hi, Name … Edit Profile" card is gone from Home. This container now only hosts the first-time
-  // profile setup form (incomplete profile); profile editing stays on the pencil in the student card above Sheynix and in Settings.
+  // profile setup form (incomplete profile); profile editing lives in Settings.
   if(!hasValidProfile()){ card.classList.remove('hidden'); renderProfileForm('hmNameCard'); return; }
   card.innerHTML = ''; card.classList.add('hidden');
 }
@@ -5989,7 +6051,6 @@ function setActiveSection(sec){
   currentUser.section = isValidSection(sec) ? sec : '';
   applyActiveSectionData();
   syncLabBatch();
-  hmEditingProfile = false;
   refreshSectionUI();
 }
 // Keep the existing attendance "lab batch" (atSettings.batch, e.g. 'G2') in step with the profile.
@@ -6019,7 +6080,7 @@ function refreshSectionUI(){
   updateSectionLabels();
   renderHomeNameCard(); renderSettingsNameCard(); applyUserNameToUI();
   if(ttInited) renderTimetableAll();
-  if(homeInited){ lastOccId = '__section_changed__'; renderHome(); }
+  if(homeInited) renderHome();
   if(atInited) renderAttendanceAll();
   if(meInited) renderMe();
   window.dispatchEvent(new Event('classhub:section-changed'));   // reminders re-plan from the new section
@@ -7288,11 +7349,8 @@ function renderMeDayTasks(){
   host.querySelectorAll('.me-day-task-item[data-id]').forEach(el=>el.addEventListener('click', ()=>openTaskModal(el.dataset.id)));
 }
 // ---------- HOME / DASHBOARD ----------
-let homeInited = false, currentOccurrence = null, lastOccId = null, pollUnsub = null, pollVotes = [], myVote = null, lastHistoryList = [];
-// ---- Section-scoped feedback state. The ONLY source of truth for "which section am I" is getActiveSection()
-// (profile -> currentUser.section, the same value that selects the timetable). These vars only remember which section
-// each live listener is bound to, so a listener can be torn down / rebuilt when that value changes. ----
-let fbProfKey = '', fbProfPending = null, pollTok = 0, histWant = null, histUnsub = null, histTok = 0, dailyKey = '', dailyTok = 0, dailyHistWant = null, dailyHistUnsub = null, dailyHistTok = 0;
+let homeInited = false;
+let fbProfKey = '', fbProfPending = null;
 // Resolves once this device's server-side profile (userProfiles/{uid}.section — same doc the announcements use) matches
 // section `sec`. Firestore Security Rules compare feedback reads/writes against that doc, so this runs before any
 // feedback listener attaches or any vote is written. Cached per uid+section: one write per section change.
@@ -7336,15 +7394,12 @@ function applyOverride(dateStr, cls, info){
 function extraNowFor(dateStr, nowMin){
   return attendanceRecords.find(r=>r.type==='extra' && r.date===dateStr && r.start && r.end && toMinH(r.start)<=nowMin && nowMin<toMinH(r.end));
 }
-// Every occurrence id now starts with its section (A_…, C_…). Old un-prefixed ids are NOT guessed to be Section C any more.
-function occId(dateStr, start, code){ const s = getActiveSection() || ''; return `${s}_${dateStr}_${start}_${code}`.replace(/[^a-zA-Z0-9_:-]/g,''); }
-function occSection(id){ const m = /^(FY-[A-Z0-9_]+?|SY-[A-Z0-9_]+?|[A-G])_\d{4}-\d{2}-\d{2}_/.exec(id||''); return m ? m[1] : null; }
 function fmtDur(mins){ mins=Math.max(0,Math.round(mins)); return mins>=60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins} min`; }
 function getDayOccurrences(dateStr, day){
-  const slots = (holidayOn(dateStr)?[]:(timetable[day]||[])).map(cls=>({...applyOverride(dateStr, cls, personalizeClass(cls)), start:cls.start, end:cls.end}));
+  const slots = (holidayOn(dateStr)?[]:(timetable[day]||[])).map(cls=>({...applyOverride(dateStr, cls, personalizeClass(cls)), start:cls.start, end:cls.end, loc:slotLoc(cls)}));
   const extras = attendanceRecords.filter(r=>r.type==='extra' && r.date===dateStr && r.start && r.end).map(r=>{
     const m = timetableSubjects[r.subject]||{name:r.subject};
-    return {code:r.subject, name:m.name, professor:m.professor, isLab:m.type==='Lab', isExtra:true, start:r.start, end:r.end};
+    return {code:r.subject, name:m.name, professor:m.professor, isLab:m.type==='Lab', isExtra:true, start:r.start, end:r.end, loc:r.room||''};
   });
   return [...slots, ...extras].sort((a,b)=>toMinH(a.start)-toMinH(b.start));
 }
@@ -7355,315 +7410,134 @@ function greetingText(nowMin){
   if(nowMin>=17*60 && nowMin<21*60) return `Good Evening${suffix}! 🌆`;
   return `Good Night${suffix}! 🌙`;
 }
-function computeHecticity(list, totalMinutes){
-  const labs = list.filter(c=>c.isLab).length;
-  let maxConsec = list.length?1:0, cur = list.length?1:0;
-  for(let i=1;i<list.length;i++){
-    if(toMinH(list[i].start)-toMinH(list[i-1].end) <= 10) cur++; else cur = 1;
-    maxConsec = Math.max(maxConsec, cur);
+// ---------- Unified Home dashboard: Next Classes · Sheynix · Upcoming Events ----------
+// Next Classes reads ONLY the active timetable (getDayOccurrences: section, batch labs, substitutes, extra classes, holidays).
+// Upcoming Events reads ONLY the Connect → Events records through window.cseConnect (no second copy of the data).
+const HM_IC = {
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  done:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>'
+};
+function hmEsc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// Room / lab location of one timetable slot: this student's batch half for split labs, else the slot's own room/note, else the section room.
+function slotLoc(cls){
+  let loc = '';
+  try{
+    if(cls.batchLabs){ const p = pickBatchLab(cls); loc = (p && p.loc) || cls.note || ''; }
+    else if(cls.note) loc = cls.note;
+    else { const r = String(cls.room || activeRoom() || '').trim(); loc = r ? (/^room\b/i.test(r) ? r : 'Room ' + r) : ''; }
+  }catch(e){ loc = ''; }
+  return String(loc || '').trim();
+}
+function hmEmpty(icon, title, text, extra){
+  return `<div class="hm-empty"><span class="e">${HM_IC[icon] || HM_IC.cal}</span><b>${title}</b>${text ? `<p>${text}</p>` : ''}${extra || ''}</div>`;
+}
+function hmClassRow(c, state, nowMin, label){
+  const s = toMinH(c.start), e = toMinH(c.end);
+  let tag = '', bar = '';
+  if(state === 'now'){
+    const pct = Math.max(0, Math.min(100, Math.round((nowMin - s) / Math.max(1, e - s) * 100)));
+    tag = `<div class="hm-cls-tag"><i class="hm-live" aria-hidden="true"></i>Now · ends in ${fmtDur(e - nowMin)}</div>`;
+    bar = `<div class="hm-cls-bar" role="progressbar" aria-label="Class progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>`;
+  } else if(state === 'next'){
+    tag = `<div class="hm-cls-tag">${label ? hmEsc(label) : 'Next · in ' + fmtDur(s - nowMin)}</div>`;
   }
-  const raw = list.length*0.8 + (totalMinutes/60)*0.9 + labs*1.2 + maxConsec*0.6;
-  const score = Math.max(0, Math.min(10, Math.round(raw)));
-  const label = list.length===0 ? '⚪ No Classes' : score<=3 ? '🟢 Light' : score<=6 ? '🟡 Moderate' : '🔴 Heavy';
-  return {score, label};
+  const flags = [c.isLab ? 'Lab' : '', c.isExtra ? 'Extra class' : '', c.isSubstitute ? 'Substitute' : ''].filter(Boolean);
+  return `<div class="hm-cls${state === 'now' ? ' is-now' : state === 'next' ? ' is-next' : ''}">
+    <div class="hm-cls-time">${formatTime12(c.start)}<small>${formatTime12(c.end)}</small></div>
+    <div class="hm-cls-info">${tag}<div class="hm-cls-name">${hmEsc(c.name || c.code)}</div>
+      <div class="hm-cls-sub">${c.code ? `<span class="hm-cls-code">${hmEsc(c.code)}</span>` : ''}${c.loc ? `<span>${HM_IC.pin}${hmEsc(c.loc)}</span>` : ''}${c.professor ? `<span>${HM_IC.user}${hmEsc(c.professor)}</span>` : ''}${flags.map(f=>`<span class="hm-cls-flag">${f}</span>`).join('')}</div>
+    </div>${bar}</div>`;
 }
-function renderDashboardStats(dateStr, day, nowMin){
-  lastGreetMin = nowMin;
-  { const e=document.getElementById('hmGreet'); if(e) e.textContent = greetingText(nowMin); }
-  const list = getDayOccurrences(dateStr, day);
-  const totalMinutes = list.reduce((s,c)=>s+(toMinH(c.end)-toMinH(c.start)),0);
-  const remainingList = list.filter(c=>toMinH(c.end)>nowMin);
-  const completed = list.length - remainingList.length;
-  const remainingMinutes = remainingList.reduce((s,c)=>{
-    const start = Math.max(toMinH(c.start), nowMin);
-    return s + (toMinH(c.end)-start);
-  },0);
-  const endsAt = list.length ? list[list.length-1].end : null;
-
-  document.getElementById('hmStats').innerHTML = `
-    <div class="hm-stat"><b>${list.length}</b><span>Today's Classes</span></div>
-    <div class="hm-stat"><b>${fmtDur(totalMinutes)}</b><span>Total Class Time</span></div>
-    <div class="hm-stat"><b>${remainingList.length}</b><span>Remaining<small>${fmtDur(remainingMinutes)}</small></span></div>
-    <div class="hm-stat"><b>${endsAt?formatTime12(endsAt):'—'}</b><span>Day Ends At</span></div>`;
-
-  const pct = list.length ? Math.round(completed/list.length*100) : 0;
-  const { score, label } = computeHecticity(list, totalMinutes);
-
-  const activeNow = list.find(c=>toMinH(c.start)<=nowMin && nowMin<toMinH(c.end));
-  let subtitle = "Here's what's happening with your day.";
-  if(holidayOn(dateStr)) subtitle = "Today is a holiday: "+holName(holidayOn(dateStr))+" 🎉"; else if(!list.length) subtitle = "No classes today — enjoy your day! 😌";
-  else if(activeNow) subtitle = `You're currently in ${activeNow.name}.`;
-  else if(!remainingList.length) subtitle = "You're done with classes for today! 🎉";
-  else if(score>=7) subtitle = "Looks like a packed day ahead. 🔥";
-  else if(score<=3) subtitle = "A relatively light day today. 😌";
-  { const e=document.getElementById('hmSubtitle'); if(e) e.textContent = subtitle; }
-
-  document.getElementById('hmHectCard').innerHTML = `<div class="hm-card-title">🔥 HOW HECTIC IS TODAY?</div>
-    <div class="hm-hect-num">${score} / 10</div><div class="hm-sub" style="margin-top:-2px">${label}</div>
-    <div class="hm-hect-meter"><div class="hm-hect-fill" style="width:${score*10}%"></div></div>
-    <div class="hm-sub">${completed} / ${list.length||0} classes completed · ${pct}%</div>`;
-
-  let freeMinutes = 0;
-  for(let i=1;i<list.length;i++){ const gap = toMinH(list[i].start)-toMinH(list[i-1].end); if(gap>0) freeMinutes += gap; }
-  document.getElementById('hmFreeCard').innerHTML = `<div class="hm-card-title">☕ FREE TIME TODAY</div>
-    <div class="hm-hect-num">${fmtDur(freeMinutes)}</div><div class="hm-sub">Gaps between today's classes</div>`;
-
-  const pendWrap = document.getElementById('hmPending');
-  if(!list.length){
-    pendWrap.innerHTML = `<p class="hm-sub">🎉 No classes today — your timetable is clear. Enjoy your day 😌</p>`;
-  } else if(!remainingList.length){
-    pendWrap.innerHTML = `<p class="hm-sub">🎉 No classes left today! You've completed today's timetable.</p>`;
-  } else {
-    pendWrap.innerHTML = (()=>{ let nextMarked=false; return remainingList.map(c=>{
-      const live = toMinH(c.start)<=nowMin && nowMin<toMinH(c.end);
-      let tag='', cls='';
-      if(live){ tag='🟢 NOW'; cls='now'; } else if(!nextMarked){ tag='⏭️ NEXT'; cls='next'; nextMarked=true; }
-      const meta = live ? `Ends in ${fmtDur(toMinH(c.end)-nowMin)}` : (cls==='next' ? `Starts in ${fmtDur(toMinH(c.start)-nowMin)}` : `${formatTime12(c.start)} – ${formatTime12(c.end)}`);
-      return `<div class="hm-pending-item ${cls}"><div class="pl">${tag?`<b>${tag}</b>`:''}<span>${c.name}</span></div><div class="pr">${formatTime12(c.start)}–${formatTime12(c.end)}<br>${meta}</div></div>`;
-    }).join(''); })() + `<div class="hm-sub" style="margin-top:10px">${remainingList.length} class${remainingList.length===1?'':'es'} left today</div>`;
+// First class day after `dateStr` (skips holidays and Sundays), using the same occurrence builder.
+function hmNextClassDay(dateStr){
+  for(let i = 1; i <= 21; i++){
+    const ds = dateAdd(dateStr, i); if(holidayOn(ds)) continue;
+    const dn = DAY_ORDER[new Date(ds + 'T12:00:00Z').getUTCDay() - 1]; if(!dn) continue;
+    const list = getDayOccurrences(ds, dn);
+    if(list.length) return {label: i === 1 ? 'Tomorrow' : dn, list};
   }
+  return null;
 }
-
-function renderHome(){
-  const {date:dateStr, day, min:nowMin} = kolkataParts();
-  const slots = holidayOn(dateStr) ? [] : (timetable[day]||[]);
-  const extra = extraNowFor(dateStr, nowMin);
-  let current = null;
-  if(extra){
-    const m = timetableSubjects[extra.subject];
-    current = {code:extra.subject, name:m.name, professor:m.professor, start:extra.start, end:extra.end, isExtra:true};
-  } else {
-    const active = slots.find(c=>toMinH(c.start)<=nowMin && nowMin<toMinH(c.end));
-    if(active){ const info = applyOverride(dateStr, active, personalizeClass(active)); current = {...info, start:active.start, end:active.end}; }
-  }
-  const upcoming = slots.filter(c=>toMinH(c.start)>nowMin).sort((a,b)=>toMinH(a.start)-toMinH(b.start))[0];
-  let next = null;
-  if(upcoming){ const info = applyOverride(dateStr, upcoming, personalizeClass(upcoming)); next = {...info, start:upcoming.start, end:upcoming.end}; }
-
-  const card = document.getElementById('hmClassCard');
-  if(current){
-    const total = toMinH(current.end)-toMinH(current.start), elapsed = nowMin-toMinH(current.start);
-    const pct = Math.max(0,Math.min(100, Math.round(elapsed/total*100))), remain = toMinH(current.end)-nowMin;
-    card.innerHTML = `<div class="hm-tag live">🟢 ${current.isExtra?'EXTRA CLASS':'CLASS'} IN PROGRESS</div>
-      <div class="hm-subj">${current.name}</div>
-      <div class="hm-code">${current.code}${current.isSubstitute?' · 🔄 Substitute (was '+current.scheduledName+')':''}</div>
-      <div class="hm-time">${formatTime12(current.start)} – ${formatTime12(current.end)}</div>
-      ${current.professor?`<div class="hm-prof">👨‍🏫 ${current.professor}</div>`:''}
-      <div class="hm-progress"><div class="hm-progress-fill" style="width:${pct}%"></div></div>
-      <div class="hm-remain">Ends in ${fmtDur(remain)}</div>
-      ${next?`<div class="hm-next-label">⏭️ Next up</div><div class="hm-sub">${next.name} · ${formatTime12(next.start)}</div>`:''}`;
-  } else if(next){
-    const startsIn = toMinH(next.start)-nowMin;
-    card.innerHTML = `<div class="hm-tag">⚪ NO CLASS RIGHT NOW</div><p class="hm-sub">You currently don't have a scheduled class.</p>
-      <div class="hm-next-label">Next class</div><div class="hm-subj">${next.name}</div><div class="hm-code">${next.code}</div>
-      <div class="hm-time">${formatTime12(next.start)} – ${formatTime12(next.end)}</div><div class="hm-remain">Starts in ${fmtDur(startsIn)}</div>`;
-  } else {
-    let nd=null, ndDay=null; const todayHol = holidayOn(dateStr);
-    for(let i=1;i<=21;i++){ const ds=dateAdd(dateStr,i); if(holidayOn(ds)) continue; const dn=DAY_ORDER[new Date(ds+'T12:00:00Z').getUTCDay()-1]; if(dn && (timetable[dn]||[]).length){ ndDay = i===1 ? 'Tomorrow ('+dn+')' : dn; nd=personalizeClass(timetable[dn][0]); nd.start=timetable[dn][0].start; break; } }
-    if(!getActiveSection()){ card.innerHTML = `<div class="hm-tag">⚠️ PROFILE NEEDED</div><p class="hm-sub">Select your section above to see your classes.</p>`; }
-    else if(todayHol) card.innerHTML = `<div class="hm-tag">🎉 HOLIDAY TODAY</div><div class="hm-subj">${holName(todayHol)}</div>${nd?`<p class="hm-sub">Your next class is:</p><div class="hm-next-label">${ndDay}</div><div class="hm-subj">${nd.name}</div><div class="hm-time">${formatTime12(nd.start)}</div>`:''}`;
-    else card.innerHTML = `<div class="hm-tag">🎉 NO MORE CLASSES TODAY</div>${nd?`<p class="hm-sub">Your next scheduled class is:</p><div class="hm-next-label">${ndDay}</div><div class="hm-subj">${nd.name}</div><div class="hm-time">${formatTime12(nd.start)}</div>`:'<p class="hm-sub">Enjoy your day!</p>'}`;
-  }
-  currentOccurrence = current ? {id:occId(dateStr,current.start,current.code), section:getActiveSection(), code:current.code, name:current.name, date:dateStr, start:current.start, end:current.end} : null;
-  renderPollUI();
-  renderDashboardStats(dateStr, day, nowMin);
-  lastDailyDate = dateStr;
-  if(!subscribeDailyPoll(dateStr)) renderDailyPoll();          // no-op when already bound to this date + section
-  if(fbDb && fbUid){ loadHistory(); loadDailyHistory(); }       // no-ops unless the active section changed
-}
-
-function renderPollUI(){
-  const id = currentOccurrence ? currentOccurrence.id : null;
-  if(id !== lastOccId){ lastOccId = id; subscribePoll(currentOccurrence); }
-  else renderPollResults();
-}
-function subscribePoll(occ){
-  if(pollUnsub){ pollUnsub(); pollUnsub = null; }
-  pollVotes = []; myVote = null;
-  const my = ++pollTok, sec = getActiveSection();
-  renderPollResults();                                          // never leave another section's / class's results on screen
-  if(!fbDb || !fbUid || !occ || !sec || occ.section !== sec) return;
-  fbSectionReady(sec).then(()=>{
-    if(my !== pollTok || getActiveSection() !== sec) return;    // superseded by a newer class / section change
-    // ONE listener, ONE section: filtered by Firestore, not hidden in the UI
-    pollUnsub = fbDb.collection('classPollVotes').where('section','==',sec).where('occurrenceId','==',occ.id).onSnapshot(snap=>{
-      if(my !== pollTok || getActiveSection() !== sec) return;
-      pollVotes = snap.docs.map(d=>d.data()).filter(v=>v.section === sec);   // defensive: drop anything not from this section
-      myVote = (pollVotes.find(v=>v.uid===fbUid)||{}).vote || null;
-      renderPollResults();
-    }, ()=>{});
-  });
-}
-function renderPollResults(){
-  const wrap = document.getElementById('hmPoll');
-  if(!currentOccurrence){ wrap.innerHTML = `<div class="hm-card-title">📊 CLASS FEEDBACK</div><p class="hm-sub">No class is currently in progress. Voting is closed.</p>`; return; }
-  if(!commConfigured){ wrap.innerHTML = `<div class="hm-card-title">📊 IS THIS CLASS INTERESTING?</div><p class="hm-sub">Live poll needs the Community backend configured — see script comments.</p>`; return; }
-  const yes = pollVotes.filter(v=>v.vote==='interesting').length, no = pollVotes.filter(v=>v.vote==='notInteresting').length, total = yes+no;
-  const pctY = total?Math.round(yes/total*100):0, pctN = total?100-pctY:0;
-  wrap.innerHTML = `<div class="hm-card-title">📊 IS THIS CLASS INTERESTING?</div>
-    <div class="hm-poll-opts">
-      <button class="hm-poll-btn ${myVote==='interesting'?'on':''}" data-vote="interesting">🔥 Interesting</button>
-      <button class="hm-poll-btn ${myVote==='notInteresting'?'on':''}" data-vote="notInteresting">😐 Not Interesting</button>
-    </div>
-    ${total ? `<div class="hm-poll-bar"><div class="hm-poll-fill" style="width:${pctY}%"></div></div>
-    <div class="hm-poll-stats"><span>🔥 ${pctY}% · ${yes} votes</span><span>😐 ${pctN}% · ${no} votes</span></div>
-    <div class="hm-sub">${total} votes total</div>` : `<p class="hm-sub">No votes yet — be the first to vote!</p>`}`;
-  wrap.querySelectorAll('.hm-poll-btn').forEach(b=>b.addEventListener('click', ()=>castVote(b.dataset.vote)));
-}
-function castVote(vote){
-  const occ = currentOccurrence, sec = getActiveSection();
-  if(!occ || !fbDb || !fbUid || !sec || occ.section !== sec) return;   // never write a vote whose section differs from the student's own
-  const now = Date.now();
-  fbSectionReady(sec).then(()=>{
-    if(getActiveSection() !== sec) return;                      // section changed while waiting: drop it, don't mis-file it
-    return fbDb.collection('classPollVotes').doc(occ.id+'_'+fbUid).set({
-      occurrenceId: occ.id, section: sec, uid: fbUid, vote,
-      subjectCode: occ.code, subjectName: occ.name,
-      date: occ.date, start: occ.start, end: occ.end,
-      updatedAt: now, expiresAt: firebase.firestore.Timestamp.fromMillis(now + 7*24*60*60*1000)
-    }, {merge:true}).then(()=>{ try{ cseTrack('poll_vote_success',{poll:'class'}); }catch(x){} });
-  }).catch(e=>{ try{ cseTrack('poll_vote_failed',{poll:'class',error_category:cseErrCat(e)}); }catch(x){} const w=document.getElementById('hmPoll'); const n=document.createElement('div'); n.className='hm-sub'; n.textContent="⚠️ Vote couldn't be submitted. Please try again."; w.appendChild(n); });
-}
-function loadHistory(){
-  const sec = getActiveSection();
-  if(sec && sec === histWant) return;                           // already listening (or about to) for exactly this section
-  if(histUnsub){ histUnsub(); histUnsub = null; }
-  histWant = null; lastHistoryList = [];
-  const my = ++histTok;
-  renderHistory();                                              // clears the previous section's history immediately
-  if(!sec || !fbDb || !fbUid) return;
-  histWant = sec;
-  fbSectionReady(sec).then(()=>{
-    if(my !== histTok || getActiveSection() !== sec) return;
-    // Section is filtered by Firestore (equality only → no composite index). The 7-day window is applied locally.
-    histUnsub = fbDb.collection('classPollVotes').where('section','==',sec).onSnapshot(snap=>{
-      if(my !== histTok) return;
-      const cutoff = Date.now() - 7*24*60*60*1000, byOcc = {};
-      snap.docs.forEach(d=>{ const v=d.data(); if(v.section !== sec || !(v.updatedAt>=cutoff)) return;
-        if(!byOcc[v.occurrenceId]) byOcc[v.occurrenceId] = {...v, yes:0, no:0}; const o=byOcc[v.occurrenceId]; if(v.vote==='interesting') o.yes++; else o.no++; });
-      lastHistoryList = Object.values(byOcc).sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
-      renderHistory();
-    }, ()=>{ if(my === histTok) histWant = null; });             // on error allow a retry on the next tick
-  });
-}
-function renderHistory(){
-  const sel = document.getElementById('hmHistFilter').value;
-  const mine = lastHistoryList.filter(o=>o.section===getActiveSection() && occSection(o.occurrenceId)===o.section);   // belt and braces: scoped by the query AND re-checked here
-  const filtered = sel==='All' ? mine : mine.filter(o=>o.subjectCode===sel);
-  const wrap = document.getElementById('hmHistList');
-  if(!filtered.length){ wrap.innerHTML = '<p class="hm-sub">No feedback recorded yet this week.</p>'; return; }
-  wrap.innerHTML = filtered.map(o=>{ const t=o.yes+o.no, p=t?Math.round(o.yes/t*100):0;
-    return `<div class="hm-hist-card"><div class="hm-hist-date">${o.date} · ${formatTime12(o.start)}</div><div class="hm-hist-subj">${o.subjectName}</div>
-      <div class="hm-hist-row"><span>🔥 ${p}%</span><span class="hm-sub">${o.yes} votes</span></div>
-      <div class="hm-hist-row"><span>😐 ${100-p}%</span><span class="hm-sub">${o.no} votes</span></div></div>`;
-  }).join('');
-}
-function onFirebaseReady(){ if(homeInited){ loadHistory(); if(lastDailyDate) subscribeDailyPoll(lastDailyDate); loadDailyHistory(); } }
-function initHome(){
-  updateClock(); setInterval(()=>{ if(!document.hidden) updateClock(); }, 1000);
-  renderHome(); setInterval(()=>{ if(!document.hidden) renderHome(); }, 15000);
-  const sel = document.getElementById('hmHistFilter');
-  sel.innerHTML = '<option value="All">All Subjects</option>' + Object.entries(timetableSubjects).map(([c,m])=>`<option value="${c}">${m.name}</option>`).join('');
-  sel.addEventListener('change', renderHistory);
-  if(fbReady){ loadHistory(); loadDailyHistory(); }
-}
-
-// ---------- DAILY POLL ----------
-let lastDailyDate = null, dailyPollUnsub = null, dailyVotes = [], myDailyVote = null, lastDailyHistoryList = [];
-const DAILY_OPTS = [['great','🔥 Great'],['good','🙂 Good'],['okay','😐 Okay'],['boring','😴 Boring']];
-// Returns true when it (re)bound the listener (and rendered), false when it was already bound to this date + section.
-function subscribeDailyPoll(dateStr){
-  const sec = getActiveSection(), key = (sec && fbDb && fbUid) ? dateStr+'|'+sec : '';
-  if(key && key === dailyKey) return false;
-  if(dailyPollUnsub){ dailyPollUnsub(); dailyPollUnsub = null; }
-  dailyVotes = []; myDailyVote = null; dailyKey = key;
-  const my = ++dailyTok;
-  renderDailyPoll();
-  if(!key) return true;
-  fbSectionReady(sec).then(()=>{
-    if(my !== dailyTok || getActiveSection() !== sec) return;
-    dailyPollUnsub = fbDb.collection('dailyPollVotes').where('section','==',sec).where('date','==',dateStr).onSnapshot(snap=>{
-      if(my !== dailyTok || getActiveSection() !== sec) return;
-      dailyVotes = snap.docs.map(d=>d.data()).filter(v=>v.section === sec);
-      myDailyVote = (dailyVotes.find(v=>v.uid===fbUid)||{}).vote || null;
-      renderDailyPoll();
-    }, ()=>{ if(my === dailyTok) dailyKey = ''; });
-  });
-  return true;
-}
-function renderDailyPoll(){
-  const wrap = document.getElementById('hmDailyPoll');
-  if(!commConfigured){ wrap.classList.add('hidden'); wrap.innerHTML=''; return; }
-  const {min:nowMin} = kolkataParts();
-  const list = getDayOccurrences(lastDailyDate, todayName());
-  const hasClassToday = list.length > 0;
-  const isFeedbackTime = nowMin >= 19*60 && nowMin < 24*60; // 7:00 PM – 11:59 PM IST
-  if(!hasClassToday || !isFeedbackTime){
-    wrap.classList.add('hidden');
-    wrap.innerHTML = '';
+function renderNextClasses(){
+  const box = document.getElementById('hmNextList'), meta = document.getElementById('hmNextMeta');
+  if(!box) return;
+  if(!getActiveSection()){
+    if(meta) meta.textContent = '';
+    box.innerHTML = hmEmpty('user', 'Set up your profile', 'Choose your section and batch to see your upcoming classes here.', '<button type="button" class="hm-dlink" data-hm-go="profile">Set up profile</button>');
     return;
   }
-  wrap.classList.remove('hidden');
-  let title = "📊 HOW WAS TODAY'S CLASS?", note = '';
-  if(nowMin < toMinH(list[list.length-1].end)){ title = '📊 HOW IS TODAY GOING?'; note = 'You can update your response as the day progresses.'; }
-  const total = dailyVotes.length;
-  const rows = total ? DAILY_OPTS.map(([key,label])=>{
-    const c = dailyVotes.filter(v=>v.vote===key).length, p = Math.round(c/total*100);
-    return `<div class="hm-poll-stats"><span>${label} ${p}%</span><span class="hm-sub">${c} votes</span></div><div class="hm-poll-bar" style="margin-top:2px"><div class="hm-poll-fill" style="width:${p}%"></div></div>`;
-  }).join('<div style="height:8px"></div>') : `<p class="hm-sub">No votes yet — be the first to vote!</p>`;
-  wrap.innerHTML = `<div class="hm-card-title">${title}</div>${note?`<p class="hm-sub">${note}</p>`:''}
-    <div class="hm-poll-opts">${DAILY_OPTS.map(([key,label])=>`<button class="hm-poll-btn ${myDailyVote===key?'on':''}" data-vote="${key}">${label}</button>`).join('')}</div>
-    ${rows}${total?`<div class="hm-sub" style="margin-top:8px">${total} votes · LIVE · shared across ${secLabel()}</div>`:''}`;
-  wrap.querySelectorAll('.hm-poll-btn').forEach(b=>b.addEventListener('click', ()=>castDailyVote(b.dataset.vote)));
+  let noTT = false; try{ noTT = !!(fyActive() && fyNoTT); }catch(e){}
+  if(meta) meta.textContent = secLabel(false) + (isValidBatch(currentUser.batch) ? ' · Batch ' + currentUser.batch : '');
+  if(noTT){ box.innerHTML = hmEmpty('cal', 'No timetable for this cycle', 'The official timetable for your section and cycle has not been published yet.'); return; }
+  const {date: dateStr, day, min: nowMin} = kolkataParts();
+  const hol = holidayOn(dateStr);
+  const list = getDayOccurrences(dateStr, day);
+  const left = list.filter(c => toMinH(c.end) > nowMin);
+  if(left.length){
+    const shown = left.slice(0, 4);
+    let nextMarked = false;
+    box.innerHTML = shown.map(c => {
+      const live = toMinH(c.start) <= nowMin;
+      let st = '';
+      if(live) st = 'now'; else if(!nextMarked){ st = 'next'; nextMarked = true; }
+      return hmClassRow(c, st, nowMin);
+    }).join('') + `<div class="hm-dnote">${left.length} class${left.length === 1 ? '' : 'es'} left today${left.length > shown.length ? ` · ${left.length - shown.length} more in your timetable` : ''}</div>`;
+    return;
+  }
+  const nx = hmNextClassDay(dateStr);
+  const title = hol ? 'Holiday today' : list.length ? 'No more classes today' : 'No classes today';
+  const text = hol ? hmEsc(holName(hol)) + ' — enjoy the day off.' : list.length ? "You've finished today's timetable." : 'Your timetable is clear today.';
+  box.innerHTML = hmEmpty('done', title, text) +
+    (nx ? hmClassRow(nx.list[0], 'next', nowMin, 'Next · ' + nx.label) : '');
 }
-function castDailyVote(vote){
-  const sec = getActiveSection(), date = lastDailyDate;
-  if(!fbDb || !fbUid || !date || !sec) return;
-  const now = Date.now();
-  fbSectionReady(sec).then(()=>{
-    if(getActiveSection() !== sec) return;
-    // doc id carries the section so switching sections the same day can never overwrite another section's vote
-    return fbDb.collection('dailyPollVotes').doc(date+'_'+sec+'_'+fbUid).set({
-      date, section: sec, uid: fbUid, vote, updatedAt: now, expiresAt: firebase.firestore.Timestamp.fromMillis(now + 7*24*60*60*1000)
-    }, {merge:true}).then(()=>{ try{ cseTrack('poll_vote_success',{poll:'daily'}); }catch(x){} });
-  }).catch(e=>{ try{ cseTrack('poll_vote_failed',{poll:'daily',error_category:cseErrCat(e)}); }catch(x){} const w=document.getElementById('hmDailyPoll'); const n=document.createElement('div'); n.className='hm-sub'; n.textContent="⚠️ Vote couldn't be submitted. Please try again."; w.appendChild(n); });
-}
-function loadDailyHistory(){
-  const sec = getActiveSection();
-  if(sec && sec === dailyHistWant) return;
-  if(dailyHistUnsub){ dailyHistUnsub(); dailyHistUnsub = null; }
-  dailyHistWant = null; lastDailyHistoryList = [];
-  const my = ++dailyHistTok;
-  renderDailyHistoryList();
-  if(!sec || !fbDb || !fbUid) return;
-  dailyHistWant = sec;
-  fbSectionReady(sec).then(()=>{
-    if(my !== dailyHistTok || getActiveSection() !== sec) return;
-    dailyHistUnsub = fbDb.collection('dailyPollVotes').where('section','==',sec).onSnapshot(snap=>{
-      if(my !== dailyHistTok) return;
-      const cutoff = Date.now() - 7*24*60*60*1000, byDate = {};
-      snap.docs.forEach(d=>{ const v=d.data(); if(v.section !== sec || !(v.updatedAt>=cutoff) || !(v.vote in {great:1,good:1,okay:1,boring:1})) return;
-        if(!byDate[v.date]) byDate[v.date] = {date:v.date, counts:{great:0,good:0,okay:0,boring:0}}; byDate[v.date].counts[v.vote]++; });
-      lastDailyHistoryList = Object.values(byDate).sort((a,b)=>b.date.localeCompare(a.date));
-      renderDailyHistoryList();
-    }, ()=>{ if(my === dailyHistTok) dailyHistWant = null; });
-  });
-}
-function renderDailyHistoryList(){
-  const wrap = document.getElementById('hmDailyHistList');
-  if(!lastDailyHistoryList.length){ wrap.innerHTML = '<p class="hm-sub">No daily feedback recorded yet this week.</p>'; return; }
-  wrap.innerHTML = lastDailyHistoryList.map(o=>{
-    const total = Object.values(o.counts).reduce((a,b)=>a+b,0);
-    const top = DAILY_OPTS.map(([k,l])=>[k,l,o.counts[k]]).sort((a,b)=>b[2]-a[2])[0];
-    const pct = total?Math.round(top[2]/total*100):0;
-    const label = o.date===lastDailyDate ? 'Today' : o.date;
-    return `<div class="hm-hist-card"><div class="hm-hist-date">${label}</div><div class="hm-hist-row"><span>${top[1]}</span><span class="hm-sub">${pct}% · ${total} votes</span></div></div>`;
+function renderHomeEvents(){
+  const box = document.getElementById('hmEventsList');
+  if(!box) return;
+  const api = window.cseConnect;
+  if(!api || typeof api.upcomingEvents !== 'function'){ box.innerHTML = '<div class="hm-empty"><p>Loading events…</p></div>'; return; }
+  let list = [];
+  try{ list = api.upcomingEvents(3) || []; }catch(e){ console.warn('[Home] events unavailable', e); }
+  if(!list.length){ box.innerHTML = hmEmpty('cal', 'No upcoming events', 'New hackathons, workshops and fests from Connect will show up here.'); return; }
+  box.innerHTML = list.map(ev => {
+    const d = ev.start instanceof Date ? ev.start : new Date(ev.start);
+    const pill = ev.ongoing ? '<b>Now</b><small>On</small>' : `<b>${d.getDate()}</b><small>${d.toLocaleDateString(undefined, {month:'short'})}</small>`;
+    return `<button type="button" class="hm-ev" data-hm-ev="${ev.id}" aria-label="${hmEsc(ev.title)}, ${hmEsc(ev.dateLabel)}${ev.kind ? ', ' + hmEsc(ev.kind) : ''}. Open details">
+      <span class="hm-ev-date" aria-hidden="true">${pill}</span>
+      <span class="hm-ev-info"><span class="hm-ev-t">${hmEsc(ev.title)}</span>
+        <span class="hm-ev-m">${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span></span></span>
+      <span class="hm-ev-go" aria-hidden="true">${HM_IC.chev}</span></button>`;
   }).join('');
+}
+function renderHome(){
+  renderNextClasses();
+  renderHomeEvents();
+}
+function initHome(){
+  renderHome();
+  setInterval(()=>{ if(!document.hidden) renderHome(); }, 15000);       // "now / next" and expired events roll over on their own
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && homeInited) renderHome(); });
+  window.addEventListener('cse:eventschange', renderHomeEvents);       // Connect added / edited / removed an event
+  const nextCard = document.getElementById('hmNextCard');
+  if(nextCard) nextCard.addEventListener('click', e=>{
+    const b = e.target.closest('[data-hm-go]'); if(!b) return;
+    if(b.dataset.hmGo === 'timetable'){ setMode('timetable'); return; }
+    const nc = document.getElementById('hmNameCard');
+    if(nc && !nc.classList.contains('hidden')){ nc.scrollIntoView({behavior:'smooth', block:'center'}); const f = nc.querySelector('input,select,button'); if(f) setTimeout(()=>{ try{ f.focus({preventScroll:true}); }catch(x){} }, 400); }
+    else setMode('settings');
+  });
+  const evCard = document.getElementById('hmEventsCard');
+  if(evCard) evCard.addEventListener('click', e=>{
+    const api = window.cseConnect; if(!api) return;
+    const b = e.target.closest('[data-hm-ev]');
+    if(b){ if(typeof api.openEvent === 'function') api.openEvent(+b.dataset.hmEv); return; }
+    if(e.target.closest('#hmEventsAll')) api.go('discover', 'events');
+  });
 }
 
 const homeMode = document.getElementById('homeMode');
-const modeHomeBtn = document.getElementById('modeHomeBtn');
-modeHomeBtn.addEventListener('click', ()=>setMode('home'));
 const scheduleMode = document.getElementById('scheduleMode');
 const modeScheduleBtn = document.getElementById('modeScheduleBtn');
 modeScheduleBtn.addEventListener('click', ()=>setMode('schedule'));
@@ -8362,7 +8236,7 @@ function syncModeBar(mode){
 function jumpToTop(){ window.scrollTo({top:0, left:0, behavior:'instant'}); }   // 'instant' beats the page's scroll-behavior:smooth: no visible travel through the old position
 const MODE_EL = { home:homeMode, schedule:scheduleMode, study:studyMode,
   quiz:quizModeEl, community:communityModeEl, about:aboutModeEl, settings:settingsModeEl };
-const MODE_BTN = { home:modeHomeBtn, schedule:modeScheduleBtn, study:modeStudyBtn,
+const MODE_BTN = { schedule:modeScheduleBtn, study:modeStudyBtn,   // Home is a main section (Campus | Home | Connect), not a Campus tab
   quiz:modeQuizBtn, community:modeCommunityBtn };
 let currentMode = 'home';          // in-memory mirror of csec_mode (no localStorage read per gesture)
 let abortSwipeTransition = null;   // assigned by initSwipeNavigation(); lets any setMode() end a live slide cleanly
@@ -8453,7 +8327,7 @@ window.addEventListener('hashchange', ()=>{ const h = location.hash.replace('#',
 // heavy init/render for the destination is queued until the slide has ended. Nothing in the slide
 // waits for, or is blocked by, rendering.
 // ONE ordered sequence = the mode bar, left to right (swipe LEFT = next, swipe RIGHT = previous).
-const SWIPE_MODES = ['home','schedule','study','quiz','community'];
+const SWIPE_MODES = ['schedule','study','quiz','community'];   // Campus tabs only; Home/Connect switching is handled by the section layer
 const SWIPE_THRESHOLD = 50; // px — minimum horizontal distance before a swipe counts
 // Elements/areas where a horizontal drag means something else (typing, dragging a control,
 // scrolling a horizontal strip, or using a modal) rather than "change the page". Any gesture
@@ -9203,7 +9077,6 @@ function applyAuthUser(u){
   setTimeout(()=>{ try{ chatStorageReady().catch(()=>{}); }catch(e){} }, 1500);   // warm the Storage SDK once, off the critical path
   startSMListener();   // Study Materials are shared data, independent of Community
   if(window.startAnnouncements) startAnnouncements();   // idempotent: only re-subscribes if section/user changed or the listener is gone
-  if(homeInited) onFirebaseReady();
   cleanupExpired();
 }
 function connectFirebase(){
@@ -12372,7 +12245,7 @@ function refreshAvatarContext(){
 window.refreshAvatarContext=refreshAvatarContext;
 /* eyes/head follow pointer or touch (rAF-throttled, only while Home is visible) */
 function lookAt(nx,ny){A.style.setProperty('--ex',(nx*3).toFixed(2));A.style.setProperty('--ey',(ny*2.5).toFixed(2));A.style.setProperty('--hx',(nx*4).toFixed(2))}
-var raf=0;['pointermove','pointerdown'].forEach(function(ev){document.addEventListener(ev,function(e){if(raf||document.body.dataset.mode!=='home'||A.getAttribute('data-state')==='sleep')return;raf=requestAnimationFrame(function(){raf=0;var r=A.querySelector('.av-stage').getBoundingClientRect();var c=function(v){return Math.max(-1,Math.min(1,v))};lookAt(c((e.clientX-(r.left+r.width/2))/260),c((e.clientY-(r.top+r.height/3))/260))})},{passive:true})});
+var raf=0;['pointermove','pointerdown'].forEach(function(ev){document.addEventListener(ev,function(e){if(raf||!visible()||A.getAttribute('data-state')==='sleep')return;raf=requestAnimationFrame(function(){raf=0;var r=A.querySelector('.av-stage').getBoundingClientRect();var c=function(v){return Math.max(-1,Math.min(1,v))};lookAt(c((e.clientX-(r.left+r.width/2))/260),c((e.clientY-(r.top+r.height/3))/260))})},{passive:true})});
 /* state machine */
 function setState(s,ms){A.setAttribute('data-state',s);clearTimeout(timers.st);if(s!=='idle'&&s!=='sleep'&&s!=='relaxed')timers.st=setTimeout(rest,ms||1400)}
 function rest(){var h=new Date().getHours();A.setAttribute('data-state',(h>=23||h<5)?'sleep':h>=19?'relaxed':'idle')}
@@ -12381,7 +12254,7 @@ function speak(txt,st,keep){lookAt(0,0);
  clearTimeout(timers.t);timers.t=setTimeout(function(){A.classList.remove('talk')},Math.min(2600,700+txt.length*28));
  clearTimeout(timers.b);timers.b=setTimeout(function(){bub.classList.remove('on')},keep||(3800+txt.length*40))}
 /* idle loop: event-driven timeouts, paused when Home is not visible */
-function visible(){return !document.hidden&&document.body.dataset.mode==='home'}
+function visible(){return !document.hidden&&document.body.dataset.mode==='home'&&document.body.dataset.section==='home'}
 function blink(){if(visible()){A.classList.add('blink');setTimeout(function(){A.classList.remove('blink')},130)}timers.bl=setTimeout(blink,2500+Math.random()*3500)}
 function look(){if(visible()&&/^(idle|relaxed)$/.test(A.getAttribute('data-state'))){var d=['left','right','none'][Math.floor(Math.random()*3)];lookAt(d==='left'?-1:d==='right'?1:0,-.2);setTimeout(function(){lookAt(0,0)},1300)}timers.lk=setTimeout(look,4000+Math.random()*4000)}
 /* time-aware greeting and proactive lines, all derived from ctx */
@@ -12393,7 +12266,7 @@ function nextTxt(){var c=ctx.cur,n=ctx.next;var hh=G(function(){return holidayOn
  return ctx.todayCls.length?'You\'re done for today!':'No classes listed for today.'}
 function dueSoon(){return ctx.pending.filter(function(x){return x.dueDate===ctx.today})}
 function proactive(){refreshAvatarContext();var h=new Date().getHours(),n=nm();
- document.getElementById('av-hi').textContent='✨ '+hello().toUpperCase()+(n?', '+n.toUpperCase():'')+'! ✨';
+ var hi=document.getElementById('av-hi');if(hi)hi.textContent='✨ '+hello().toUpperCase()+(n?', '+n.toUpperCase():'')+'! ✨';
  var soon=ctx.next&&(toMin(ctx.next.start)-ctx.nowMin)<=15?ctx.next:null;
  if(soon)return speak('Your next class starts soon! '+subj(soon)+' at '+t12(soon.start)+'.','alert');
  var d=dueSoon();if(d.length)return speak('You\'ve got a task coming up today: '+d[0].title+'. Want to check it?','alert');
@@ -17272,7 +17145,7 @@ var TABS = ['posting', 'teams', 'discover'], st = {tab:'posting', sub:'articles'
 function active(){ return !!(window.cseSection && window.cseSection.current() === 'connect'); }
 function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'discover' ? '/' + st.sub : st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
 function sync(){
-  [].forEach.call(root.querySelectorAll('[data-cn]'), function(b){ var on = b.dataset.cn === st.tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+  [].forEach.call(document.querySelectorAll('#cnModeWrap [data-cn]'), function(b){ var on = b.dataset.cn === st.tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
   [].forEach.call(root.querySelectorAll('[data-cnsub]'), function(b){ var on = b.dataset.cnsub === st.sub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   [].forEach.call(root.querySelectorAll('[data-cntsub]'), function(b){ var on = b.dataset.cntsub === st.tsub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
@@ -17290,9 +17163,17 @@ function go(tab, sub, o){
 }
 function parse(h){ var p = h.split('/'); if(h === 'discover') return ['discover', 'articles']; if(p[0] !== 'connect') return null; return [p[1], p[2]]; }
 root.addEventListener('click', function(e){
-  var t = e.target.closest('[data-cn]'), s = e.target.closest('[data-cnsub]'), ts = e.target.closest('[data-cntsub]');
-  if(t) go(t.dataset.cn, null); else if(s) go('discover', s.dataset.cnsub); else if(ts) go('teams', ts.dataset.cntsub);
+  var s = e.target.closest('[data-cnsub]'), ts = e.target.closest('[data-cntsub]');
+  if(s) go('discover', s.dataset.cnsub); else if(ts) go('teams', ts.dataset.cntsub);
 });
+var cnBar = document.getElementById('cnModeWrap');
+if(cnBar){
+  cnBar.addEventListener('click', function(e){ var t = e.target.closest('[data-cn]'); if(t) go(t.dataset.cn, null); });
+  cnBar.addEventListener('keydown', function(e){
+    var b = e.target.closest('.mode-btn'); if(!b || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+    var l = [].slice.call(cnBar.querySelectorAll('.mode-btn')), n = l[(l.indexOf(b) + (e.key === 'ArrowRight' ? 1 : l.length - 1)) % l.length]; e.preventDefault(); n.focus(); n.click();
+  });
+}
 root.addEventListener('keydown', function(e){
   var b = e.target.closest('.cn-tab'); if(!b || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
   var l = [].slice.call(b.parentNode.querySelectorAll('.cn-tab')), n = l[(l.indexOf(b) + (e.key === 'ArrowRight' ? 1 : l.length - 1)) % l.length]; n.focus(); n.click();
@@ -17302,21 +17183,41 @@ window.addEventListener('cse:sectionchange', function(e){ if(e.detail && e.detai
 initModal(); initPosting(); initTeams(); initEvents();
 var boot = parse(window.__cnBoot || ''); if(boot){ st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && boot[1] === 'teams') st.tsub = 'teams'; }
 sync();
-window.cseConnect = { go:go };
+/* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
+   Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
+function evStart(x){ var d = new Date(now + x.off * D); d.setHours(0, 0, 0, 0); return d; }
+function evEnd(x){ var d = new Date(now + (x.ed != null ? x.ed : x.off) * D); d.setHours(23, 59, 59, 999); return d; }
+function upcomingEvents(n){
+  var t = Date.now();
+  return EV.map(function(x, i){ return {x:x, i:i}; })
+    .filter(function(o){ return o.x && evEnd(o.x).getTime() >= t; })                         // expired events never show
+    .sort(function(a, b){ return (evStart(a.x) - evStart(b.x)) || (evEnd(a.x) - evEnd(b.x)) || (a.i - b.i); })
+    .slice(0, n == null ? EV.length : n)
+    .map(function(o){ var x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0}; });
+}
+function openEvent(i){ go('discover', 'events'); if(EV[i]) eventModal(i); }
+function eventsChanged(){ try{ drawEvents(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
+window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged };
+try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   // Home may have rendered before Connect finished loading
+
 })();
 </script>
 
 <script id="sectionNavJs">
-/* Campus | Connect — a thin layer on top of the existing app.
-   Campus = the untouched site (hidden by CSS while another section is open, so state, listeners and scroll are kept).
-   Connect = independent placeholder page. No reloads, no changes to setMode()'s own logic. */
+/* Campus | Home | Connect — a thin layer on top of the existing app.
+   Campus  = the existing mode-bar site (Schedule, Study Materials, Contests, Community, plus Settings/About from the menu).
+   Home    = the ONE shared dashboard (#homeMode: Next Classes · Sheynix · Upcoming Events). It is the app's 'home' mode shown
+             without the Campus mode bar, and every way in (nav tap, swipe, #home, Sheynix, notifications, Connect) uses setMode('home').
+   Connect = independent page (#sectionConnect). No reloads, no changes to setMode()'s own logic. */
 (function(){
   'use strict';
   var nav = document.getElementById('secNav'); if(!nav) return;
   var btns = [].slice.call(nav.querySelectorAll('.sec-btn'));
   var ind = nav.querySelector('.sec-ind');
-  var PAGES = { connect: document.getElementById('sectionConnect') };
-  var cur = 'campus', campusY = 0;
+  var ORDER = ['campus', 'home', 'connect'];
+  var PAGES = { connect: document.getElementById('sectionConnect') };   // Campus and Home both live in #mainPanel
+  var cur = 'campus', campusY = 0, campusYMode = '', lastCampus = 'schedule';
+  function mode(){ try{ return typeof currentMode === 'string' ? currentMode : ''; }catch(e){ return ''; } }
   function reduced(){ try{ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
   function btnOf(sec){ for(var i=0;i<btns.length;i++) if(btns[i].getAttribute('data-sec')===sec) return btns[i]; return null; }
   function placeInd(){
@@ -17340,14 +17241,14 @@ window.cseConnect = { go:go };
   }
   function apply(sec, o){
     o = o || {};
-    if(sec !== 'campus' && !PAGES[sec]) sec = 'campus';
+    if(ORDER.indexOf(sec) < 0) sec = 'campus';
     if(sec === cur && !o.force) return;
     var prev = cur;
-    if(prev === 'campus') campusY = window.pageYOffset || 0;
+    if(prev === 'campus'){ campusY = window.pageYOffset || 0; campusYMode = mode(); }
     cur = sec;
     var body = document.body;
     body.setAttribute('data-section', sec);
-    if(sec === 'campus') body.removeAttribute('data-no-swipe'); else body.setAttribute('data-no-swipe','');   // swipe-between-modes only belongs to Campus
+    if(sec === 'campus') body.removeAttribute('data-no-swipe'); else body.setAttribute('data-no-swipe','');   // tab swipes belong to Campus; Home has its own section swipe below
     for(var k in PAGES) if(PAGES[k]) PAGES[k].classList.toggle('hidden', k !== sec);
     btns.forEach(function(b){
       var on = b.getAttribute('data-sec') === sec;
@@ -17359,7 +17260,7 @@ window.cseConnect = { go:go };
     nav.setAttribute('data-active', sec);
     placeInd();
     closeMenu();
-    var targetY = sec === 'campus' ? campusY : 0;
+    var targetY = (sec === 'campus' && mode() === campusYMode) ? campusY : 0;   // come back to the same Campus tab at the same scroll
     function toY(){ try{ window.scrollTo({top:targetY, left:0, behavior:'instant'}); }catch(e){ window.scrollTo(0, targetY); } }
     toY();
     if(targetY > 0){   // Campus may still be settling its layout after being hidden: re-apply for a few frames unless the user has scrolled
@@ -17371,22 +17272,34 @@ window.cseConnect = { go:go };
       requestAnimationFrame(tick);
     }
     if(!o.noAnim){
-      if(sec === 'campus'){ fade(document.getElementById('mainPanel')); fade(document.querySelector('.mode-bar-wrap')); }
-      else fade(PAGES[sec].firstElementChild, true);
+      if(sec === 'connect') fade(PAGES.connect.firstElementChild, true);
+      else if(sec === 'home') fade(document.getElementById('homeMode'), true);
+      else { fade(document.getElementById('mainPanel')); fade(document.querySelector('.mode-bar-wrap')); }
     }
     if(!o.noHash){
       try{
-        var h = sec === 'campus' ? (typeof currentMode === 'string' ? currentMode : 'home') : sec;
+        var h = sec === 'connect' ? 'connect' : (mode() || 'home');
         if(location.hash.replace('#','') !== h) history.replaceState(null,'','#' + h);
       }catch(e){}
     }
+    try{ if(window.__shxFabSync) window.__shxFabSync(); }catch(e){}
     try{ window.dispatchEvent(new CustomEvent('cse:sectionchange',{detail:{section:sec, previous:prev}})); }catch(e){}
+  }
+  // One entry point per section. Home is always the same setMode('home'), whether you come from Campus or Connect.
+  function goSection(sec, o){
+    if(sec === 'home'){ if(typeof window.setMode === 'function') window.setMode('home'); else apply('home', o); return; }
+    if(sec === 'campus'){
+      if((mode() === 'home' || !mode()) && typeof window.setMode === 'function') window.setMode(lastCampus);
+      else apply('campus', o);
+      return;
+    }
+    apply(sec, o);
   }
   btns.forEach(function(b){
     b.addEventListener('click', function(){
       var sec = b.getAttribute('data-sec');
-      if(window.__tourActive && sec !== 'campus') return;   // the onboarding tour points at Campus elements
-      apply(sec);
+      if(window.__tourActive && sec === 'connect') return;   // the onboarding tour points at Campus / Home elements
+      goSection(sec);
     });
   });
   nav.addEventListener('keydown', function(e){
@@ -17395,13 +17308,18 @@ window.cseConnect = { go:go };
     if(n < 0) return;
     e.preventDefault(); btns[n].focus(); btns[n].click();
   });
-  // any explicit Campus navigation (links, notifications, hash, tour …) brings you back to Campus first; swipes can't happen elsewhere
+  // Every mode change (tabs, links, notifications, hash, tour, Sheynix) lands in the matching section: 'home' → Home, anything else → Campus.
   try{
     if(typeof window.setMode === 'function'){
       var orig = window.setMode;
-      window.setMode = function(m, opts){
-        if(cur !== 'campus' && m !== 'discover' && !(opts && opts.swipe)) apply('campus', {noHash:true});
-        return orig.apply(this, arguments);
+      window.setMode = function(m){
+        if(m === 'discover') return orig.apply(this, arguments);   // Discover lives in Connect
+        var r = orig.apply(this, arguments);
+        var now = mode();
+        if(now && now !== 'home') lastCampus = now;
+        var want = now === 'home' ? 'home' : 'campus';
+        if(want !== cur) apply(want, {noHash:true});
+        return r;
       };
     }
   }catch(e){ console.warn('[Sections] setMode hook skipped', e); }
@@ -17409,16 +17327,40 @@ window.cseConnect = { go:go };
     var h = location.hash.replace('#',''), base = h.split('/')[0];
     if(h === 'discover') base = 'connect';
     if(PAGES[base]) apply(base, {noHash:true});
+    else if(h === 'home'){ if(cur !== 'home') goSection('home'); }
     else if(cur !== 'campus' && knownMode(h)) apply('campus', {noHash:true});
   });
+  // Home section swipe (phones): swipe left → Connect, swipe right → Campus, matching the Campus | Home | Connect order.
+  (function(){
+    var hm = document.getElementById('homeMode'); if(!hm) return;
+    var sx = 0, sy = 0, t0 = 0, on = false;
+    var SKIP = 'input, textarea, select, [contenteditable="true"], #av-chat, #hmNameCard, #annCompose, .me-modal-overlay';
+    hm.addEventListener('touchstart', function(e){
+      on = false;
+      if(cur !== 'home' || window.__tourActive || !e.touches || e.touches.length !== 1) return;
+      if(e.target && e.target.closest && e.target.closest(SKIP)) return;
+      on = true; sx = e.touches[0].clientX; sy = e.touches[0].clientY; t0 = Date.now();
+    }, {passive:true});
+    hm.addEventListener('touchmove', function(e){ if(on && e.touches && e.touches.length > 1) on = false; }, {passive:true});
+    hm.addEventListener('touchcancel', function(){ on = false; }, {passive:true});
+    hm.addEventListener('touchend', function(e){
+      if(!on) return; on = false;
+      var p = e.changedTouches && e.changedTouches[0]; if(!p) return;
+      var dx = p.clientX - sx, dy = p.clientY - sy;
+      if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5 || Date.now() - t0 > 900) return;
+      goSection(dx < 0 ? 'connect' : 'campus');
+    }, {passive:true});
+  })();
   window.addEventListener('resize', placeInd, {passive:true});
   if(window.ResizeObserver){ try{ new ResizeObserver(placeInd).observe(nav); }catch(e){} }
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(placeInd);
   document.body.setAttribute('data-section','campus');
   placeInd();
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ nav.classList.add('sec-ready'); }); });
+  (function(){ var m0 = mode(); if(m0 && m0 !== 'home') lastCampus = m0; })();
   if(window.__secBoot && PAGES[window.__secBoot]) apply(window.__secBoot, {force:true, noAnim:true, noHash:true});
-  window.cseSection = { go: apply, current: function(){ return cur; } };
+  else if(mode() === 'home') apply('home', {force:true, noAnim:true, noHash:true});
+  window.cseSection = { go: function(sec, o){ return (sec === 'home' || sec === 'campus') ? goSection(sec, o) : apply(sec, o); }, current: function(){ return cur; } };
 })();
 </script>
 </body>
