@@ -57,6 +57,10 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.ClearCredentialStateRequest
+import android.content.pm.ApplicationInfo
+import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -322,7 +326,11 @@ class MainActivity : AppCompatActivity() {
         js("window.__onNativeGoogle&&window.__onNativeGoogle(${JSONObject.quote(token)},${JSONObject.quote(err)})")
     }
 
+    @Volatile private var googleInFlight = false
+
     private fun startGoogleSignIn() {
+        if (googleInFlight) return                       // a second tap while the account picker is open must not start another request
+        googleInFlight = true
         val cm = CredentialManager.create(this)
         val req = GetCredentialRequest.Builder()
             .addCredentialOption(GetSignInWithGoogleOption.Builder(googleWebClientId).build())
@@ -332,14 +340,24 @@ class MainActivity : AppCompatActivity() {
                 val c = cm.getCredential(this@MainActivity, req).credential
                 if (c is CustomCredential && c.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                     val token = GoogleIdTokenCredential.createFrom(c.data).idToken
+                    Log.d("GoogleSignIn", "ID token received (${token.length} chars)")
                     nativeGoogleResult(token, "")
                 } else {
+                    Log.e("GoogleSignIn", "Unexpected credential type: ${c.type}")
                     nativeGoogleResult("", "failed")
                 }
             } catch (e: GetCredentialCancellationException) {
+                Log.d("GoogleSignIn", "cancelled by user")
                 nativeGoogleResult("", "cancelled")
-            } catch (e: Exception) {
+            } catch (e: GetCredentialException) {
+                // e.type / e.message say WHY (missing SHA-1 / wrong client ID / no Play services / no account)
+                Log.e("GoogleSignIn", "getCredential failed: ${e.type} - ${e.message}", e)
                 nativeGoogleResult("", "failed")
+            } catch (e: Exception) {
+                Log.e("GoogleSignIn", "sign-in error", e)
+                nativeGoogleResult("", "failed")
+            } finally {
+                googleInFlight = false
             }
         }
     }
@@ -360,6 +378,17 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun googleSignIn() { runOnUiThread { startGoogleSignIn() } }
+
+        /** The page calls this after Firebase sign-out so the next Google sign-in starts from a clean credential state. */
+        @JavascriptInterface
+        fun googleSignOut() {
+            runOnUiThread {
+                lifecycleScope.launch {
+                    try { CredentialManager.create(this@MainActivity).clearCredentialState(ClearCredentialStateRequest()) }
+                    catch (e: Exception) { Log.w("GoogleSignIn", "clearCredentialState failed", e) }
+                }
+            }
+        }
 
         @JavascriptInterface
         fun syncSchedule(json: String) {
@@ -548,6 +577,8 @@ class MainActivity : AppCompatActivity() {
             allowFileAccess = false
             allowContentAccess = false
         }
+        // Debug builds only: lets you read the page console ([Google] / [Auth] lines) from chrome://inspect on your PC.
+        if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) WebView.setWebContentsDebuggingEnabled(true)
         webView.addJavascriptInterface(Bridge(), "AndroidBridge")
         // Analytics: forwards the page's events to NATIVE Firebase Analytics. Registered BEFORE loadUrl so the page sees it at start-up.
         webView.addJavascriptInterface(CseAnalyticsBridge(this), "CseAnalyticsBridge")

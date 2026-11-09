@@ -7643,7 +7643,9 @@ function refreshCommStatus(){ const r = commComputeStatus(); setCommStatus(r[0],
 let commOkTimer = 0;
 // Declared here (not next to their functions) because connectFirebase() first runs just below, before later `let`s are initialised (TDZ).
 let initRetryN = 0, initRetryTimer = 0, sdkLoading = false, authRetryN = 0, authRetryTimer = 0, authBusy = 0, authResolved = false;   // authResolved: Firebase's first onAuthStateChanged has fired, so we KNOW whether a saved session exists
-function authReady(){ return window.cseAuthReady || Promise.resolve(); }   // every sign-in waits for LOCAL persistence to be configured
+// every sign-in waits for LOCAL persistence to be configured. Bounded to 6 s: if setPersistence() never settles (IndexedDB stalled in an
+// embedded WebView) a sign-in must still go ahead with the SDK's default persistence instead of waiting forever with no message.
+function authReady(){ var p=window.cseAuthReady; return p ? Promise.race([p, new Promise(function(r){ setTimeout(r,6000); })]) : Promise.resolve(); }
 function commServerOk(){
   commConn.serverOkAt = Date.now(); clearTimeout(commOkTimer); commOkTimer = setTimeout(refreshCommStatus, 30500);
   refreshCommStatus();
@@ -12947,6 +12949,38 @@ html.chat-open #commChatPanel .chat-list{scroll-behavior:auto;overflow-anchor:au
     open();
     var nx=''; try{ nx=sessionStorage.getItem('cse_gate_next')||''; sessionStorage.removeItem('cse_gate_next'); }catch(e){}
     if(nx==='guest' && ACAD) guestStart();            // the academic wizard reloaded the page: continue the guest flow where it stopped
+    else if(nx==='account' && ACAD) accountResume();  // ...and the same for a Google/email account flow (no flash of the sign-in options)
+  }
+  // After the year/branch wizard reloads the page, the Google/email session is still being restored. Do NOT show the sign-in options in
+  // the meantime: go straight to the profile form. Save stays disabled until the restored account is confirmed, so the profile can never
+  // be saved as a guest by mistake. If no account session comes back within 20 s, return to the sign-in options with a message.
+  function accountResume(){
+    profileStepImpl('');
+    var btn=$('pflgStudentFormSave'); if(!btn) return;
+    var label=btn.textContent, t0=Date.now();
+    var signedIn=function(){ try{ var u=firebase.auth().currentUser; return !!u && !u.isAnonymous; }catch(e){ return false; } };
+    if(signedIn()) return;
+    btn.disabled=true; btn.textContent='Loading your account…';
+    var iv=setInterval(function(){
+      var b=$('pflgStudentFormSave');                                  // the form may have been re-rendered by the account module
+      if(!b){ clearInterval(iv); return; }
+      if(signedIn()){ clearInterval(iv); b.disabled=false; b.textContent=label; return; }
+      if(Date.now()-t0>20000){
+        clearInterval(iv); panel('lgHome'); refreshAcadLine();
+        var e=$('lgHomeErr'); if(e){ e.textContent='Your sign-in could not be restored. Please choose your sign-in method again.'; e.classList.remove('hidden'); }
+      }
+    },200);
+  }
+  // Profile form for an account that still needs one. Idempotent: if the form is already on screen (shown early by accountResume) it is
+  // kept as is, so anything the user already typed is not wiped when the account finishes loading.
+  function profileStepImpl(prefName){
+    g.classList.remove('hidden','lg-out');
+    var shown=!$('lgStudentPanel').classList.contains('hidden') && !!$('pflgStudentFormSave');
+    if(prefName && !currentUser.name) currentUser.name=String(prefName).trim().slice(0,40);
+    if(shown){
+      var nm=$('pflgStudentFormName'); if(nm && !nm.value && currentUser.name) nm.value=currentUser.name;
+    } else { panel('lgStudentPanel'); renderProfileForm('lgStudentForm'); }
+    var b=g.querySelector('#lgStudentPanel [data-lgback]'); if(b) b.classList.add('hidden');
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('cse:role-changed',function(){ if(window.cseRole.role!=='student' && window.cseGateOpen() && !window.cseCrPending && !window.__ownerPendingGate) cseLoginDone(); });
@@ -12954,12 +12988,7 @@ html.chat-open #commChatPanel .chat-list{scroll-behavior:auto;overflow-anchor:au
   window.cseGate={
     el:g, panel:panel, open:open, showAcademic:showAcademic, mark:mark, seen:seen,
     show:function(){ g.classList.remove('hidden','lg-out'); },
-    profileStep:function(prefName){
-      g.classList.remove('hidden','lg-out');
-      if(prefName && !currentUser.name) currentUser.name=String(prefName).trim().slice(0,40);
-      panel('lgStudentPanel'); renderProfileForm('lgStudentForm');
-      var b=g.querySelector('#lgStudentPanel [data-lgback]'); if(b) b.classList.add('hidden');
-    },
+    profileStep:profileStepImpl,
     done:function(kind){ cseLoginDone(kind||'student'); }
   };
 })();
@@ -13209,7 +13238,9 @@ function profileComplete(x){
 }
 function getProfile(uid){
   var ref=fbDb.collection('userProfiles').doc(uid);
-  return limit(ref.get({source:'server'}),8000).catch(function(){ return ref.get().catch(function(){ return null; }); })
+  // Both reads are bounded: the cache fallback used to be unbounded, so a stalled Firestore queue (common right after the network cycle in
+  // WebView) left onStudentAccount pending forever and the login screen on "Signing you in…" with no error.
+  return limit(ref.get({source:'server'}),8000).catch(function(){ return limit(ref.get(),6000).catch(function(){ return null; }); })
     .then(function(d){ return d===null?null:(d.exists?d.data():{}); });
 }
 function applyServerProfile(x){
@@ -13363,6 +13394,7 @@ function logout(){
       try{ document.querySelectorAll('.me-modal-overlay.show').forEach(function(o){ o.classList.remove('show'); o.classList.add('hidden'); }); }catch(e){}
       return firebase.auth().signOut().then(function(){
         try{ roleCacheClear(); setOwner(false); }catch(e){}
+        try{ if(window.AndroidBridge && typeof window.AndroidBridge.googleSignOut!=='undefined') window.AndroidBridge.googleSignOut(); }catch(e){}   // Android: clear the native Google credential state so the next sign-in shows the account chooser
         wipeUserData();
         var fin=function(){ location.replace(location.pathname); };
         // Firestore keeps an offline cache of the signed-in user's documents in IndexedDB: remove it so nothing survives for the next person.
@@ -13381,6 +13413,8 @@ var em={mode:'signin',busy:false,pending:null,upgrade:false};
 var NET='Network error. Check your connection and try again.';
 function mapErr(e,ctx){
   var c=(e&&e.code)||'';
+  // A Google ID token that Firebase rejects is a configuration problem (wrong Web client ID / project), never "incorrect email or password".
+  if(ctx==='google' && (c==='auth/invalid-credential'||c==='auth/invalid-idp-response'||c==='auth/missing-or-invalid-nonce'||c==='auth/internal-error')) return 'Firebase rejected the Google sign-in ('+c.replace('auth/','')+'). Please try again or use Email.';
   switch(c){
     case 'auth/invalid-email': return 'That email address does not look right.';
     case 'auth/missing-password': return 'Enter your password.';
@@ -13518,10 +13552,18 @@ function homeInfo(m){ show('lgHomeInfo',m||'',!!m); }
 function setGBusy(on){ gBusy=on; ['lgGoogle','lgEmail','lgStudent'].forEach(function(i){ var b=$(i); if(b) b.disabled=on; }); }
 function googleProvider(){ var p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'}); return p; }
 function googleExists(e,u){   // the Google identity or its email already belongs to a registered account
-  var cred=e.credential||null, email=(e.customData&&e.customData.email)||e.email||'';
+  // In the Android flow we already hold a fresh credential built from the native Google ID token: use it instead of the one attached to the
+  // error object (that one can be missing/unusable in some SDK builds). The popup flow has no such credential and uses e.credential.
+  var cred=window.__gNativeCred||e.credential||null, email=(e.customData&&e.customData.email)||e.email||'';
   if(e.code==='auth/credential-already-in-use'){
     var ask=hasGuestData()?dlg('This Google account is already registered','Log in to that account? Your guest progress on this device is NOT merged automatically — after logging in you will be asked whether to import it.',[{id:'ok',t:'Log in to that account',cls:'btn-primary'},{id:'cancel',t:'Cancel'}]):Promise.resolve('ok');
-    return ask.then(function(c){ if(c!=='ok'||!cred) return false; return firebase.auth().signInWithCredential(cred).then(function(){ return true; }); });
+    return ask.then(function(c){
+      if(c!=='ok'||!cred) return false;
+      window.__gStage='signing in to your existing account';
+      console.log('[Google] account already registered; signing in to it');
+      // Bounded: this used to be an unbounded wait, which left the login screen on "Signing you in…" forever.
+      return withTimeout(firebase.auth().signInWithCredential(cred),30000).then(function(){ console.log('[Google] existing-account sign-in OK'); return true; });
+    });
   }
   // same email, different sign-in method (e.g. email + password): never merge on email alone — prove ownership with the existing method first
   emOpen('signin',{email:email,pending:cred,note:'An account already exists for '+(email||'this email')+'. Log in with your password; your Google sign-in will then be linked to it.'});
@@ -13533,7 +13575,9 @@ function gInfo(m,fromSettings){ if(fromSettings){ if(m) toast(m); } else homeInf
 // is still open after 15 s, say so and retry that step once instead of leaving a silent, frozen screen.
 function watchGate(fromSettings){
   if(fromSettings) return;
-  clearTimeout(window.__gWatch);
+  window.__gStage='Firebase sign-in done, loading account'; clearTimeout(window.__gPre);
+  console.log('[Google] Firebase sign-in OK, uid', (cu()||{}).uid);
+  clearTimeout(window.__gWatch); clearTimeout(window.__gWatch2);
   window.__gWatch=setTimeout(function(){
     try{
       if(!(window.cseGateOpen && cseGateOpen())) return;
@@ -13542,17 +13586,50 @@ function watchGate(fromSettings){
       resumeOnboarding();
     }catch(e){}
   },15000);
+  window.__gWatch2=setTimeout(gGiveUp,40000);   // hard stop: never stay on a loading message forever
+}
+// Terminal state for "Google sign-in succeeded but the app never got past the login screen": clear the loading text, show a real error,
+// re-enable the buttons. Does nothing if the app already navigated, or the profile/onboarding step is on screen (the user has something to do).
+function gGiveUp(){
+  try{
+    if(!(window.cseGateOpen && cseGateOpen())) return;
+    var u=cu(); if(!u||u.isAnonymous) return;
+    var h=$('lgHome'); if(h && h.classList.contains('hidden')) return;
+    gSettleNow(); setGBusy(false); homeInfo('');
+    window.__gStuckN=(window.__gStuckUid===u.uid?(window.__gStuckN||0):0)+1; window.__gStuckUid=u.uid;
+    console.warn('[Google] account load did not finish for uid', u.uid, 'attempt', window.__gStuckN);
+    homeErr('You signed in with Google, but Campus Loop could not load your account (stopped at: '+(window.__gStage||'unknown')+'). Tap “Google” to retry, or use Email.');
+  }catch(e){}
 }
 function googleGo(fromSettings){
   if(gBusy) return;
   homeErr(''); homeInfo('');
+  // Retry after gGiveUp(): the Google account is already signed in, so re-run the account load instead of opening Google again.
+  // If the same account failed twice, start from a clean session (sign out) and fall through to a fresh Google sign-in.
+  if(!fromSettings){
+    var cs=cu();
+    if(cs && !cs.isAnonymous && window.__gStuckUid===cs.uid && window.cseGateOpen && cseGateOpen()){
+      if((window.__gStuckN||0)<2){
+        console.log('[Google] retrying account load for uid', cs.uid);
+        setGBusy(true); homeInfo('Retrying…'); gAwaitAccount(); watchGate(false);
+        Promise.resolve(refreshFsAuth(cs)).catch(function(){}).then(function(){ return resumeOnboarding(); }).catch(function(e){ console.warn('[Google] retry failed', e); }).then(function(){ return gWaitP; }).then(function(){ setGBusy(false); });
+        return;
+      }
+      window.__gStuckUid=''; window.__gStuckN=0;
+      setGBusy(true); homeInfo('Resetting your sign-in…');
+      firebase.auth().signOut().catch(function(){}).then(function(){ setGBusy(false); homeInfo(''); googleGo(false); });
+      return;
+    }
+  }
   // Android app: sign in natively (Credential Manager) and receive the Google ID token in window.__onNativeGoogle below.
   // Old APKs without AndroidBridge.googleSignIn fall through to the existing message.
   var hasNativeG=false; try{ hasNativeG=!!window.AndroidBridge && typeof window.AndroidBridge.googleSignIn!=='undefined'; }catch(e){}
   if(hasNativeG){
     if(!navigator.onLine){ var o1='You appear to be offline. Connect to the internet and try again.'; if(fromSettings) toast(o1); else homeErr(o1); return; }
     setGBusy(true); window.__nativeGFromSettings=!!fromSettings; gAwaitAccount();
-    clearTimeout(window.__nativeGT); window.__nativeGT=setTimeout(function(){ if(gBusy){ setGBusy(false); gSettleNow(); } },120000);   // safety: never leave the buttons disabled
+    // safety: if the app never calls __onNativeGoogle, re-enable the buttons AND say so (this used to leave the screen silent/disabled)
+    clearTimeout(window.__nativeGT); window.__nativeGT=setTimeout(function(){ if(gBusy){ setGBusy(false); gSettleNow(); homeInfo(''); var tm='Google sign-in did not respond. Check that Google Play services is up to date, then try again or use Email.'; if(fromSettings) toast(tm); else homeErr(tm); } },120000);
+    console.log('[Google] launching native sign-in');
     try{ window.AndroidBridge.googleSignIn(); }catch(x){ setGBusy(false); gSettleNow(); var n1='Google sign-in is not available. Please use Email.'; if(fromSettings) toast(n1); else homeErr(n1); }
     return;
   }
@@ -13589,8 +13666,19 @@ function googleGo(fromSettings){
 window.__onNativeGoogle=function(idToken,err){
   clearTimeout(window.__nativeGT);
   var fs=!!window.__nativeGFromSettings; window.__nativeGFromSettings=false;
+  if(typeof idToken!=='string' || idToken==='null' || idToken==='undefined' || idToken.length<20) idToken='';   // a bridge that stringifies null/undefined must count as "no token"
   console.log('[Google] native result', idToken?'token received':('no token: '+err));
   if(idToken) gInfo('Google account selected. Signing you in…',fs);
+  window.__gStage=idToken?'token received':'no token';
+  clearTimeout(window.__gPre);
+  if(idToken && !fs) window.__gPre=setTimeout(function(){   // Firebase never answered (not even its own 30 s limit fired): say so instead of waiting
+    var st=String(window.__gStage||'');
+    if(!gBusy || st.indexOf('loading account')>-1) return;                              // flow already finished, or past sign-in (the other watchdog covers that)
+    try{ var dv=$('cseDlgOv'); if(dv && !dv.classList.contains('hidden')) return; }catch(x){}   // the user is looking at a confirmation dialog
+    setGBusy(false); gSettleNow(); homeInfo('');
+    homeErr('Google sign-in did not finish (stopped at: '+st+'). Check your connection and tap “Google” to try again, or use Email.');
+    console.warn('[Google] pre-auth guard fired at stage:', st);
+  },50000);
   if(!idToken){ homeInfo('');
     setGBusy(false); gSettleNow();
     if(err!=='cancelled'){ var m0='Google sign-in failed. Please try again or use Email.'; if(fs) toast(m0); else homeErr(m0); }
@@ -13598,9 +13686,14 @@ window.__onNativeGoogle=function(idToken,err){
   }
   var authReady_=(typeof authReady==='function')?authReady():Promise.resolve();
   authReady_.then(function(){
+    window.__gStage='contacting Firebase';
     var u=cu(), cred=firebase.auth.GoogleAuthProvider.credential(idToken);
+    window.__gNativeCred=cred;
+    console.log('[Google] firebase user before sign-in:', u?(u.isAnonymous?'anonymous':'signed-in'):'none');
     if(u && (u.isAnonymous||fs)){
       return withTimeout(u.linkWithCredential(cred),30000).then(function(r){ var settingsOnly=(fs&&!u.isAnonymous); if(settingsOnly) toast('Google linked to your account.'); else { trk('sign_up',{method:'google'}); gInfo('Signing you in…',false); watchGate(false); } return afterLink(r.user).then(function(){ return settingsOnly?null:gWaitP; }); }).catch(function(e){
+        console.warn('[Google] linking failed:', e&&e.code, e&&e.message);
+        if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')) window.__gStage='account already registered';
         if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')) return Promise.resolve(googleExists(e,u)).then(function(ok){ if(ok){ gInfo('Signing you in…',false); watchGate(false); return gWaitP; } });
         throw e;
       });
@@ -13609,7 +13702,7 @@ window.__onNativeGoogle=function(idToken,err){
       if(e&&e.code==='auth/account-exists-with-different-credential') return Promise.resolve(googleExists(e,null)).then(function(){});
       throw e;
     });
-  }).catch(function(e){ gSettleNow(); console.warn('[Google] native sign-in failed', e&&e.code, e&&e.message); homeInfo(''); var msg=mapErr(e,'google'); if(fs) toast(msg); else homeErr(msg); }).then(function(){ setGBusy(false); gSettleNow(); });
+  }).catch(function(e){ gSettleNow(); clearTimeout(window.__gWatch); clearTimeout(window.__gWatch2); clearTimeout(window.__gPre); console.warn('[Google] native sign-in failed', e&&e.code, e&&e.message); homeInfo(''); var msg=mapErr(e,'google'); if(fs) toast(msg); else homeErr(msg); }).then(function(){ window.__gNativeCred=null; setGBusy(false); gSettleNow(); });
 };
 function checkRedirectResult(){
   var flag=''; try{ flag=sessionStorage.getItem('cse_g_redirect')||''; }catch(e){}
