@@ -2456,6 +2456,187 @@ nav .brand .s-hat{position:absolute;left:-.2em;bottom:.62em;width:.82em;height:a
 @media(max-width:600px){.dv-ov{padding:0}.dv-rd{border-radius:0;min-height:100%;animation:none}.dv-rd>.dv-x{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px))}.dv-rd>.dv-save{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}.dv-rb{padding:18px 16px 24px}.dv-rb h2{font-size:1.35rem}.dv-bar{margin-top:0}.dv-ibtn .t{display:none}}
 @media(prefers-reduced-motion:reduce){.dv-card,.dv-media img,.dv-rd{transition:none;animation:none}.dv-prog i,.dv-refresh.busy svg,.dv-skel i{animation-duration:2.5s}}
 </style>
+<style id="connectCss">
+/* ===== Connect: Posting · Teams · Discover (Articles + Events). Frontend-only demo data; uses the app tokens. ===== */
+.sec-page.cn-page{display:block;min-height:0;padding:22px 16px 64px}
+.cn-shell{max-width:1040px;margin:0 auto}
+.cn-head{text-align:center;margin:6px 0 18px}
+.cn-head h1{margin:6px 0 4px;font-size:clamp(1.8rem,5vw,2.4rem);letter-spacing:-.02em;color:var(--text)}
+.cn-head p{margin:0 auto;max-width:52ch;color:var(--muted);font-size:.95rem;line-height:1.55}
+.cn-tabs,.cn-subtabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.cn-tabs::-webkit-scrollbar,.cn-subtabs::-webkit-scrollbar{display:none}
+.cn-tabs{justify-content:center;margin-bottom:12px}
+.cn-subtabs{justify-content:center;margin:-2px 0 14px}
+.cn-subtabs.hidden,.cn-pane.hidden,#cnArticles.hidden,#cnEvents.hidden,.cn-modal.hidden{display:none!important}
+.cn-tab{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-weight:600;font-size:.92rem;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .15s,box-shadow .2s}
+.cn-tab svg{width:18px;height:18px;flex:none}
+.cn-tab:hover{border-color:var(--cyan);color:var(--text)}
+.cn-tab:active{transform:scale(.97)}
+.cn-tab:focus-visible,.cn-in:focus-visible,.cn-btn:focus-visible,.cn-act:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.cn-tab.active{background:var(--sage);color:#fff;border-color:var(--sage);box-shadow:0 8px 18px -10px var(--sage)}
+.cn-subtabs .cn-tab{min-height:38px;padding:6px 15px;font-size:.86rem}
+.cn-subtabs .cn-tab.active{background:color-mix(in srgb,var(--cyan) 16%,var(--card));color:var(--text);border-color:var(--cyan);box-shadow:none}
+.cn-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 14px 30px -24px rgba(16,42,69,.45);transition:transform .2s,box-shadow .2s,border-color .2s}
+.cn-in{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2,var(--card));color:var(--text);font:inherit;font-size:.93rem}
+textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
+.cn-in:focus{border-color:var(--cyan);outline:none}
+.cn-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-weight:600;font-size:.86rem;cursor:pointer;transition:.15s}
+.cn-btn:hover{border-color:var(--cyan)}
+.cn-btn.pri{background:var(--sage);border-color:var(--sage);color:#fff}
+.cn-btn.pri:hover{filter:brightness(1.1)}
+.cn-btn.done{background:color-mix(in srgb,var(--cyan) 14%,var(--card));border-color:var(--cyan)}
+.cn-btn[disabled]{opacity:.5;cursor:not-allowed}
+.cn-row{display:flex;gap:10px;flex-wrap:wrap}.cn-row>*{flex:1 1 180px}
+.cn-lbl{display:block;font-size:.76rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.cn-av{flex:none;width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;font-weight:700;font-size:.9rem;color:#fff;background:linear-gradient(145deg,color-mix(in srgb,var(--c) 70%,#fff),var(--c))}
+.cn-av.lg{width:64px;height:64px;font-size:1.2rem}
+.cn-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:.76rem;font-weight:600;background:color-mix(in srgb,var(--cyan) 12%,transparent);color:var(--text);border:1px solid color-mix(in srgb,var(--cyan) 30%,transparent)}
+.cn-chip.alt{background:color-mix(in srgb,var(--violet,#8b6bd9) 12%,transparent);border-color:color-mix(in srgb,var(--violet,#8b6bd9) 30%,transparent)}
+.cn-chip button{border:0;background:none;color:inherit;cursor:pointer;padding:0 0 0 2px;font-size:1rem;line-height:1}
+.cn-chips{display:flex;flex-wrap:wrap;gap:6px}
+/* posting */
+.cn-feedwrap{max-width:720px;margin:0 auto;display:grid;gap:14px}
+.cn-comp{display:grid;gap:12px}
+.cn-comp-top{display:flex;gap:10px;align-items:center;font-weight:700;color:var(--text)}
+.cn-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.cn-thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.cn-thumb{position:relative;width:76px;height:76px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--bg2,var(--card))}
+.cn-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.cn-thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;line-height:1}
+.cn-filter{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.cn-filter::-webkit-scrollbar{display:none}
+.cn-filter .pill{flex:0 0 auto}
+.cn-post:hover,.cn-prof:hover,.cn-ev:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--cyan) 55%,var(--line))}
+.cn-ph{display:flex;gap:10px;align-items:center}
+.cn-ph b{display:block;color:var(--text)}.cn-ph small{color:var(--muted);font-size:.78rem}
+.cn-ph .cn-chip{margin-left:auto}
+.cn-post h3{margin:12px 0 4px;font-size:1.08rem;color:var(--text)}
+.cn-post p{margin:8px 0;color:var(--text);line-height:1.6;font-size:.94rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.cn-imgs{display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:10px 0}
+.cn-imgs img{width:100%;max-height:340px;object-fit:cover;border-radius:12px;display:block}
+.cn-files{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.cn-acts{display:flex;gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.cn-act{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border:0;border-radius:10px;background:none;color:var(--muted);font:inherit;font-weight:600;font-size:.86rem;cursor:pointer;transition:.15s}
+.cn-act:hover{background:color-mix(in srgb,var(--cyan) 10%,transparent);color:var(--text)}
+.cn-act.on{color:#d2455a}.cn-act svg{width:18px;height:18px}
+.cn-cm{display:grid;gap:8px;margin-top:8px}
+.cn-cm-i{display:flex;gap:8px;font-size:.88rem;color:var(--text)}
+.cn-cm-i .cn-av{width:30px;height:30px;font-size:.7rem}
+.cn-cm-i div{background:var(--bg2,var(--card));border:1px solid var(--line);border-radius:12px;padding:6px 10px}
+.cn-cm-f{display:flex;gap:8px}
+/* teams & events */
+.cn-bar{display:grid;gap:10px;margin-bottom:14px}
+.cn-selects{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.cn-count{font-size:.84rem;color:var(--muted);margin:0 2px 10px}
+.cn-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.cn-prof{display:flex;flex-direction:column;gap:10px}
+.cn-prof .cn-ph b{font-size:1.02rem}
+.cn-prof .bio{margin:0;color:var(--text);font-size:.88rem;line-height:1.5}
+.cn-prof .proj{font-size:.82rem;color:var(--muted)}
+.cn-prof .cn-btn{margin-top:auto}
+.cn-sub{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 4px}
+.cn-empty{text-align:center;padding:40px 18px;border:1px dashed var(--line);border-radius:18px;color:var(--muted)}
+.cn-empty .e{font-size:2.2rem}.cn-empty h3{margin:6px 0 4px;color:var(--text)}.cn-empty p{margin:0 0 12px}
+.cn-h{margin:20px 2px 10px;font-size:1.05rem;color:var(--text);display:flex;align-items:center;gap:8px}
+.cn-ev{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.cn-ban{position:relative;height:118px;display:grid;place-items:center;font-size:2.6rem;background:linear-gradient(135deg,var(--c1),var(--c2))}
+.cn-ban .cn-chip{position:absolute;left:10px;top:10px;background:rgba(255,255,255,.92);color:#10243a;border-color:transparent}
+.cn-ban .md{position:absolute;right:10px;top:10px;background:rgba(10,20,32,.7);color:#fff;border-color:transparent}
+.cn-evb{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.cn-evb h3{margin:0;font-size:1rem;color:var(--text);line-height:1.3}
+.cn-evb p{margin:0;font-size:.86rem;color:var(--muted);line-height:1.5}
+.cn-meta{display:grid;gap:3px;font-size:.8rem;color:var(--muted)}
+.cn-meta b{color:var(--text);font-weight:600}
+.cn-evb .cn-btn{margin-top:auto}
+.cn-modal{position:fixed;inset:0;z-index:300;background:rgba(10,20,32,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.cn-modal .cn-card{max-width:520px;width:100%;max-height:90vh;overflow:auto;padding:0}
+.cn-modal .cn-evb{padding:18px}
+.cn-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:400;background:var(--text);color:var(--card);padding:10px 18px;border-radius:999px;font-size:.88rem;font-weight:600;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);animation:cnIn .25s ease}
+@keyframes cnIn{from{opacity:0;transform:translate(-50%,10px)}}
+.cn-demo{display:inline-block;margin:0 auto 12px;font-size:.74rem;color:var(--muted)}
+#sectionConnect #discoverMode{padding-bottom:0}
+/* v2: Find People / Find Teams / Events (theme tokens only) */
+.cn-subtabs.hidden{display:none!important}
+.cn-av{background:color-mix(in srgb,var(--c) 20%,var(--card));color:var(--text);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.cn-av.sm{width:28px;height:28px;font-size:.62rem}
+.cn-ic{width:17px;height:17px;flex:none}
+.cn-hero{margin:0 0 14px;padding:18px 20px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--cyan) 7%,var(--card))}
+.cn-hero h2{margin:0 0 4px;font-size:1.35rem;color:var(--text)}
+.cn-hero p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.5;max-width:62ch}
+.cn-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.cn-search{position:relative;display:flex;align-items:center;flex:1 1 260px;min-width:0}
+.cn-search .cn-ic{position:absolute;left:14px;color:var(--muted);pointer-events:none}
+.cn-search .cn-in{padding-left:42px;border-radius:999px}
+.cn-in.cn-sel{width:auto;flex:0 1 auto;border-radius:999px;min-width:0}
+.cn-seg{display:flex;gap:4px;background:var(--bg2,var(--card));border:1px solid var(--line);border-radius:14px;padding:4px;width:fit-content;max-width:100%}
+.cn-seg button{display:inline-flex;gap:6px;align-items:center;border:0;background:transparent;border-radius:10px;padding:7px 14px;min-height:38px;font:inherit;font-weight:600;font-size:.88rem;color:var(--muted);cursor:pointer;transition:background .15s,color .15s}
+.cn-seg button[aria-pressed=true]{background:var(--sage);color:#fff}
+.cn-seg .n{font-size:.72rem;opacity:.7}
+.cn-chipbar{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.cn-fc{flex:none;white-space:nowrap;min-height:36px;padding:4px 13px;border-radius:99px;border:1px solid color-mix(in srgb,var(--cyan) 35%,var(--line));background:color-mix(in srgb,var(--cyan) 10%,transparent);color:var(--text);font:inherit;font-weight:600;font-size:.82rem;cursor:pointer;transition:.15s}
+.cn-fc:hover{border-color:var(--cyan)}
+.cn-fc[aria-pressed=true]{background:var(--sage);border-color:var(--sage);color:#fff}
+.cn-fc .n{opacity:.65;margin-left:4px;font-size:.72rem}
+.cn-fc:focus-visible,.cn-seg button:focus-visible,.cn-bm:focus-visible,.cn-link:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.cn-chip.on{background:var(--sage);border-color:var(--sage);color:#fff}
+.cn-sum{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:32px;font-size:.84rem;color:var(--muted);margin:0 2px 8px}
+.cn-link{border:0;background:none;color:var(--text);font:inherit;font-weight:600;font-size:.84rem;text-decoration:underline;cursor:pointer;min-height:32px;padding:0 4px}
+.cn-ring{--p:0;flex:none;margin-left:auto;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--cyan) calc(var(--p)*1%),var(--line) 0);font-weight:800;font-size:.72rem;color:var(--text)}
+.cn-ring::after{content:attr(data-v);position:absolute;inset:5px;border-radius:50%;background:var(--card);display:grid;place-items:center}
+.cn-cta{display:flex;gap:8px;margin-top:auto}.cn-cta .cn-btn{flex:1}
+.cn-logo{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:1.5rem;background:color-mix(in srgb,var(--c) 18%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+.cn-stack{display:flex}.cn-stack .cn-av{margin-left:-8px;border:2px solid var(--card)}.cn-stack .cn-av:first-child{margin-left:0}
+.cn-memrow{display:flex;align-items:center;gap:10px;font-size:.84rem;color:var(--muted)}
+.cn-memrow b{color:var(--text)}
+.cn-ban{height:112px;background:color-mix(in srgb,var(--c,var(--cyan)) 16%,var(--card));border-bottom:1px solid var(--line)}
+.cn-st{position:absolute;left:10px;top:10px;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:700;background:var(--card);border:1px solid var(--line);color:var(--text)}
+.cn-st.soon{border-color:var(--cyan)}.cn-st.closed{color:var(--muted)}
+.cn-bm{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);display:grid;place-items:center;cursor:pointer}
+.cn-bm[aria-pressed=true]{background:var(--sage);border-color:var(--sage);color:#fff}.cn-bm[aria-pressed=true] svg{fill:currentColor}
+.cn-dl{display:flex;gap:7px;align-items:center;font-size:.84rem;color:var(--text)}.cn-dl.closed{color:var(--muted)}
+.cn-meta div{display:flex;gap:7px;align-items:flex-start}.cn-meta .cn-ic{margin-top:2px}
+.cn-org{font-size:.84rem;color:var(--muted)}
+.cn-ev.is-closed .cn-ban{opacity:.7}
+.cn-prof .proj{font-size:.82rem;color:var(--muted)}
+
+/* v3: compact people list + cover-style event cards (theme tokens only) */
+.cn-ulist{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.cn-urow{display:flex;align-items:center;gap:12px;padding:10px 14px;transition:background .15s}
+.cn-urow+.cn-urow{border-top:1px solid var(--line)}
+.cn-urow:hover{background:color-mix(in srgb,var(--cyan) 6%,transparent)}
+.cn-umain{flex:1;min-width:0;display:grid;gap:1px}
+.cn-umain small{color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cn-uname{border:0;background:none;padding:0;min-height:28px;text-align:left;font:inherit;font-weight:700;color:var(--text);cursor:pointer;justify-self:start}
+.cn-uname:hover{text-decoration:underline}.cn-uname:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.cn-ring.sm{width:42px;height:42px;font-size:.66rem;margin-left:0}.cn-ring.sm::after{inset:4px}
+.cn-urow .cn-btn{flex:none;min-width:92px}
+.cn-ev .cn-ban{display:block;height:156px;font-size:inherit;background:linear-gradient(135deg,var(--sage),color-mix(in srgb,var(--cyan) 75%,var(--sage)));border-bottom:0;overflow:hidden}
+.cn-ev .cn-ban::before,.cn-modal .cn-ban::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.14) 1px,transparent 1px);background-size:14px 14px;pointer-events:none}
+.cn-modal .cn-ban{display:block;height:140px;background:linear-gradient(135deg,var(--sage),color-mix(in srgb,var(--cyan) 75%,var(--sage)));border-bottom:0}
+.cn-big{position:absolute;right:22px;top:50%;transform:translateY(-50%);color:#fff;opacity:.95}
+.cn-big .cn-ic{width:84px;height:84px;stroke-width:1.4}
+.cn-lab{position:absolute;left:12px;bottom:12px;padding:5px 12px;border-radius:99px;background:rgba(10,20,32,.55);color:#fff;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.cn-st.open{border-color:transparent}
+.cn-tl{border:0;background:none;padding:0;font:inherit;font-weight:700;color:var(--text);text-align:left;cursor:pointer;line-height:1.3}
+.cn-tl:hover{text-decoration:underline}
+.cn-org{display:flex;align-items:center;gap:8px}
+.cn-om{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--sage);color:#fff;font-size:.62rem;font-weight:800;flex:none}
+.cn-dl{padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--cyan) 8%,transparent)}
+.cn-dl em{font-style:normal;font-weight:700}
+.cn-dl.soon{background:color-mix(in srgb,var(--danger,#a03c30) 10%,transparent)}.cn-dl.soon em{color:var(--danger,#a03c30)}
+.cn-dl.closed{background:color-mix(in srgb,var(--muted) 10%,transparent)}
+.cn-ev .cn-meta{grid-template-columns:1fr 1fr;gap:8px 14px}
+.cn-ev .cn-chip svg{width:13px;height:13px}
+.cn-upd{padding:12px 14px;margin-bottom:12px;display:grid;gap:2px}
+.cn-upd h3{margin:0 0 4px;font-size:.95rem;color:var(--text);display:flex;gap:8px;align-items:center}
+.cn-upd button{display:flex;gap:10px;align-items:center;text-align:left;border:0;background:none;color:var(--text);font:inherit;font-size:.86rem;min-height:44px;padding:4px 6px;border-radius:10px;cursor:pointer}
+.cn-upd button:hover{background:color-mix(in srgb,var(--cyan) 8%,transparent)}
+.cn-upd button span{display:grid}.cn-upd em{font-style:normal;color:var(--muted);font-size:.78rem}
+@media (max-width:560px){.cn-ev .cn-meta{grid-template-columns:1fr}.cn-urow{padding:10px}.cn-urow .cn-btn{min-width:84px;padding:8px 10px}.cn-big .cn-ic{width:68px;height:68px}}
+
+@media (prefers-reduced-motion:reduce){.cn-card,.cn-tab,.cn-toast{transition:none;animation:none}.cn-post:hover,.cn-prof:hover,.cn-ev:hover{transform:none}}
+@media (max-width:560px){.sec-page.cn-page{padding:16px 12px 56px}.cn-tab{padding:8px 14px}.cn-tabs{justify-content:flex-start}.cn-grid{grid-template-columns:1fr}.cn-act span{display:none}}
+</style>
 <style id="glassUi">
 /* =====================================================================================================
    GLASSMORPHISM LAYER  (visual only — no markup, JS, layout, spacing or radius changes)
@@ -2740,7 +2921,7 @@ html:root :is(.totop,.backup-btn,.burger){
   }
 }
 </style>
-<script>try{var __h=location.hash.replace('#','');if(__h==='connect')window.__secBoot=__h;}catch(e){}</script>
+<script>try{var __h=location.hash.replace('#','');if(__h==='connect'||__h.indexOf('connect/')===0||__h==='discover'){window.__secBoot='connect';window.__cnBoot=__h;}}catch(e){}</script>
 <style id="sectionNavStyles">
 /* ===== Primary sections: Campus | Connect (added) ===== */
 .sec-nav{--sc:var(--accent);position:relative;display:inline-flex;align-items:center;gap:2px;padding:4px;margin:0 auto;border-radius:999px;background:var(--p-glass,var(--card));border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,42,69,.06),inset 0 1px 0 rgba(255,255,255,.45);isolation:isolate;flex:0 0 auto}
@@ -2944,17 +3125,65 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
     <button class="mode-btn" id="modeStudyBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span> <span class="mb-full">Study Materials</span><span class="mb-short">Materials</span></button>
     <button class="mode-btn" id="modeQuizBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span> <span class="mb-full">Contests</span><span class="mb-short">Contests</span></button>
     <button class="mode-btn" id="modeCommunityBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> <span class="mb-full">Community</span><span class="mb-short">Community</span><span class="unread-badge community-unread-badge hidden" id="commNavBadge" aria-hidden="true"></span></button>
-    <button class="mode-btn" id="modeDiscoverBtn" role="tab" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></svg></span> <span class="mb-full">Discover</span><span class="mb-short">Discover</span></button>
   </div>
 </div>
 
-<section class="sec-page hidden" id="sectionConnect" role="tabpanel" aria-labelledby="secBtnConnect" data-sec="connect" data-no-swipe>
-  <div class="sec-card">
-    <div class="sec-orb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 10.2-3.4-2.8M14 10.2l3.4-2.8M12 15v3"/><circle cx="12" cy="12" r="3" fill="currentColor" fill-opacity=".28"/><circle cx="5" cy="6" r="2" fill="currentColor" fill-opacity=".2"/><circle cx="19" cy="6" r="2" fill="currentColor" fill-opacity=".2"/><circle cx="12" cy="20" r="2" fill="currentColor" fill-opacity=".2"/></svg></div>
-    <span class="sec-badge"><i></i>Coming soon</span>
-    <h1>Connect</h1>
-    <p>Something new is taking shape here. Check back soon.</p>
-    <div class="sec-shimmer" aria-hidden="true"></div>
+<section class="sec-page cn-page hidden" id="sectionConnect" role="tabpanel" aria-labelledby="secBtnConnect" data-sec="connect" data-no-swipe>
+  <div class="cn-shell">
+    <header class="cn-head"><div class="eyebrow">CAMPUS LOOP</div><h1>Connect</h1><p>Share your work, find teammates and discover articles and events.</p></header>
+    <div class="cn-tabs" role="tablist" aria-label="Connect sections">
+      <button type="button" class="cn-tab active" role="tab" data-cn="posting" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Posting</button>
+      <button type="button" class="cn-tab" role="tab" data-cn="teams" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Teams</button>
+      <button type="button" class="cn-tab" role="tab" data-cn="discover" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></svg>Discover</button>
+    </div>
+    <div class="cn-subtabs hidden" id="cnSub" role="tablist" aria-label="Discover sections">
+      <button type="button" class="cn-tab active" role="tab" data-cnsub="articles" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>Articles</button>
+      <button type="button" class="cn-tab" role="tab" data-cnsub="events" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</button>
+    </div>
+    <div class="cn-subtabs hidden" id="cnTsub" role="tablist" aria-label="Teams sections">
+      <button type="button" class="cn-tab active" role="tab" data-cntsub="people" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Find People</button>
+      <button type="button" class="cn-tab" role="tab" data-cntsub="teams" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Find Teams</button>
+    </div>
+    <div class="cn-pane" id="cnPosting" role="tabpanel"></div>
+    <div class="cn-pane hidden" id="cnTeams" role="tabpanel"></div>
+    <div class="cn-pane hidden" id="cnDiscover" role="tabpanel">
+      <div id="cnArticles">
+<div id="discoverMode">
+  <section class="comm-hero">
+    <div class="eyebrow">CAMPUS LOOP</div>
+    <h2 class="section-title">Articles</h2>
+    <p class="section-sub">Articles picked for your interests, a place to save the good ones, and anonymous discussion with other students.</p>
+  </section>
+  <div class="dv-wrap">
+    <div id="dvMain" class="hidden">
+      <div class="dv-bar">
+        <div class="dv-tabs" role="tablist" aria-label="Discover sections">
+          <button class="pill active" role="tab" data-dvtab="foryou">✨ For You</button>
+          <button class="pill" role="tab" data-dvtab="latest">🕒 Latest</button>
+          <button class="pill" role="tab" data-dvtab="discussed">💬 Discussed</button>
+          <button class="pill" role="tab" data-dvtab="saved">🔖 Saved</button>
+        </div>
+        <div class="dv-actions">
+          <button class="dv-ibtn dv-refresh" id="dvRefresh" type="button" aria-label="Refresh articles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span class="t">Refresh</span></button>
+          <button class="dv-ibtn" id="dvSettings" type="button" aria-label="Edit interests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="t">Interests</span></button>
+          <button class="dv-ibtn hidden" id="dvMod" type="button" aria-label="Moderation">🛡️<span class="t">Reports</span></button>
+        </div>
+      </div>
+      <div class="dv-prog" id="dvProg" aria-hidden="true"><i></i></div>
+      <div class="dv-status" id="dvStatus" aria-live="polite"></div>
+      <div class="dv-chips" id="dvChips" aria-label="Filter by interest"></div>
+      <div id="dvBody" aria-live="polite"></div>
+      <div class="dv-more" id="dvMore"></div>
+    </div>
+    <div id="dvOnb" class="hidden"></div>
+    <div id="dvLoad" class="dv-note">Loading Discover…</div>
+  </div>
+  <div class="dv-ov hidden" id="dvReader" role="dialog" aria-modal="true" aria-label="Article" data-no-swipe></div>
+  <div class="dv-ov hidden" id="dvModOv" role="dialog" aria-modal="true" aria-label="Reported comments" data-no-swipe></div>
+</div>
+      </div>
+      <div id="cnEvents" class="hidden"></div>
+    </div>
   </div>
 </section>
 
@@ -3307,40 +3536,6 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
       </div>
     </div>
   </section>
-</div>
-
-<div id="discoverMode" class="hidden">
-  <section class="comm-hero">
-    <div class="eyebrow">CAMPUS LOOP</div>
-    <h2 class="section-title">Discover</h2>
-    <p class="section-sub">Articles picked for your interests, a place to save the good ones, and anonymous discussion with other students.</p>
-  </section>
-  <div class="dv-wrap">
-    <div id="dvMain" class="hidden">
-      <div class="dv-bar">
-        <div class="dv-tabs" role="tablist" aria-label="Discover sections">
-          <button class="pill active" role="tab" data-dvtab="foryou">✨ For You</button>
-          <button class="pill" role="tab" data-dvtab="latest">🕒 Latest</button>
-          <button class="pill" role="tab" data-dvtab="discussed">💬 Discussed</button>
-          <button class="pill" role="tab" data-dvtab="saved">🔖 Saved</button>
-        </div>
-        <div class="dv-actions">
-          <button class="dv-ibtn dv-refresh" id="dvRefresh" type="button" aria-label="Refresh articles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span class="t">Refresh</span></button>
-          <button class="dv-ibtn" id="dvSettings" type="button" aria-label="Edit interests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="t">Interests</span></button>
-          <button class="dv-ibtn hidden" id="dvMod" type="button" aria-label="Moderation">🛡️<span class="t">Reports</span></button>
-        </div>
-      </div>
-      <div class="dv-prog" id="dvProg" aria-hidden="true"><i></i></div>
-      <div class="dv-status" id="dvStatus" aria-live="polite"></div>
-      <div class="dv-chips" id="dvChips" aria-label="Filter by interest"></div>
-      <div id="dvBody" aria-live="polite"></div>
-      <div class="dv-more" id="dvMore"></div>
-    </div>
-    <div id="dvOnb" class="hidden"></div>
-    <div id="dvLoad" class="dv-note">Loading Discover…</div>
-  </div>
-  <div class="dv-ov hidden" id="dvReader" role="dialog" aria-modal="true" aria-label="Article" data-no-swipe></div>
-  <div class="dv-ov hidden" id="dvModOv" role="dialog" aria-modal="true" aria-label="Reported comments" data-no-swipe></div>
 </div>
 
 <div id="quizMode" class="hidden">
@@ -4450,8 +4645,6 @@ const TOUR_STEPS = [
   {type:'feature', icon:'🎓', title:'Your Year Community', mode:'community', target:()=>{ try{ openCommPanel('home'); }catch(e){} return tq('#commRoom_year'+(chatMyYear()||'1')); }, text:'<b>First Year Community</b> and <b>Second Year Community</b> are private to each year. You can only open your own year\u2019s chat; the other one stays locked \uD83D\uDD12.'},
   {type:'feature', icon:'↩️', title:'Replies, reports & sounds', mode:'community', target:()=>{ try{ openCommPanel('home'); }catch(e){} return tq('#commRoom_linklearn'); }, text:'Open any chat and use a message\u2019s <b>\u22EE menu</b> to <b>Reply</b> (tap the quote to jump to the original) or <b>\uD83D\uDEA9 Report</b> it to moderators. Subtle sounds play for sent, received and notification events; mute them with the \uD83D\uDD14 button.'},
   {type:'feature', icon:'📖', title:'Exam Q&A & Resources', mode:'community', target:()=>{ try{ openCommPanel('home'); }catch(e){} return tq('#commOpenExam'); }, text:'Ask exam questions and share useful videos, document links and tutorials here.'},
-  /* Discover */
-  {type:'mode-navigation', icon:'🧭', title:'Discover', mode:'discover', target:()=>tq('#modeDiscoverBtn'), text:'Find opportunities, events and useful picks curated for you.'},
   /* Settings (reached only through the hamburger menu) */
   {type:'mode-navigation', icon:'⚙️', title:'Settings', mode:'settings', target:()=>tq('#burger'), text:'Open the menu (☰) and choose Settings to manage your website preferences and personal settings.'},
   {type:'feature', icon:'🎓', title:'Batch Setting', mode:'home', me:true, target:()=>meOn()?tq('#hmStudentEditBtn'):tq('#hmNameCard'), text:'Choose your batch number here. Your timetable changes according to your selected batch.', noProfile:'You choose your batch when you create your profile.'},
@@ -8034,8 +8227,6 @@ const modeStudyBtn = document.getElementById('modeStudyBtn');
 const modeCommunityBtn = document.getElementById('modeCommunityBtn');
 const quizModeEl = document.getElementById('quizMode');
 const modeQuizBtn = document.getElementById('modeQuizBtn');
-const discoverModeEl = document.getElementById('discoverMode');
-const modeDiscoverBtn = document.getElementById('modeDiscoverBtn');
 let ttInited = false, calInited = false, atInited = false, meInited = false;
 // ---- Schedule = Timetable + Event Calendar + Tasks (incl. My Calendar) + Attendance. The old 'me' / 'timetable' / 'calendar' routes (avatar buttons,
 // notifications, saved last-mode, #hash links, tour) all still work: setMode() maps them onto Schedule + the right tab. ----
@@ -8170,9 +8361,9 @@ function syncModeBar(mode){
 }
 function jumpToTop(){ window.scrollTo({top:0, left:0, behavior:'instant'}); }   // 'instant' beats the page's scroll-behavior:smooth: no visible travel through the old position
 const MODE_EL = { home:homeMode, schedule:scheduleMode, study:studyMode,
-  quiz:quizModeEl, community:communityModeEl, discover:discoverModeEl, about:aboutModeEl, settings:settingsModeEl };
+  quiz:quizModeEl, community:communityModeEl, about:aboutModeEl, settings:settingsModeEl };
 const MODE_BTN = { home:modeHomeBtn, schedule:modeScheduleBtn, study:modeStudyBtn,
-  quiz:modeQuizBtn, community:modeCommunityBtn, discover:modeDiscoverBtn };
+  quiz:modeQuizBtn, community:modeCommunityBtn };
 let currentMode = 'home';          // in-memory mirror of csec_mode (no localStorage read per gesture)
 let abortSwipeTransition = null;   // assigned by initSwipeNavigation(); lets any setMode() end a live slide cleanly
 let onModeSettled = null;          // assigned by initSwipeNavigation(); used to warm neighbouring modes when idle
@@ -8185,7 +8376,6 @@ function ensureModeInit(mode){
   if(mode==='home' && !homeInited){ initHome(); homeInited = true; }
   else if(mode==='schedule' && !meInited){ initMe(); meInited = true; }
   else if(mode==='quiz'){ if(currentMode==='quiz' && window.quizShow) window.quizShow(); else did = false; }   // network work only when Quiz is actually on screen (never while merely warmed)
-  else if(mode==='discover'){ if(currentMode==='discover' && window.discoverShow) window.discoverShow(); else did = false; }   // Discover loads (and starts its live listeners) only while on screen
   else if(mode==='community' && !commInited){ commInited = true; try{ initCommunity(); }catch(e){ console.warn('[Community] init failed (screens stay usable)', e); } }
   else did = false;
   try{ exSync(); }catch(e){}   // Exam Chat listeners follow visibility
@@ -8215,8 +8405,8 @@ function finishModeWork(mode, soft){
 // opts (used only by the swipe layer): {swipe:true, keepVisible:<outgoing mode>, deferWork:true}
 function setMode(mode, opts){
   opts = opts || {};
+  if(mode==='discover'){ if(window.cseConnect){ window.cseConnect.go('discover','articles'); return; } mode = 'home'; }   // Discover now lives in Connect → Discover → Articles
   if(SCH_ALIAS[mode]){ schTab = SCH_ALIAS[mode]; mode = 'schedule'; }   // legacy me/timetable/calendar → Schedule tab
-  if(mode!=='discover' && window.discoverHide) window.discoverHide();   // stop Discover's live listeners when leaving it
   if(mode!=='quiz' && window.quizHide) window.quizHide();   // stop the live leaderboard listener when leaving Quiz
   if(smModalOpen) closeSMModal(true);   // navigation always wins: a modal can never outlive the mode change
   if(typeof histState!=='undefined' && histState.open) closeHistModal(true);
@@ -8236,7 +8426,6 @@ function setMode(mode, opts){
 }
 modeStudyBtn.addEventListener('click', ()=>setMode('study'));
 modeQuizBtn.addEventListener('click', ()=>setMode('quiz'));
-modeDiscoverBtn.addEventListener('click', ()=>setMode('discover'));
 modeCommunityBtn.addEventListener('click', ()=>setMode('community'));
 // BOOT ORDER (root cause of dead Chat / Study Chat buttons): this call used to run RIGHT HERE. When the saved/last mode was
 // Community (or the URL was #community) it touched `let chatDirty` etc., which are declared much further down -> "Cannot access
@@ -8247,8 +8436,9 @@ function cseBootMode(){
   let m = 'home';
   try{
     const hm = location.hash.replace('#','');
-    m = ['home','schedule','me','study','timetable','calendar','attendance','quiz','community','discover','about','settings'].includes(hm) ? hm : store.get('csec_mode','home');
+    m = ['home','schedule','me','study','timetable','calendar','attendance','quiz','community','about','settings'].includes(hm) ? hm : store.get('csec_mode','home');
   }catch(e){}
+  if(m === 'discover') m = 'home';   // saved mode from before Discover moved to Connect
   try{ setMode(m); }
   catch(e){ console.error('[Boot] initial mode failed, falling back to Home', e); try{ setMode('home'); }catch(_){ } }
 }
@@ -8263,7 +8453,7 @@ window.addEventListener('hashchange', ()=>{ const h = location.hash.replace('#',
 // heavy init/render for the destination is queued until the slide has ended. Nothing in the slide
 // waits for, or is blocked by, rendering.
 // ONE ordered sequence = the mode bar, left to right (swipe LEFT = next, swipe RIGHT = previous).
-const SWIPE_MODES = ['home','schedule','study','quiz','community','discover'];
+const SWIPE_MODES = ['home','schedule','study','quiz','community'];
 const SWIPE_THRESHOLD = 50; // px — minimum horizontal distance before a swipe counts
 // Elements/areas where a horizontal drag means something else (typing, dragging a control,
 // scrolling a horizontal strip, or using a modal) rather than "change the page". Any gesture
@@ -16750,6 +16940,372 @@ setInterval(function(){
 })();
 </script>
 
+<script id="connectJs">
+/* Connect — Posting, Teams, Discover (Articles + Events).
+   FRONTEND DEMO ONLY: posts, profiles, events, likes, comments and connection requests below are in-memory sample data.
+   Nothing here touches Firebase/Firestore/Functions. Articles is the existing Discover (#discoverMode), moved here unchanged. */
+(function(){
+'use strict';
+var root = document.getElementById('sectionConnect'); if(!root) return;
+function $(s, r){ return (r || root).querySelector(s); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+var COL = ['var(--sage)','var(--cyan)','var(--violet,var(--sage))','var(--brown-dark,var(--sage))'];
+function av(n, i, sz){ var t = String(n).split(/\s+/).map(function(w){ return w.charAt(0); }).slice(0,2).join('').toUpperCase(); return '<span class="cn-av' + (sz ? ' ' + sz : '') + '" style="--c:' + COL[(i || 0) % COL.length] + '" aria-hidden="true">' + esc(t) + '</span>'; }
+function me(){ var n = ''; try{ n = (typeof currentUser !== 'undefined' && currentUser.name) || ''; }catch(e){} if(!n){ try{ n = JSON.parse(localStorage.getItem('csec_username')) || ''; }catch(e){} } return String(n || 'You'); }
+function ago(t){ var m = Math.floor((Date.now() - t) / 6e4); return m < 1 ? 'Just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.floor(m / 60) + 'h ago' : Math.floor(m / 1440) + 'd ago'; }
+function toast(m){ var t = document.createElement('div'); t.className = 'cn-toast'; t.setAttribute('role', 'status'); t.textContent = m; document.body.appendChild(t); setTimeout(function(){ t.remove(); }, 2200); }
+function empty(e, h, p, btn){ return '<div class="cn-empty"><div class="e">' + e + '</div><h3>' + h + '</h3><p>' + p + '</p>' + (btn || '') + '</div>'; }
+var IC = { heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>' };
+
+/* ---------- sample data ---------- */
+var CATS = ['Projects','Achievements','Certifications','Experiences','Research'];
+var H = 36e5, D = 864e5, now = Date.now();
+var posts = [
+ {id:1, n:'Ananya Rao', d:'CSE · 3rd Year', t:now-2*H, cat:'Projects', title:'Built a campus bus tracker', tx:'Spent the last month building a live bus tracker for our campus routes using React and a tiny Node service. Students can see the next arrival at every stop. Looking for someone to help with the map UI!', tags:['React','Node.js','UI'], im:[], fl:['bus-tracker-demo.pdf'], lk:42, cm:[{n:'Rohan Mehta',t:'This is super useful. Happy to help with maps.'}]},
+ {id:2, n:'Rohan Mehta', d:'ISE · 2nd Year', t:now-9*H, cat:'Achievements', title:'Smart India Hackathon – Finalist', tx:'Our team of six made it to the national finals. 36 hours, very little sleep and a lot of chai. Huge thanks to our mentors!', tags:['Hackathon','Teamwork'], im:[], fl:[], lk:128, cm:[]},
+ {id:3, n:'Sneha Iyer', d:'AIML · 4th Year', t:now-1*D-3*H, cat:'Research', title:'Paper accepted at a student research symposium', tx:'Our work on low-resource speech recognition for Kannada was accepted. Sharing the key takeaways soon — happy to chat with anyone exploring NLP.', tags:['NLP','Research','Speech'], im:[], fl:[], lk:77, cm:[{n:'Ananya Rao',t:'Congratulations!'},{n:'Dev Patel',t:'Would love to read it.'}]},
+ {id:4, n:'Dev Patel', d:'CSE · 2nd Year', t:now-3*D, cat:'Certifications', title:'Completed the AWS Cloud Practitioner certification', tx:'Cleared it on the first attempt after six weeks of prep. Notes and a study plan available if anyone needs them.', tags:['AWS','Cloud'], im:[], fl:[], lk:35, cm:[]}
+];
+var PF = [
+ ['Ananya Rao','CSE',3,['React','Node.js','UI/UX'],['Web Dev','Open Source'],'Frontend dev who loves turning ideas into usable products.','Campus bus tracker'],
+ ['Rohan Mehta','ISE',2,['Python','Django','SQL'],['Hackathons','Backend'],'Backend tinkerer, always up for a hackathon.','Library seat booking'],
+ ['Sneha Iyer','AIML',4,['Python','PyTorch','NLP'],['Research','Speech AI'],'Working on speech models for Indian languages.','Kannada ASR research'],
+ ['Dev Patel','CSE',2,['AWS','Docker','Go'],['Cloud','DevOps'],'Cloud and infrastructure enthusiast.','CI/CD for student clubs'],
+ ['Meera Nair','ECE',3,['Embedded C','IoT','Arduino'],['Robotics','IoT'],'Building small robots that do slightly useful things.','Autonomous line follower'],
+ ['Karthik S','CSE',1,['C++','DSA','Competitive Programming'],['Coding Contests','Algorithms'],'Daily LeetCode grinder, looking for ICPC teammates.','ICPC prep group'],
+ ['Fatima Khan','ISE',3,['Figma','UI/UX','Flutter'],['App Design','Startups'],'Designer who also codes. Mobile-first thinker.','Mental wellness app'],
+ ['Arjun Reddy','AIML',2,['TensorFlow','Computer Vision','Python'],['Healthcare AI','Research'],'Curious about vision models for medical imaging.','X-ray classifier'],
+ ['Priya Menon','ME',4,['CAD','MATLAB','3D Printing'],['Robotics','Sustainability'],'Mechanical engineer exploring clean energy hardware.','Solar tracker prototype'],
+ ['Vikram Joshi','CSE',4,['Rust','Cybersecurity','Linux'],['CTFs','Systems'],'CTF player and open-source contributor.','CTF team lead'],
+ ['Lakshmi Bhat','ECE',1,['Python','Data Analysis','Excel'],['Data Science','Finance'],'First-year looking for a beginner-friendly data project.','—'],
+ ['Sameer Ali','CSE',3,['Kotlin','Firebase','Android'],['App Dev','Startups'],'Ships Android apps over weekends.','Notes sharing app']
+];
+function ev(t, k, off, dl, mode, loc, org, e, el, d, pz, tags, ed){ return {t:t, k:k, off:off, dl:dl, mode:mode, loc:loc, org:org, e:e, el:el, d:d, pz:pz, tags:tags || [], ed:ed}; }
+var EV = [
+ ev('Careers in Cybersecurity: Industry Seminar','Seminar',3,2,'offline','Seminar Hall, Riverbend University','Security Club','🛡️','Open to nearby colleges','Industry speakers explain career paths, certifications and how to start in security.','Free entry',['Cybersecurity']),
+ ev('HardHack 24: Hardware Hackathon','Hackathon',11,4,'offline','Innovation Lab, Lakeside College','Lakeside College of Engineering','🔌','Open to nearby colleges','Build working hardware prototypes in 36 hours with kits and mentors provided.','Prize pool of Rs 75,000',['Hardware & IoT','Robotics'],12),
+ ev('OCSEFhacks','Hackathon',5,null,'offline','Westminster, California','Hack Club','🏆','Open to all colleges','A community hackathon for students who want to ship something in a weekend.','Goodies for all',['Physical hackathon']),
+ ev('Campus Loop Hack 2026','Hackathon',6,4,'offline','Main Auditorium','Coding Club','💻','Teams of 2–4 · Open to all students','A 24-hour build-athon with tracks in AI, Web and Social Good. Mentors, prizes and food included.','Prizes worth Rs 50,000',['AI','Web Dev']),
+ ev('Idea Forge Ideathon','Ideathon',15,12,'hybrid','Innovation Lab / Google Meet','E-Cell','💡','Teams of 3–5 · All branches','Pitch a solution to a real campus problem in 5 minutes. No code needed, just a great idea.','Seed grant of Rs 25,000',['Open Innovation']),
+ ev('Intro to Generative AI','Workshop',3,2,'online','Google Meet','AI Club','🤖','Individual · Open to all','Hands-on session on prompt design and building small AI tools. Bring a laptop.','Free · certificate',['AI','Machine Learning']),
+ ev('CodeSprint Weekly Contest','Coding Competition',2,1,'online','HackerRank','Competitive Programming Cell','🏁','Individual · Open to all','Three problems, 90 minutes. Top scorers receive certificates and swag.','Certificates and swag',['DSA']),
+ ev('Algorithm Arena','Coding Competition',26,19,'offline','Computer Lab 2','Coding Club','⚔️','Teams of 2 · 1st and 2nd year','Pair up and solve algorithmic puzzles against the clock.','Cash prizes',['DSA']),
+ ev('Cloud Careers Webinar','Webinar',9,7,'online','Zoom','Alumni Network','☁️','Open to all students','Alumni from top cloud teams share how to break into the industry and what to learn first.','Free entry',['Cloud']),
+ ev('Web3 Basics Workshop','Workshop',18,16,'online','Microsoft Teams','Blockchain Club','⛓️','Individual · Beginners welcome','Understand wallets, smart contracts and how to deploy a simple dApp.','Free · certificate',['Web3']),
+ ev('TechnoVista Fest','Tech Fest',21,14,'offline','Campus Grounds','Student Council','🎪','Individual or teams · All branches','Three days of robotics shows, gaming, project exhibitions and live music.','Prizes across 12 events',['Robotics','Gaming'],23),
+ ev('National Conference on AI & Society','Conference',30,20,'hybrid','Seminar Hall B + Zoom','Dept. of AIML','🎤','Paper authors and attendees','Keynotes and paper presentations on responsible AI. Student papers welcome.','Best paper award',['AI','Research'],31),
+ ev('Open Source Day','College Event',12,10,'offline','Library Lab','Open Source Society','🌱','Open to all students','Make your first pull request with guidance from experienced contributors.','Free entry',['Open Source']),
+ ev('Summer Internship Fair','College Event',15,12,'offline','Placement Cell','Training & Placement','💼','Pre-final year students','Meet 30+ companies offering internships for pre-final year students.','Internship offers',['Careers']),
+ ev('Python Bootcamp Sprint','Workshop',1,-1,'offline','Seminar Hall A','Python Club','🐍','Individual · 1st year','A one-day bootcamp covering Python basics through a mini project.','Free entry',['Python'])
+];
+var TM = [
+ ['Campus Bus Tracker','🚌','Web & Mobile','Live bus tracking and arrival alerts for every campus route.',['React','Node.js','Maps API'],'Ananya Rao',['Ananya Rao','Sameer Ali','Dev Patel'],5,['UI/UX Designer','Backend Developer']],
+ ['Neural Nomads','🧠','AI & Data','Building a speech recognition model for Kannada for a national hackathon.',['Python','PyTorch','NLP'],'Sneha Iyer',['Sneha Iyer','Arjun Reddy'],4,['ML Engineer','Data Annotator']],
+ ['CTF Phantoms','🛡️','Cybersecurity','Competitive CTF squad preparing for inter-college events.',['Rust','Linux','Cybersecurity'],'Vikram Joshi',['Vikram Joshi','Karthik S','Rohan Mehta','Dev Patel'],5,['Web Exploitation','Reverse Engineering']],
+ ['GreenWatt','☀️','Hardware & IoT','Solar tracking prototype to boost panel efficiency on campus rooftops.',['CAD','IoT','Arduino'],'Priya Menon',['Priya Menon','Meera Nair'],4,['Embedded Developer','CAD Designer']],
+ ['MindEase','🌿','Web & Mobile','Mental wellness app with mood journaling and peer support.',['Flutter','Figma','Firebase'],'Fatima Khan',['Fatima Khan','Sameer Ali','Lakshmi Bhat','Ananya Rao','Dev Patel'],5,[]],
+ ['ICPC Warriors','🏆','Competitive Coding','Practice group for ICPC regionals with weekly mock contests.',['C++','DSA','Competitive Programming'],'Karthik S',['Karthik S'],3,['Algorithms Mentor','Problem Setter']],
+ ['MediScan','🩻','AI & Data','Computer vision for chest X-ray screening support.',['TensorFlow','Computer Vision','Python'],'Arjun Reddy',['Arjun Reddy','Lakshmi Bhat'],4,['Frontend Developer','Medical Domain Advisor']],
+ ['StudyBuddy Notes','📚','Web & Mobile','Notes and past-paper sharing platform for all branches.',['Kotlin','Firebase','Android'],'Sameer Ali',['Sameer Ali','Rohan Mehta','Ananya Rao'],6,['UI Designer','Content Curator']]
+];
+var EKINDS = ['Hackathon','Coding Competition','Workshop','Seminar','Webinar','Tech Fest','Ideathon','Conference','College Event'];
+function fd(off){ return new Date(now + off * D).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }
+
+/* ---------- Posting ---------- */
+var pc = $('#cnPosting'), pf = {cat:'All'}, draft = {tags:[], imgs:[], fls:[]}, pid = 10;
+function compose(){
+  pc.innerHTML = '<div class="cn-feedwrap"><div class="cn-card cn-comp"><div class="cn-comp-top">' + av(me(), 0) + '<span id="cnMe">' + esc(me()) + '</span></div>' +
+   '<div class="cn-row"><div><label class="cn-lbl" for="cnPtitle">Title (optional)</label><input class="cn-in" id="cnPtitle" maxlength="90" placeholder="e.g. My IoT weather station"></div>' +
+   '<div><label class="cn-lbl" for="cnPcat">Category</label><select class="cn-in" id="cnPcat">' + CATS.map(function(c){ return '<option>' + c + '</option>'; }).join('') + '<option>Other</option></select></div></div>' +
+   '<div><label class="cn-lbl" for="cnPtext">What did you work on?</label><textarea class="cn-in" id="cnPtext" maxlength="1500" placeholder="Share a project, achievement, certification or experience…"></textarea></div>' +
+   '<div><label class="cn-lbl" for="cnPtag">Skills / tags (press Enter)</label><input class="cn-in" id="cnPtag" maxlength="24" placeholder="e.g. Python, Figma"><div class="cn-chips" id="cnPtags" style="margin-top:6px"></div></div>' +
+   '<div class="cn-thumbs" id="cnPthumbs"></div><div class="cn-chips" id="cnPfiles"></div>' +
+   '<div class="cn-tools"><div class="cn-row" style="flex:none"><label class="cn-btn" for="cnPimg" tabindex="0">🖼️ Add images</label><label class="cn-btn" for="cnPfile" tabindex="0">📎 Attach files</label></div>' +
+   '<input type="file" id="cnPimg" accept="image/*" multiple hidden><input type="file" id="cnPfile" multiple hidden><button class="cn-btn pri" id="cnPost" type="button" disabled>Post</button></div>' +
+   '<span class="cn-demo">Demo mode: posts live only in this tab and are not saved or shared.</span></div>' +
+   '<div class="cn-filter" id="cnPfilter" role="tablist" aria-label="Filter posts"></div><div id="cnFeed" class="cn-feedwrap" aria-live="polite"></div></div>';
+}
+function drawDraft(){
+  $('#cnPtags').innerHTML = draft.tags.map(function(t, i){ return '<span class="cn-chip">#' + esc(t) + '<button type="button" data-rt="' + i + '" aria-label="Remove ' + esc(t) + '">×</button></span>'; }).join('');
+  $('#cnPthumbs').innerHTML = draft.imgs.map(function(u, i){ return '<div class="cn-thumb"><img src="' + u + '" alt="Attachment preview"><button type="button" data-ri="' + i + '" aria-label="Remove image">×</button></div>'; }).join('');
+  $('#cnPfiles').innerHTML = draft.fls.map(function(f, i){ return '<span class="cn-chip alt">📎 ' + esc(f) + '<button type="button" data-rf="' + i + '" aria-label="Remove file">×</button></span>'; }).join('');
+}
+function drawFilter(){ $('#cnPfilter').innerHTML = ['All'].concat(CATS).map(function(c){ return '<button type="button" class="pill' + (pf.cat === c ? ' active' : '') + '" data-pc="' + c + '">' + c + '</button>'; }).join(''); }
+function drawFeed(){
+  var l = posts.filter(function(p){ return pf.cat === 'All' || p.cat === pf.cat; });
+  $('#cnFeed').innerHTML = l.length ? l.map(function(p){
+    return '<article class="cn-card cn-post" data-id="' + p.id + '"><div class="cn-ph">' + av(p.n, p.id) + '<div><b>' + esc(p.n) + '</b><small>' + esc(p.d) + ' · ' + ago(p.t) + '</small></div><span class="cn-chip">' + esc(p.cat) + '</span></div>' +
+     (p.title ? '<h3>' + esc(p.title) + '</h3>' : '') + '<p>' + esc(p.tx) + '</p>' +
+     (p.im.length ? '<div class="cn-imgs">' + p.im.map(function(u){ return '<img src="' + u + '" alt="Post image" loading="lazy">'; }).join('') + '</div>' : '') +
+     (p.fl.length ? '<div class="cn-files">' + p.fl.map(function(f){ return '<span class="cn-chip alt">📎 ' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+     (p.tags.length ? '<div class="cn-chips">' + p.tags.map(function(t){ return '<span class="cn-chip">#' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+     '<div class="cn-acts"><button class="cn-act' + (p.liked ? ' on' : '') + '" type="button" data-a="like" aria-pressed="' + !!p.liked + '">' + IC.heart + '<span>' + (p.lk + (p.liked ? 1 : 0)) + '</span></button>' +
+     '<button class="cn-act" type="button" data-a="cm" aria-expanded="' + !!p.open + '">' + IC.chat + '<span>' + p.cm.length + '</span></button><button class="cn-act" type="button" data-a="share">' + IC.share + '<span>Share</span></button></div>' +
+     (p.open ? '<div class="cn-cm">' + p.cm.map(function(c, i){ return '<div class="cn-cm-i">' + av(c.n, i + 2) + '<div><b>' + esc(c.n) + '</b><br>' + esc(c.t) + '</div></div>'; }).join('') + '<div class="cn-cm-f"><input class="cn-in" placeholder="Write a comment…" maxlength="300" aria-label="Write a comment"><button class="cn-btn pri" type="button" data-a="send">Send</button></div></div>' : '') + '</article>';
+  }).join('') : empty('📝', 'No posts here yet', 'Be the first to share something in this category.');
+}
+function addTag(){ var i = $('#cnPtag'), v = i.value.replace(/[#,]/g, '').trim(); if(v && draft.tags.length < 8 && draft.tags.indexOf(v) < 0) draft.tags.push(v); i.value = ''; drawDraft(); }
+function initPosting(){
+  compose(); drawDraft(); drawFilter(); drawFeed();
+  var tx = $('#cnPtext'), btn = $('#cnPost');
+  tx.addEventListener('input', function(){ btn.disabled = !tx.value.trim(); });
+  $('#cnPtag').addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ','){ e.preventDefault(); addTag(); } });
+  $('#cnPimg').addEventListener('change', function(e){ [].slice.call(e.target.files).slice(0, 4 - draft.imgs.length).forEach(function(f){ draft.imgs.push(URL.createObjectURL(f)); }); e.target.value = ''; drawDraft(); });
+  $('#cnPfile').addEventListener('change', function(e){ [].slice.call(e.target.files).slice(0, 5).forEach(function(f){ draft.fls.push(f.name); }); e.target.value = ''; drawDraft(); });
+  pc.addEventListener('keydown', function(e){ if((e.key === 'Enter' || e.key === ' ') && e.target.tagName === 'LABEL'){ e.preventDefault(); e.target.click(); } });
+  pc.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.rt != null){ draft.tags.splice(+b.dataset.rt, 1); return drawDraft(); }
+    if(b.dataset.ri != null){ draft.imgs.splice(+b.dataset.ri, 1); return drawDraft(); }
+    if(b.dataset.rf != null){ draft.fls.splice(+b.dataset.rf, 1); return drawDraft(); }
+    if(b.dataset.pc){ pf.cat = b.dataset.pc; drawFilter(); return drawFeed(); }
+    if(b.id === 'cnPost'){
+      addTag();
+      posts.unshift({id:++pid, n:me(), d:'You', t:Date.now(), cat:$('#cnPcat').value, title:$('#cnPtitle').value.trim(), tx:tx.value.trim(), tags:draft.tags.slice(), im:draft.imgs.slice(), fl:draft.fls.slice(), lk:0, cm:[]});
+      draft = {tags:[], imgs:[], fls:[]}; tx.value = ''; $('#cnPtitle').value = ''; btn.disabled = true; pf.cat = 'All'; drawDraft(); drawFilter(); drawFeed(); return toast('Posted (demo)');
+    }
+    var card = b.closest('.cn-post'); if(!card) return;
+    var p = posts.filter(function(x){ return x.id === +card.dataset.id; })[0]; if(!p) return;
+    if(b.dataset.a === 'like'){ p.liked = !p.liked; drawFeed(); }
+    else if(b.dataset.a === 'cm'){ p.open = !p.open; drawFeed(); }
+    else if(b.dataset.a === 'send'){ var i = card.querySelector('.cn-cm-f input'), v = i.value.trim(); if(v){ p.cm.push({n:me(), t:v}); drawFeed(); } }
+    else if(b.dataset.a === 'share'){ var u = location.href.split('#')[0] + '#connect/posting', f = function(){ toast('Link copied'); };
+      if(navigator.share){ navigator.share({title:p.title || 'Campus Loop post', text:p.tx.slice(0, 100), url:u}).catch(function(){}); }
+      else if(navigator.clipboard){ navigator.clipboard.writeText(u).then(f, function(){ toast('Sharing not available'); }); } else toast('Sharing not available'); }
+  });
+}
+
+/* ---------- shared UI bits (icons, hero, modal) ---------- */
+var ICN = {search:'<path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/>', bookmark:'<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>', clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>', flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>', cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>', pin:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>', monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>', users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>', trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>', code:'<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>', tool:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', star:'<path d="m12 2 3 7 7 .6-5.3 4.7 1.6 7.2L12 17.8l-6.3 3.7 1.6-7.2L2 9.6 9 9z"/>', bulb:'<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/>', mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/>', shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>', chip:'<rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/>'};
+function ic(n){ return '<svg class="cn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICN[n] + '</svg>'; }
+function hero(t, p){ return '<div class="cn-hero"><h2>' + t + '</h2><p>' + p + '</p></div>'; }
+function chipbar(label, items, sel, attr, counts){ return '<div class="cn-chipbar" role="group" aria-label="' + label + '">' + items.map(function(v){ var on = v === '' ? !sel.length : sel.indexOf(v) > -1; return '<button type="button" class="cn-fc" ' + attr + '="' + esc(v) + '" aria-pressed="' + on + '">' + (v === '' ? 'All' : esc(v)) + (counts && v !== '' ? '<span class="n">' + (counts[v] || 0) + '</span>' : '') + '</button>'; }).join('') + '</div>'; }
+function syncChips(box, sel, attr){ [].forEach.call(box.querySelectorAll('[' + attr + ']'), function(b){ var v = b.getAttribute(attr); b.setAttribute('aria-pressed', v === '' ? !sel.length : sel.indexOf(v) > -1); }); }
+function yl(y){ return ['1st', '2nd', '3rd', '4th'][y - 1] + ' Year'; }
+var cur = null, sent = {}, joined = {}, reg = {}, bm = {};
+function closeM(){ var m = $('#cnModal'); m.classList.add('hidden'); cur = null; }
+function openM(html, t, i){ var m = $('#cnModal'); cur = {t:t, i:i}; m.innerHTML = '<div class="cn-card" role="document">' + html + '</div>'; m.classList.remove('hidden'); var f = m.querySelector('button'); if(f) f.focus(); }
+function initModal(){
+  var m = document.createElement('div'); m.className = 'cn-modal hidden'; m.id = 'cnModal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); $('.cn-shell').appendChild(m);
+  m.addEventListener('click', function(e){
+    if(e.target === m) return closeM(); var b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.close) closeM(); else if(b.dataset.mconn != null) togglePerson(+b.dataset.mconn); else if(b.dataset.mjoin != null) toggleTeam(+b.dataset.mjoin); else if(b.dataset.mreg != null) toggleReg(+b.dataset.mreg);
+  });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && cur) closeM(); });
+}
+function reshow(){ if(!cur) return; if(cur.t === 'p') personModal(cur.i); else if(cur.t === 't') teamModal(cur.i); else eventModal(cur.i); }
+
+/* ---------- Teams → Find People ---------- */
+var tc = $('#cnTeams'), P = {q:'', skills:[]};
+function skillList(){ var c = {}; PF.forEach(function(p){ p[3].forEach(function(s){ c[s] = (c[s] || 0) + 1; }); }); return Object.keys(c).sort(function(a, b){ return c[b] - c[a] || a.localeCompare(b); }); }
+function peopleRows(){
+  var q = P.q.toLowerCase(), w = P.skills;
+  return PF.map(function(p, k){ return {p:p, k:k, hit:w.filter(function(s){ return p[3].indexOf(s) > -1; })}; }).filter(function(x){
+    var hay = [x.p[0], x.p[3].join(' '), x.p[4].join(' ')].join(' ').toLowerCase();
+    return (!q || hay.indexOf(q) > -1) && (!w.length || x.hit.length);
+  }).sort(function(a, b){ return b.hit.length - a.hit.length || a.p[0].localeCompare(b.p[0]); });
+}
+function connBtn(k, attr){ return '<button class="cn-btn' + (sent[k] ? ' done' : ' pri') + '" type="button" ' + attr + '="' + k + '">' + (sent[k] ? '✓ Request sent' : 'Connect') + '</button>'; }
+function pct(x){ return P.skills.length ? Math.round(100 * x.hit.length / P.skills.length) : Math.min(100, Math.round(x.p[3].length * 20)); }
+function personCard(x){
+  var p = x.p, k = x.k, v = pct(x), w = P.skills;
+  return '<article class="cn-urow">' + av(p[0], k) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + '</button><small>' + yl(p[2]) + ' · ' + esc(p[1]) + (w.length ? ' · has ' + x.hit.length + ' of ' + w.length + ' selected' : '') + '</small></div>' +
+   '<div class="cn-ring sm" style="--p:' + v + '" data-v="' + v + '%" role="img" title="' + (w.length ? 'Share of the selected skills they have' : 'Skills listed (out of 5)') + '" aria-label="' + v + ' percent skills"></div>' + connBtn(k, 'data-k') + '</article>';
+}
+function drawPeople(){
+  var rows = peopleRows(), any = P.q || P.skills.length;
+  rows.sort(function(a, b){ return b.hit.length - a.hit.length || pct(b) - pct(a) || a.p[0].localeCompare(b.p[0]); });
+  $('#cnPsum').innerHTML = '<span>' + rows.length + ' ' + (rows.length === 1 ? 'student' : 'students') + (P.q ? ' for “' + esc(P.q) + '”' : '') + (P.skills.length ? ' with ' + P.skills.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  $('#cnPgrid').innerHTML = rows.length ? rows.map(personCard).join('') : ''; $('#cnPgrid').className = rows.length ? 'cn-ulist' : '';
+  $('#cnPempty').innerHTML = rows.length ? '' : empty('🔎', 'No students match', 'Try fewer skills or a broader search.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>');
+}
+function personModal(k){
+  var p = PF[k];
+  openM('<div class="cn-evb"><div class="cn-ph">' + av(p[0], k, 'lg') + '<div><b>' + esc(p[0]) + '</b><small>' + esc(p[1]) + ' · ' + yl(p[2]) + '</small></div></div><p>' + esc(p[5]) + '</p>' +
+   '<div><div class="cn-sub">Skills</div><div class="cn-chips">' + p[3].map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
+   '<div><div class="cn-sub">Interests</div><div class="cn-chips">' + p[4].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
+   (p[6] !== '—' ? '<div class="cn-meta"><div>' + ic('users') + '<span><b>Working on:</b> ' + esc(p[6]) + '</span></div></div>' : '') +
+   '<div class="cn-row">' + connBtn(k, 'data-mconn') + '<button class="cn-btn" type="button" data-close="1">Close</button></div><span class="cn-demo">Demo profile: requests are not sent anywhere.</span></div>', 'p', k);
+}
+function togglePerson(k){ sent[k] = !sent[k]; drawPeople(); reshow(); toast(sent[k] ? 'Connection request sent (demo)' : 'Request withdrawn'); }
+function initPeople(){
+  var box = $('#cnTpeople');
+  box.innerHTML = hero('Find people', 'Search classmates by name, skill or interest. The percentage shows how many of your selected skills they have.') +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
+   '<div class="cn-sum"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips">' + chipbar('Filter by skill', [''].concat(skillList()), P.skills, 'data-sk') + '</div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
+  drawPeople();
+  $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
+  box.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.sk != null){ var v = b.dataset.sk; if(v === '') P.skills = []; else { var i = P.skills.indexOf(v); if(i > -1) P.skills.splice(i, 1); else P.skills.push(v); } syncChips($('#cnPchips'), P.skills, 'data-sk'); return drawPeople(); }
+    if(b.dataset.reset){ P = {q:'', skills:[]}; $('#cnPq').value = ''; syncChips($('#cnPchips'), P.skills, 'data-sk'); return drawPeople(); }
+    if(b.dataset.vp != null) return personModal(+b.dataset.vp);
+    if(b.dataset.k != null) togglePerson(+b.dataset.k);
+  });
+}
+
+/* ---------- Teams → Find Teams ---------- */
+var T = {q:'', chips:[]};
+function teamChips(){ var c = {}, s = {}; TM.forEach(function(t){ c[t[2]] = 1; t[4].forEach(function(k){ s[k] = 1; }); }); return Object.keys(c).sort().concat(Object.keys(s).sort()); }
+function teamRows(){
+  var q = T.q.toLowerCase();
+  return TM.map(function(t, k){ return {t:t, k:k}; }).filter(function(x){
+    var t = x.t, hay = [t[0], t[2], t[3], t[4].join(' ')].join(' ').toLowerCase();
+    return (!q || hay.indexOf(q) > -1) && (!T.chips.length || T.chips.some(function(c){ return t[2] === c || t[4].indexOf(c) > -1; }));
+  }).sort(function(a, b){ return (a.t[6].length >= a.t[7]) - (b.t[6].length >= b.t[7]); });
+}
+function joinBtn(k, attr){ var t = TM[k], full = t[6].length >= t[7]; if(joined[k]) return '<button class="cn-btn done" type="button" ' + attr + '="' + k + '">✓ Request sent</button>'; if(full) return '<button class="cn-btn" type="button" disabled>Team full</button>'; return '<button class="cn-btn pri" type="button" ' + attr + '="' + k + '">Request to Join</button>'; }
+function stack(names, base){ return '<div class="cn-stack">' + names.slice(0, 5).map(function(n, i){ return av(n, base + i, 'sm'); }).join('') + '</div>'; }
+function teamCard(x){
+  var t = x.t, k = x.k;
+  return '<article class="cn-card cn-prof"><div class="cn-ph"><span class="cn-logo" style="--c:' + COL[k % COL.length] + '" aria-hidden="true">' + t[1] + '</span><div><b>' + esc(t[0]) + '</b><small>' + esc(t[2]) + '</small></div></div>' +
+   '<p class="bio">' + esc(t[3]) + '</p><div><div class="cn-sub">Skills &amp; tech</div><div class="cn-chips">' + t[4].map(function(s){ return '<span class="cn-chip' + (T.chips.indexOf(s) > -1 ? ' on' : '') + '">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
+   '<div class="cn-memrow">' + stack(t[6], k) + '<span>' + t[6].length + ' of ' + t[7] + ' members · led by <b>' + esc(t[5]) + '</b></span></div>' +
+   (t[8].length ? '<div><div class="cn-sub">Looking for</div><div class="cn-chips">' + t[8].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
+   '<div class="cn-cta"><button class="cn-btn" type="button" data-vt="' + k + '">View Team</button>' + joinBtn(k, 'data-j') + '</div></article>';
+}
+function drawTeams(){
+  var rows = teamRows(), any = T.q || T.chips.length;
+  $('#cnTsum').innerHTML = '<span>' + rows.length + ' ' + (rows.length === 1 ? 'team' : 'teams') + (T.q ? ' for “' + esc(T.q) + '”' : '') + (T.chips.length ? ' in ' + T.chips.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  $('#cnTgrid').innerHTML = rows.map(teamCard).join('');
+  $('#cnTempty').innerHTML = rows.length ? '' : empty('🧩', 'No teams found', 'Try a different skill or category, or search by another keyword.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>');
+}
+function teamModal(k){
+  var t = TM[k];
+  openM('<div class="cn-evb"><div class="cn-ph"><span class="cn-logo" style="--c:' + COL[k % COL.length] + '" aria-hidden="true">' + t[1] + '</span><div><b>' + esc(t[0]) + '</b><small>' + esc(t[2]) + ' · ' + t[6].length + ' of ' + t[7] + ' members</small></div></div><p>' + esc(t[3]) + '</p>' +
+   '<div><div class="cn-sub">Skills &amp; tech</div><div class="cn-chips">' + t[4].map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
+   '<div><div class="cn-sub">Members</div><div class="cn-meta">' + t[6].map(function(n, i){ return '<div>' + av(n, k + i, 'sm') + '<span><b>' + esc(n) + '</b>' + (n === t[5] ? ' · Team leader' : '') + '</span></div>'; }).join('') + '</div></div>' +
+   (t[8].length ? '<div><div class="cn-sub">Looking for</div><div class="cn-chips">' + t[8].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
+   '<div class="cn-row">' + joinBtn(k, 'data-mjoin') + '<button class="cn-btn" type="button" data-close="1">Close</button></div><span class="cn-demo">Demo team: requests are not sent anywhere.</span></div>', 't', k);
+}
+function toggleTeam(k){ joined[k] = !joined[k]; drawTeams(); reshow(); toast(joined[k] ? 'Request to join sent (demo)' : 'Request withdrawn'); }
+function initTeamsTab(){
+  var box = $('#cnTteams');
+  box.innerHTML = hero('Find teams', 'Browse student teams, see who is in them and what they still need, then request to join.') +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnTq">Search teams</label><input class="cn-in" id="cnTq" type="search" placeholder="Search by team, project, skill or interest" autocomplete="off"></div></div>' +
+   '<div id="cnTchips">' + chipbar('Filter by skill or category', [''].concat(teamChips()), T.chips, 'data-tc') + '</div><div class="cn-sum" id="cnTsum" aria-live="polite"></div><div class="cn-grid" id="cnTgrid"></div><div id="cnTempty"></div>';
+  drawTeams();
+  $('#cnTq').addEventListener('input', function(e){ T.q = e.target.value.trim(); drawTeams(); });
+  box.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.tc != null){ var v = b.dataset.tc; if(v === '') T.chips = []; else { var i = T.chips.indexOf(v); if(i > -1) T.chips.splice(i, 1); else T.chips.push(v); } syncChips($('#cnTchips'), T.chips, 'data-tc'); return drawTeams(); }
+    if(b.dataset.reset){ T = {q:'', chips:[]}; $('#cnTq').value = ''; syncChips($('#cnTchips'), T.chips, 'data-tc'); return drawTeams(); }
+    if(b.dataset.vt != null) return teamModal(+b.dataset.vt);
+    if(b.dataset.j != null) toggleTeam(+b.dataset.j);
+  });
+}
+function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div>'; initPeople(); initTeamsTab(); }
+
+/* ---------- Discover → Events ---------- */
+var ec = $('#cnEvents'), ef = {q:'', kind:'', mode:'all', sort:'closing'};
+function fs(o){ return new Date(now + o * D).toLocaleDateString(undefined, {day:'numeric', month:'short'}); }
+function dlInfo(x){ var d = x.dl; if(d == null) return {k:'none', l:'No registration deadline listed', s: x.off >= 0 ? 'event in ' + x.off + ' day' + (x.off === 1 ? '' : 's') : ''}; if(d < 0) return {k:'closed', l:'Registration closed', s:''}; return {k: d <= 3 ? 'soon' : 'open', l:'Register by ' + fs(d), s: d === 0 ? 'closes today' : d + ' day' + (d === 1 ? '' : 's') + ' left'}; }
+function stLbl(d){ return d.k === 'closed' ? 'Closed' : d.k === 'soon' ? 'Closing soon' : 'Registration open'; }
+function modeLbl(m){ return m === 'online' ? 'Online' : m === 'offline' ? 'Offline' : 'Hybrid'; }
+function modeOk(x){ return ef.mode === 'all' || x.mode === ef.mode || x.mode === 'hybrid'; }
+var KI = {'Hackathon':'trophy', 'Coding Competition':'code', 'Workshop':'tool', 'Seminar':'mic', 'Webinar':'monitor', 'Tech Fest':'star', 'Ideathon':'bulb', 'Conference':'mic', 'College Event':'cal'};
+function bigIc(x){ var n = x.tags.indexOf('Cybersecurity') > -1 ? 'shield' : x.tags.indexOf('Hardware & IoT') > -1 ? 'chip' : KI[x.k] || 'cal'; return ic(n); }
+function fdr(x){ return x.ed ? fs(x.off) + ' – ' + fd(x.ed) : fd(x.off); }
+function dlHtml(d){ return '<div class="cn-dl ' + d.k + '">' + ic(d.k === 'closed' ? 'flag' : d.k === 'none' ? 'clock' : 'flag') + '<span><b>' + d.l + '</b>' + (d.s ? ' · <em>' + d.s + '</em>' : '') + '</span></div>'; }
+function metaHtml(x){ return '<div class="cn-meta"><div>' + ic('cal') + '<span>' + fdr(x) + '</span></div><div>' + ic(x.mode === 'online' ? 'monitor' : 'pin') + '<span>' + esc(x.loc) + '</span></div>' + (x.pz ? '<div>' + ic('trophy') + '<span><b>' + esc(x.pz) + '</b></span></div>' : '') + '<div>' + ic('users') + '<span>' + esc(x.el) + '</span></div></div>'; }
+function evCard(x, i){
+  var d = dlInfo(x), closed = d.k === 'closed', ini = x.org.split(/\s+/).map(function(w){ return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
+  return '<article class="cn-card cn-ev' + (closed ? ' is-closed' : '') + '"><div class="cn-ban"><span class="cn-st ' + d.k + '">' + stLbl(d) + '</span>' +
+   '<button type="button" class="cn-bm" data-bm="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + ': ' + esc(x.t) + '">' + ic('bookmark') + '</button><span class="cn-big">' + bigIc(x) + '</span><span class="cn-lab">' + esc(x.k) + '</span></div>' +
+   '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip">' + ic('pin') + modeLbl(x.mode) + '</span>' + x.tags.slice(0, 2).map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
+   '<h3><button type="button" class="cn-tl" data-e="' + i + '">' + esc(x.t) + '</button></h3><div class="cn-org"><span class="cn-om" aria-hidden="true">' + esc(ini) + '</span>' + esc(x.org) + '</div>' + dlHtml(d) + metaHtml(x) +
+   (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : 'Register') + '</button></div>') + '</div></article>';
+}
+function updates(){
+  var l = [];
+  EV.forEach(function(x, i){ var d = dlInfo(x); if(d.k === 'soon') l.push({i:i, w:x.dl, ic:'clock', t:x.t, s:'Registration ' + (x.dl === 0 ? 'closes today' : 'closes in ' + x.dl + ' day' + (x.dl === 1 ? '' : 's'))}); else if(d.k !== 'closed' && x.off >= 0 && x.off <= 7) l.push({i:i, w:10 + x.off, ic:'cal', t:x.t, s:'Starts in ' + x.off + ' day' + (x.off === 1 ? '' : 's')}); });
+  l.sort(function(a, b){ return a.w - b.w; }); return l.filter(function(u){ return modeOk(EV[u.i]); }).slice(0, 4);
+}
+function drawEvents(){
+  var all = EV.map(function(x, i){ return {x:x, i:i}; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
+  var cnt = {all:all.length, online:all.filter(function(o){ return o.x.mode !== 'offline'; }).length, offline:all.filter(function(o){ return o.x.mode !== 'online'; }).length}, kc = {};
+  base.forEach(function(o){ kc[o.x.k] = (kc[o.x.k] || 0) + 1; });
+  var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!q || [x.t, x.org, x.k, x.d, x.loc].join(' ').toLowerCase().indexOf(q) > -1); });
+  l.sort(function(a, b){ var ca = dlInfo(a.x).k === 'closed', cb = dlInfo(b.x).k === 'closed'; if(ca !== cb) return ca - cb; return ef.sort === 'upcoming' ? a.x.off - b.x.off : (a.x.dl == null ? 99 : a.x.dl) - (b.x.dl == null ? 99 : b.x.dl); });
+  var up = (ef.q || ef.kind) ? [] : updates();
+  $('#cnEupd').innerHTML = up.length ? '<div class="cn-card cn-upd"><h3>' + ic('clock') + 'Updates</h3>' + up.map(function(u){ return '<button type="button" data-e="' + u.i + '">' + ic(u.ic) + '<span><b>' + esc(u.t) + '</b><em>' + u.s + '</em></span></button>'; }).join('') + '</div>' : '';
+  $('#cnEmode').innerHTML = [['all', 'All'], ['online', 'Online'], ['offline', 'Offline']].map(function(m){ return '<button type="button" data-em="' + m[0] + '" aria-pressed="' + (ef.mode === m[0]) + '">' + m[1] + '<span class="n">' + cnt[m[0]] + '</span></button>'; }).join('');
+  var ceb = $('#cnEchips .cn-chipbar'), csl = ceb ? ceb.scrollLeft : 0;
+  $('#cnEchips').innerHTML = chipbar('Filter by event type', [''].concat(EKINDS.filter(function(k){ return kc[k]; })), ef.kind ? [ef.kind] : [], 'data-ek', kc);
+  ceb = $('#cnEchips .cn-chipbar'); if(ceb) ceb.scrollLeft = csl;
+  var any = ef.q || ef.kind;
+  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (l.length === 1 ? 'event' : 'events') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  $('#cnEgrid').innerHTML = l.map(function(o){ return evCard(o.x, o.i); }).join('');
+  $('#cnEempty').innerHTML = l.length ? '' : empty('📅', 'No events found', ef.mode !== 'all' || any ? 'Nothing matches right now. Try another type or clear the filters.' : 'No events are listed yet. Check back soon.', any || ef.mode !== 'all' ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
+}
+function eventModal(i){
+  var x = EV[i], d = dlInfo(x), closed = d.k === 'closed';
+  openM('<div class="cn-ban"><span class="cn-st ' + d.k + '">' + stLbl(d) + '</span><span class="cn-big">' + bigIc(x) + '</span><span class="cn-lab">' + esc(x.k) + '</span></div><div class="cn-evb"><div class="cn-chips"><span class="cn-chip">' + ic('pin') + modeLbl(x.mode) + '</span>' + x.tags.map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div><h3 id="cnMt">' + esc(x.t) + '</h3><div class="cn-org">Organised by ' + esc(x.org) + '</div><p>' + esc(x.d) + '</p>' + dlHtml(d) + metaHtml(x) +
+   '<div class="cn-row">' + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-mreg="' + i + '">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register') + '</button>') + '<button class="cn-btn" type="button" data-close="1">Close</button></div><span class="cn-demo">Demo: registration is not sent anywhere.</span></div>', 'e', i);
+  $('#cnModal').setAttribute('aria-labelledby', 'cnMt');
+}
+function toggleReg(i){ reg[i] = !reg[i]; drawEvents(); reshow(); toast(reg[i] ? 'Registered (demo)' : 'Registration cancelled'); }
+function initEvents(){
+  ec.innerHTML = hero('Events', 'Hackathons, coding competitions, workshops, webinars, fests and more. Pick a mode, search, or browse by type.') +
+   '<div class="cn-seg" id="cnEmode" role="group" aria-label="Event mode" style="margin-bottom:12px"></div>' +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search by event, organiser or topic" autocomplete="off"></div>' +
+   '<select class="cn-in cn-sel" id="cnEsort" aria-label="Sort events"><option value="closing">Closing soon</option><option value="upcoming">Starting soon</option></select></div>' +
+   '<div id="cnEupd"></div><div id="cnEchips"></div><div class="cn-sum" id="cnEsum" aria-live="polite"></div><div class="cn-grid" id="cnEgrid"></div><div id="cnEempty"></div>';
+  drawEvents();
+  $('#cnEq').addEventListener('input', function(e){ ef.q = e.target.value.trim(); drawEvents(); });
+  $('#cnEsort').addEventListener('change', function(e){ ef.sort = e.target.value; drawEvents(); });
+  ec.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.em){ ef.mode = b.dataset.em; return drawEvents(); }
+    if(b.dataset.ek != null){ ef.kind = ef.kind === b.dataset.ek ? '' : b.dataset.ek; return drawEvents(); }
+    if(b.dataset.reset){ ef = {q:'', kind:'', mode:'all', sort:'closing'}; $('#cnEq').value = ''; $('#cnEsort').value = 'closing'; return drawEvents(); }
+    if(b.dataset.bm != null){ var n = b.dataset.bm; bm[n] = !bm[n]; drawEvents(); return toast(bm[n] ? 'Saved' : 'Removed from saved'); }
+    if(b.dataset.e != null) return eventModal(+b.dataset.e);
+    if(b.dataset.r != null) toggleReg(+b.dataset.r);
+  });
+}
+
+/* ---------- Router: Posting | Teams | Discover → Articles | Events ---------- */
+var TABS = ['posting', 'teams', 'discover'], st = {tab:'posting', sub:'articles', tsub:'people'}, artOn = false;
+function active(){ return !!(window.cseSection && window.cseSection.current() === 'connect'); }
+function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'discover' ? '/' + st.sub : st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
+function sync(){
+  [].forEach.call(root.querySelectorAll('[data-cn]'), function(b){ var on = b.dataset.cn === st.tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+  [].forEach.call(root.querySelectorAll('[data-cnsub]'), function(b){ var on = b.dataset.cnsub === st.sub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
+  [].forEach.call(root.querySelectorAll('[data-cntsub]'), function(b){ var on = b.dataset.cntsub === st.tsub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
+  $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
+  TABS.forEach(function(t){ $('#cn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== st.tab); });
+  $('#cnSub').classList.toggle('hidden', st.tab !== 'discover');
+  $('#cnArticles').classList.toggle('hidden', st.sub !== 'articles'); $('#cnEvents').classList.toggle('hidden', st.sub !== 'events');
+  var want = active() && st.tab === 'discover' && st.sub === 'articles';   // the existing Discover loads / listens only while on screen
+  if(want && !artOn){ artOn = true; try{ window.discoverShow && window.discoverShow(); }catch(e){ console.warn('[Connect] Articles failed to open', e); } }
+  else if(!want && artOn){ artOn = false; try{ window.discoverHide && window.discoverHide(); }catch(e){} }
+}
+function go(tab, sub, o){
+  o = o || {}; st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams') st.tsub = sub;
+  if(!active() && window.cseSection) window.cseSection.go('connect', {noHash:true, noAnim:o.noAnim});
+  sync(); if(!o.noHash) setHash();
+}
+function parse(h){ var p = h.split('/'); if(h === 'discover') return ['discover', 'articles']; if(p[0] !== 'connect') return null; return [p[1], p[2]]; }
+root.addEventListener('click', function(e){
+  var t = e.target.closest('[data-cn]'), s = e.target.closest('[data-cnsub]'), ts = e.target.closest('[data-cntsub]');
+  if(t) go(t.dataset.cn, null); else if(s) go('discover', s.dataset.cnsub); else if(ts) go('teams', ts.dataset.cntsub);
+});
+root.addEventListener('keydown', function(e){
+  var b = e.target.closest('.cn-tab'); if(!b || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+  var l = [].slice.call(b.parentNode.querySelectorAll('.cn-tab')), n = l[(l.indexOf(b) + (e.key === 'ArrowRight' ? 1 : l.length - 1)) % l.length]; n.focus(); n.click();
+});
+window.addEventListener('hashchange', function(){ var r = parse(location.hash.replace('#', '')); if(r) go(r[0], r[1], {noHash:true}); });
+window.addEventListener('cse:sectionchange', function(e){ if(e.detail && e.detail.section === 'connect' && e.detail.previous !== 'connect'){ sync(); setHash(); } else sync(); });
+initModal(); initPosting(); initTeams(); initEvents();
+var boot = parse(window.__cnBoot || ''); if(boot){ st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && boot[1] === 'teams') st.tsub = 'teams'; }
+sync();
+window.cseConnect = { go:go };
+})();
+</script>
+
 <script id="sectionNavJs">
 /* Campus | Connect — a thin layer on top of the existing app.
    Campus = the untouched site (hidden by CSS while another section is open, so state, listeners and scroll are kept).
@@ -16844,14 +17400,15 @@ setInterval(function(){
     if(typeof window.setMode === 'function'){
       var orig = window.setMode;
       window.setMode = function(m, opts){
-        if(cur !== 'campus' && !(opts && opts.swipe)) apply('campus', {noHash:true});
+        if(cur !== 'campus' && m !== 'discover' && !(opts && opts.swipe)) apply('campus', {noHash:true});
         return orig.apply(this, arguments);
       };
     }
   }catch(e){ console.warn('[Sections] setMode hook skipped', e); }
   window.addEventListener('hashchange', function(){
-    var h = location.hash.replace('#','');
-    if(PAGES[h]) apply(h, {noHash:true});
+    var h = location.hash.replace('#',''), base = h.split('/')[0];
+    if(h === 'discover') base = 'connect';
+    if(PAGES[base]) apply(base, {noHash:true});
     else if(cur !== 'campus' && knownMode(h)) apply('campus', {noHash:true});
   });
   window.addEventListener('resize', placeInd, {passive:true});
@@ -16860,7 +17417,7 @@ setInterval(function(){
   document.body.setAttribute('data-section','campus');
   placeInd();
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ nav.classList.add('sec-ready'); }); });
-  if(window.__secBoot && PAGES[window.__secBoot]) apply(window.__secBoot, {force:true, noAnim:true});
+  if(window.__secBoot && PAGES[window.__secBoot]) apply(window.__secBoot, {force:true, noAnim:true, noHash:true});
   window.cseSection = { go: apply, current: function(){ return cur; } };
 })();
 </script>
