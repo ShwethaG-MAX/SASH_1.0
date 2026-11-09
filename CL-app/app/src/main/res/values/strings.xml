@@ -1,3 +1,18 @@
 <resources>
-    <string name="StuCentro">CSE HUB</string>
+    <string name="app_name">Campus Loop</string>
+
+    <!-- Website update (offline-first) -->
+    <string name="update_downloading">Downloading Cse Hub update...</string>
+    <string name="update_ready">Cse Hub is up to date!</string>
+    <string name="update_reload">RELOAD</string>
+    <string name="update_failed">Update unavailable. Continuing with your current offline version.</string>
+
+    <!-- First installation (only when the APK ships no website) -->
+    <string name="install_title">Setting up Cse Hub</string>
+    <string name="install_message">Preparing Cse Hub for the first time. This only happens once.</string>
+    <string name="install_downloading">Downloading Cse Hub. This only happens once; after that it works offline.</string>
+    <string name="install_offline">You are offline. Connect to the internet once to finish installing Cse Hub. After that it works without internet.</string>
+    <string name="install_unavailable">Cse Hub is not available for download yet. Please try again in a little while.</string>
+    <string name="install_failed">The download could not be completed. Please check your connection and try again.</string>
+    <string name="install_retry">Try again</string>
 </resources>

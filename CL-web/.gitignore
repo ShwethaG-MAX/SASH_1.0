@@ -3,3 +3,6 @@ node_modules/
 *.log
 .env*
 service-account*.json
+# offline-update release tooling
+.release-keys/
+tools/release/.cache/

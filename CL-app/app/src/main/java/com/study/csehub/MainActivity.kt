@@ -38,6 +38,14 @@ import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ContentValues
 import android.os.Environment
+import android.os.SystemClock
+import android.webkit.WebResourceError
+import com.study.csehub.update.NetworkMonitor
+import com.study.csehub.update.ReleasePathHandler
+import com.study.csehub.update.ReleaseStore
+import com.study.csehub.update.UpdateManager
+import com.study.csehub.update.UpdateScheduler
+import com.study.csehub.update.UpdateUi
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
@@ -56,9 +64,27 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
+    private companion object {
+        const val APP_HOST = "appassets.androidplatform.net"
+        const val START_URL = "https://$APP_HOST/assets/index.html"
+    }
+
     private lateinit var webView: WebView
     @Volatile private var pageLoaded = false
     @Volatile private var launchRoute: String? = null
+
+    // ---------- Offline-first website updates ----------
+    //  The WebView always serves LOCAL content on the same origin/path as before (https://appassets.androidplatform.net/assets/):
+    //  the newest verified release downloaded into app-private storage, or the website bundled in the APK.
+    //  What is served is pinned for the whole session; a downloaded update is switched to at a safe point
+    //  (next launch, after a long stay in the background, or when the user taps RELOAD) - never mid-use.
+    private lateinit var releaseStore: ReleaseStore
+    private lateinit var updateUi: UpdateUi
+    private lateinit var assetLoader: WebViewAssetLoader
+    private var servingRoot: ReleaseStore.Root = ReleaseStore.Root.None
+    private var networkMonitor: NetworkMonitor? = null
+    private var stoppedAt = 0L
+    private val updateListener = UpdateManager.Listener { status -> updateUi.onStatus(status) }
 
     // ---------- Save Backup: "Save as" dialog ----------
     private var pendingContent: String? = null
@@ -506,9 +532,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView = findViewById(R.id.webview)
-        val assetLoader = WebViewAssetLoader.Builder()
-            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
-            .build()
+        releaseStore = ReleaseStore.get(applicationContext)
+        updateUi = UpdateUi(
+            this, root, releaseStore, { servingRoot },
+            onApply = { applyPendingRelease() },
+            onRetryInstall = { UpdateManager.get(applicationContext).checkAsync("retry") }
+        )
+        servingRoot = releaseStore.launchRoot(UpdateManager.bundledInfo(this))
+        assetLoader = buildAssetLoader(servingRoot)
+        UpdateScheduler.schedulePeriodic(applicationContext)
 
         webView.settings.apply {
             javaScriptEnabled = true
@@ -564,15 +596,30 @@ class MainActivity : AppCompatActivity() {
                 pageLoaded = false
             }
 
-            override fun onPageFinished(view: WebView, url: String?) { pageLoaded = true }
+            override fun onPageFinished(view: WebView, url: String?) {
+                pageLoaded = true
+                if (url != null && url.startsWith(START_URL)) scheduleHealthProbe()
+            }
+
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (request.isForMainFrame && request.url.host == APP_HOST) onLocalSiteBroken()
+            }
+
+            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
+                if (request.isForMainFrame && request.url.host == APP_HOST && errorResponse.statusCode >= 400) onLocalSiteBroken()
+            }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                 assetLoader.shouldInterceptRequest(request.url)
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url
-                if (url.host == "appassets.androidplatform.net") return false
-                try { startActivity(Intent(Intent.ACTION_VIEW, url)) } catch (e: Exception) { }
+                if (url.host == APP_HOST) return false
+                // Only hand well-known schemes to other apps (no intent:, file:, content: or javascript: URLs).
+                val scheme = url.scheme?.lowercase()
+                if (scheme == "https" || scheme == "http" || scheme == "mailto" || scheme == "tel") {
+                    try { startActivity(Intent(Intent.ACTION_VIEW, url)) } catch (e: Exception) { }
+                }
                 return true
             }
         }
@@ -580,7 +627,7 @@ class MainActivity : AppCompatActivity() {
         AppState.onHistoryChanged = { js("window.__notifChanged&&window.__notifChanged()") }
 
         if (savedInstanceState == null) handleLaunchIntent(intent)
-        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        startWebApp()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -622,9 +669,80 @@ class MainActivity : AppCompatActivity() {
         handleLaunchIntent(intent)
     }
 
-    override fun onStart() { super.onStart(); AppState.foreground = true }
+    override fun onStart() {
+        super.onStart()
+        AppState.foreground = true
+        val um = UpdateManager.get(applicationContext)
+        um.addListener(updateListener, replayLast = servingRoot is ReleaseStore.Root.None)
+        // Fires right away when already online (= check on app start) and again whenever connectivity returns.
+        networkMonitor = NetworkMonitor(applicationContext) { um.checkAsync("network") }.also { it.start() }
+        // Safe point: back from a long stay in the background -> switch to a downloaded update now.
+        if (stoppedAt > 0 && SystemClock.elapsedRealtime() - stoppedAt >= com.study.csehub.update.UpdateConfig.AUTO_APPLY_AFTER_BACKGROUND_MS &&
+            releaseStore.pendingVersion(servingRoot) != null) applyPendingRelease()
+    }
 
-    override fun onStop() { super.onStop(); AppState.foreground = false }
+    override fun onStop() {
+        super.onStop()
+        AppState.foreground = false
+        stoppedAt = SystemClock.elapsedRealtime()
+        UpdateManager.get(applicationContext).removeListener(updateListener)
+        networkMonitor?.stop(); networkMonitor = null
+    }
+
+    // ---------- Offline-first website: serving, switching, health ----------
+    private fun buildAssetLoader(root: ReleaseStore.Root): WebViewAssetLoader {
+        val handler: WebViewAssetLoader.PathHandler = when (root) {
+            is ReleaseStore.Root.Local -> ReleasePathHandler(root.dir)
+            else -> WebViewAssetLoader.AssetsPathHandler(this)      // website bundled in the APK
+        }
+        return WebViewAssetLoader.Builder().addPathHandler("/assets/", handler).build()
+    }
+
+    private fun startWebApp() {
+        if (servingRoot is ReleaseStore.Root.None) {
+            // APK without bundled website and nothing downloaded yet: first-installation screen.
+            updateUi.showInstalling()
+            UpdateManager.get(applicationContext).checkAsync("first-install")
+        } else {
+            updateUi.hideInstallOverlay()
+            pageLoaded = false
+            webView.loadUrl(START_URL)
+        }
+    }
+
+    /** Switch the WebView to the newest activated release (no-op when already serving it). */
+    private fun applyPendingRelease() {
+        val next = releaseStore.launchRoot(UpdateManager.bundledInfo(this))
+        if (next == servingRoot) return
+        servingRoot = next
+        assetLoader = buildAssetLoader(next)
+        startWebApp()
+    }
+
+    /** A freshly installed release counts as healthy once its page has loaded and is still alive a few seconds later. */
+    private fun scheduleHealthProbe() {
+        val root = servingRoot as? ReleaseStore.Root.Local ?: return
+        if (releaseStore.state().confirmed) return
+        webView.postDelayed({
+            if (isDestroyed || isFinishing || servingRoot != root) return@postDelayed
+            webView.evaluateJavascript(
+                "(function(){try{return document.readyState==='complete'&&!!document.body&&document.body.children.length>0}catch(e){return false}})()"
+            ) { r -> if (r == "true") releaseStore.confirmHealthy(root.version) else onLocalSiteBroken() }
+        }, com.study.csehub.update.UpdateConfig.HEALTH_PROBE_DELAY_MS)
+    }
+
+    /** The release being served cannot even load: drop it, block that version, go back to the previous good one. */
+    private fun onLocalSiteBroken() {
+        if (servingRoot !is ReleaseStore.Root.Local) return
+        runOnUiThread {
+            releaseStore.rollback(block = true)
+            Toast.makeText(this, R.string.update_failed, Toast.LENGTH_LONG).show()
+            val next = releaseStore.launchRoot(UpdateManager.bundledInfo(this))
+            servingRoot = next
+            assetLoader = buildAssetLoader(next)
+            startWebApp()
+        }
+    }
 
     override fun onDestroy() {
         AppState.onHistoryChanged = null
