@@ -249,7 +249,11 @@ Found a bug or have an idea? [Open an issue](https://github.com/ShwethaG-MAX/SAS
 
 ## 📄 License
 
+<<<<<<< HEAD
 Released under the **[MIT License](LICENSE)** — free to use, modify and distribute with attribution.
+=======
+A license has not been specified in this README. Add a `LICENSE` file before inviting external contributions or distributing code under open-source terms.
+>>>>>>> parent of 834e38d (Include MIT License in README)
 
 <div align="center">
 <br/>
