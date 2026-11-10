@@ -4341,9 +4341,9 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 <!-- Community backend: Firebase (Firestore + Anonymous Auth). Fill in YOUR project's
      config below — see the setup notes near FIREBASE_CONFIG in the script for how to
      get one (it's free) and the Firestore security rules to paste in. -->
-<script src="vendor/firebase/10.14.1/firebase-app-compat.js"></script>
-<script src="vendor/firebase/10.14.1/firebase-auth-compat.js"></script>
-<script src="vendor/firebase/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <script>
 // ---------- DATA ----------
@@ -7994,7 +7994,7 @@ modeScheduleBtn.addEventListener('click', ()=>setMode('schedule'));
     if(b){ try{ if(b.setCollectionEnabled) b.setCollectionEnabled(true); }catch(e){} settle('native'); console.log('[Analytics] using native Android Analytics'); return; }
     if(!window.firebase || !firebase.apps || !firebase.apps.length){ started = false; return; }
     var s = document.createElement('script');
-    s.src = 'vendor/firebase/10.14.1/firebase-analytics-compat.js';
+    s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics-compat.js';
     s.onload = function(){
       try{
         if(!firebase.analytics || !firebase.analytics.isSupported){ console.warn('[Analytics] SDK missing'); settle('off'); return; }
@@ -9151,6 +9151,18 @@ service cloud.firestore{
         && (!existsAfter(/databases/$(db)/documents/crAccounts/$(uid)) || !('section' in request.resource.data)
             || request.resource.data.section==getAfter(/databases/$(db)/documents/crAccounts/$(uid)).data.section);
     }
+    // Public student directory (Connect > Teams > Find people): ONE doc per signed-in (non-guest) student holding only name / year / branch.
+    // Readable by any signed-in non-guest student, written only by its owner. userProfiles (section, batch, etc.) stays private.
+    match /publicProfiles/{uid}{
+      allow read: if request.auth!=null && request.auth.token.firebase.sign_in_provider!='anonymous';
+      allow create, update: if request.auth!=null && request.auth.uid==uid && request.auth.token.firebase.sign_in_provider!='anonymous'
+        && request.resource.data.keys().hasOnly(['name','year','branch','updatedAt'])
+        && request.resource.data.name is string && request.resource.data.name.size()>=1 && request.resource.data.name.size()<=40
+        && (!('year' in request.resource.data) || request.resource.data.year in ['1','2'])
+        && (!('branch' in request.resource.data) || request.resource.data.branch in ['CSE','CSEAIML','ISE','ECE','EEE','EI','CV','IP','ENV','BT','CTM','ME','PST','CSBS'])
+        && request.resource.data.updatedAt==request.time;
+      allow delete: if (request.auth!=null && request.auth.uid==uid) || isOwner();
+    }
     // ---- Cross-device account sync: one doc per synced key, readable/writable ONLY by that Auth UID, never by guests (anonymous) ----
     // Nothing here is ever used for authorization; roles still come only from the owner claim / crAccounts. Even the owner cannot read other students' data.
     match /userData/{uid}/items/{itemId}{
@@ -9405,7 +9417,7 @@ console.log('%c7-day auto-cleanup runs client-side (see cleanupExpired) — no B
 function sdkReady(){ return typeof firebase!=='undefined' && firebase.apps && firebase.auth && firebase.firestore; }
 function loadSdkScripts(done){
   if(sdkLoading) return; sdkLoading = true;
-  const base = 'vendor/firebase/10.14.1/', files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
+  const base = 'https://www.gstatic.com/firebasejs/10.14.1/', files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
   (function next(i){
     if(i >= files.length){ sdkLoading = false; done(true); return; }
     if(i === 1 && typeof firebase==='undefined'){ sdkLoading = false; done(false); return; }
@@ -10432,7 +10444,7 @@ function chatStorageReady(){
   chatStoragePromise = new Promise((res, rej)=>{
     if(typeof firebase === 'undefined') return rej(new Error('firebase'));
     if(firebase.storage) return res(chatStorageInit());
-    const s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-storage-compat.js';
+    const s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js';
     s.onload = ()=>firebase.storage ? res(chatStorageInit()) : rej(new Error('storage'));
     s.onerror = ()=>{ s.remove(); rej(new Error('storage')); };
     document.head.appendChild(s);
@@ -14651,7 +14663,7 @@ var S = { tab:'daily', today:null, run:null, review:null, lastResult:null, stats
 function loadFns(){ return new Promise(function(res, rej){
   if(typeof firebase === 'undefined') return rej(new Error('firebase'));
   if(firebase.functions) return res();
-  var s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-functions-compat.js';
+  var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js';
   s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); };
   document.head.appendChild(s); }); }
 function waitAuth(){ return new Promise(function(res, rej){ var t0 = Date.now(); (function chk(){
@@ -15247,7 +15259,7 @@ var S = { tab:'foryou', dom:'', interests:[], onboarded:false, loaded:false, uid
 function loadFns(){ return new Promise(function(res, rej){
   if(typeof firebase === 'undefined') return rej(new Error('firebase'));
   if(firebase.functions) return res();
-  var s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-functions-compat.js';
+  var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js';
   s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); };
   document.head.appendChild(s); }); }
 function waitAuth(){ return new Promise(function(res, rej){ var t0 = Date.now(); (function chk(){
@@ -17172,8 +17184,8 @@ setInterval(function(){
 
 <script id="connectJs">
 /* Connect — Posting, Teams, Discover (Articles + Events).
-   FRONTEND DEMO ONLY: posts, profiles, events, likes, comments and connection requests below are in-memory sample data.
-   Nothing here touches Firebase/Firestore/Functions. Articles is the existing Discover (#discoverMode), moved here unchanged. */
+   Find people lists real students from Firestore (publicProfiles: name, year, branch of every signed-in, non-guest student).
+   Posts, events, likes, comments and connection requests are in-memory only. Articles is the existing Discover (#discoverMode), moved here unchanged. */
 (function(){
 'use strict';
 var root = document.getElementById('sectionConnect'); if(!root) return;
@@ -17241,20 +17253,7 @@ var HK_INFO = {
 EV.forEach(function(x){ var h = HK_INFO[x.t]; if(h) for(var k in h) if(x[k] == null || k === 'org' || k === 'loc') x[k] = h[k]; });
 /* Closing soon = registration closes within SOON days (shown in red). */
 var SOON = 7;
-var PF = [
- ['Ananya Rao','CSE',3,['React','Node.js','UI/UX'],['Web Dev','Open Source'],'Frontend dev who loves turning ideas into usable products.','Campus bus tracker'],
- ['Rohan Mehta','ISE',2,['Python','Django','SQL'],['Hackathons','Backend'],'Backend tinkerer, always up for a hackathon.','Library seat booking'],
- ['Sneha Iyer','AIML',4,['Python','PyTorch','NLP'],['Research','Speech AI'],'Working on speech models for Indian languages.','Kannada ASR research'],
- ['Dev Patel','CSE',2,['AWS','Docker','Go'],['Cloud','DevOps'],'Cloud and infrastructure enthusiast.','CI/CD for student clubs'],
- ['Meera Nair','ECE',3,['Embedded C','IoT','Arduino'],['Robotics','IoT'],'Building small robots that do slightly useful things.','Autonomous line follower'],
- ['Karthik S','CSE',1,['C++','DSA','Competitive Programming'],['Coding Contests','Algorithms'],'Daily LeetCode grinder, looking for ICPC teammates.','ICPC prep group'],
- ['Fatima Khan','ISE',3,['Figma','UI/UX','Flutter'],['App Design','Startups'],'Designer who also codes. Mobile-first thinker.','Mental wellness app'],
- ['Arjun Reddy','AIML',2,['TensorFlow','Computer Vision','Python'],['Healthcare AI','Research'],'Curious about vision models for medical imaging.','X-ray classifier'],
- ['Priya Menon','ME',4,['CAD','MATLAB','3D Printing'],['Robotics','Sustainability'],'Mechanical engineer exploring clean energy hardware.','Solar tracker prototype'],
- ['Vikram Joshi','CSE',4,['Rust','Cybersecurity','Linux'],['CTFs','Systems'],'CTF player and open-source contributor.','CTF team lead'],
- ['Lakshmi Bhat','ECE',1,['Python','Data Analysis','Excel'],['Data Science','Finance'],'First-year looking for a beginner-friendly data project.','—'],
- ['Sameer Ali','CSE',3,['Kotlin','Firebase','Android'],['App Dev','Startups'],'Ships Android apps over weekends.','Notes sharing app']
-];
+var PF = [];   /* [name, branch, year, skills, interests, bio, project, uid], filled from Firestore publicProfiles */
 var EKINDS = ['Hackathon','Coding Competition','Workshop','Seminar','Webinar','Tech Fest','Ideathon','Conference','College Event'];
 function fd(off){ return new Date(now + off * D).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }
 
@@ -17372,7 +17371,7 @@ function ic(n){ return '<svg class="cn-ic" viewBox="0 0 24 24" fill="none" strok
 function hero(t, p){ return '<div class="cn-hero"><h2>' + t + '</h2>' + (p ? '<p>' + p + '</p>' : '') + '</div>'; }
 function chipbar(label, items, sel, attr, counts){ return '<div class="cn-chipbar" role="group" aria-label="' + label + '">' + items.map(function(v){ var on = v === '' ? !sel.length : sel.indexOf(v) > -1; return '<button type="button" class="cn-fc" ' + attr + '="' + esc(v) + '" aria-pressed="' + on + '">' + (v === '' ? 'All' : esc(v)) + (counts && v !== '' ? '<span class="n">' + (counts[v] || 0) + '</span>' : '') + '</button>'; }).join('') + '</div>'; }
 function syncChips(box, sel, attr){ [].forEach.call(box.querySelectorAll('[' + attr + ']'), function(b){ var v = b.getAttribute(attr); b.setAttribute('aria-pressed', v === '' ? !sel.length : sel.indexOf(v) > -1); }); }
-function yl(y){ return ['1st', '2nd', '3rd', '4th'][y - 1] + ' Year'; }
+function yl(y){ return y >= 1 && y <= 4 ? ['1st', '2nd', '3rd', '4th'][y - 1] + ' Year' : ''; }
 var cur = null, sent = {}, reg = {}, bm = {};
 var mLock = null, mOpener = null, mTimer = 0;
 function lockScroll(){ if(mLock) return; var y = window.pageYOffset || document.documentElement.scrollTop || 0; mLock = {y:y, top:document.body.style.top, pos:document.body.style.position, w:document.body.style.width};
@@ -17405,38 +17404,93 @@ function skillList(){ var c = {}; PF.forEach(function(p){ p[3].forEach(function(
 function peopleRows(){
   var q = P.q.toLowerCase(), w = P.skills;
   return PF.map(function(p, k){ return {p:p, k:k, hit:w.filter(function(s){ return p[3].indexOf(s) > -1; })}; }).filter(function(x){
-    var hay = [x.p[0], x.p[3].join(' '), x.p[4].join(' ')].join(' ').toLowerCase();
+    var hay = [x.p[0], x.p[1], x.p[3].join(' '), x.p[4].join(' ')].join(' ').toLowerCase();
     return (!q || hay.indexOf(q) > -1) && (!w.length || x.hit.length);
   }).sort(function(a, b){ return b.hit.length - a.hit.length || a.p[0].localeCompare(b.p[0]); });
 }
-function connBtn(k, attr){ return '<button class="cn-btn' + (sent[k] ? ' done' : ' pri') + '" type="button" ' + attr + '="' + k + '">' + (sent[k] ? '✓ Request sent' : 'Connect') + '</button>'; }
+/* ---------- Firebase: real students (publicProfiles) ---------- */
+var PS = 'wait', PT = 0, PBusy = false, pubKey = '';
+var BR = ['CSE','CSEAIML','ISE','ECE','EEE','EI','CV','IP','ENV','BT','CTM','ME','PST','CSBS'];
+function fb(){ try{ return (typeof fbDb !== 'undefined' && fbDb && window.firebase && firebase.auth && firebase.firestore) ? fbDb : null; }catch(e){ return null; } }
+function fbUser(){ try{ return firebase.auth().currentUser || null; }catch(e){ return null; } }
+function myUid(){ var u = fbUser(); return u ? u.uid : ''; }
+function wantPeople(){ return active() && st.tab === 'teams' && st.tsub === 'people'; }
+function setPS(v){ if(PS !== v){ PS = v; drawPeople(); } }
+/* Publishes THIS signed-in (non-guest) student's name / year / branch so other students can find them. Guests are never listed. */
+function publishMe(){
+  try{
+    var db = fb(), u = fbUser(); if(!db || !u || u.isAnonymous) return;
+    var nm = '', yr = '', br = '';
+    try{ nm = String((typeof currentUser !== 'undefined' && currentUser.name) || '').trim().slice(0, 40); yr = String(currentUser.year || ''); br = String(currentUser.branch || ''); }catch(e){}
+    if(!nm) return;
+    if(yr !== '1' && yr !== '2') yr = '';
+    if(BR.indexOf(br) < 0) br = '';
+    var key = u.uid + '|' + nm + '|' + yr + '|' + br; if(key === pubKey) return; pubKey = key;
+    var doc = {name:nm, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}; if(yr) doc.year = yr; if(br) doc.branch = br;
+    db.collection('publicProfiles').doc(u.uid).set(doc).catch(function(e){ pubKey = ''; console.warn('[Connect] could not publish profile', e && e.code); });
+  }catch(e){ pubKey = ''; }
+}
+function loadPeople(){
+  if(PBusy) return;
+  var db = fb(), u = fbUser();
+  if(!db || !u) return setPS('wait');                 /* Firebase / sign-in not ready yet: retried by the timer below */
+  if(u.isAnonymous) return setPS('guest');
+  if(PS === 'ok' && Date.now() - PT < 60000) return;
+  PBusy = true; if(PS !== 'ok') setPS('loading');
+  publishMe();
+  db.collection('publicProfiles').orderBy('name').limit(500).get().then(function(snap){
+    PF = snap.docs.map(function(d){ var x = d.data() || {}, n = String(x.name || '').trim(); return n ? [n, x.branch || '', +x.year || 0, [], [], '', '?', d.id] : null; }).filter(Boolean);
+    PT = Date.now(); PS = 'ok';
+  }).catch(function(e){ console.warn('[Connect] could not load students (is the publicProfiles rule published?)', e && e.code); PS = 'err'; })
+  .then(function(){ PBusy = false; drawPeople(); });
+}
+setInterval(function(){ publishMe(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
+
+
+function pkey(k){ return PF[k] && PF[k][7] ? PF[k][7] : k; }
+function connBtn(k, attr){ var d = sent[pkey(k)]; return '<button class="cn-btn' + (d ? ' done' : ' pri') + '" type="button" ' + attr + '="' + k + '">' + (d ? '\u2713 Request sent' : 'Connect') + '</button>'; }
 function pct(x){ return P.skills.length ? Math.round(100 * x.hit.length / P.skills.length) : Math.min(100, Math.round(x.p[3].length * 20)); }
 function personCard(x){
-  var p = x.p, k = x.k, v = pct(x), w = P.skills;
-  return '<article class="cn-urow">' + av(p[0], k) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + '</button><small>' + yl(p[2]) + ' · ' + esc(p[1]) + (w.length ? ' · has ' + x.hit.length + ' of ' + w.length + ' selected' : '') + '</small></div>' +
-   '<div class="cn-ring sm" style="--p:' + v + '" data-v="' + v + '%" role="img" title="' + (w.length ? 'Share of the selected skills they have' : 'Skills listed (out of 5)') + '" aria-label="' + v + ' percent skills"></div>' + connBtn(k, 'data-k') + '</article>';
+  var p = x.p, k = x.k, v = pct(x), w = P.skills, mine = !!p[7] && p[7] === myUid();
+  var meta = [yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
+  return '<article class="cn-urow">' + av(p[0], k) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
+   (p[3].length ? '<div class="cn-ring sm" style="--p:' + v + '" data-v="' + v + '%" role="img" title="' + (w.length ? 'Share of the selected skills they have' : 'Skills listed (out of 5)') + '" aria-label="' + v + ' percent skills"></div>' : '') + (mine ? '' : connBtn(k, 'data-k')) + '</article>';
 }
+var pSkSig = null;
 function drawPeople(){
+  if(!$('#cnPgrid')) return;
+  var sk = skillList(), skl = $('#cnPskl'), chs = $('#cnPchips'), sig = sk.join('|');
+  P.skills = P.skills.filter(function(s){ return sk.indexOf(s) > -1; });
+  if(skl) skl.style.display = sk.length ? '' : 'none';
+  if(chs){ if(sig !== pSkSig){ pSkSig = sig; chs.innerHTML = sk.length ? chipbar('Filter by skill', [''].concat(sk), P.skills, 'data-sk') : ''; } else syncChips(chs, P.skills, 'data-sk'); }
+  if(PS !== 'ok'){
+    $('#cnPsum').innerHTML = ''; $('#cnPgrid').innerHTML = ''; $('#cnPgrid').className = '';
+    $('#cnPempty').innerHTML = PS === 'guest' ? empty('\uD83D\uDD12', 'Sign in to see students', 'Students who have signed in to Campus Loop are listed here. Guests cannot see the list.')
+      : PS === 'err' ? empty('\u26A0\uFE0F', 'Could not load students', 'Check your connection and open this tab again.')
+      : empty('\u23F3', 'Loading students\u2026', 'Fetching the list from Campus Loop.');
+    return;
+  }
   var rows = peopleRows(), any = P.q || P.skills.length;
   rows.sort(function(a, b){ return b.hit.length - a.hit.length || pct(b) - pct(a) || a.p[0].localeCompare(b.p[0]); });
-  $('#cnPsum').innerHTML = '<span>' + rows.length + ' ' + (rows.length === 1 ? 'student' : 'students') + (P.q ? ' for “' + esc(P.q) + '”' : '') + (P.skills.length ? ' with ' + P.skills.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  $('#cnPsum').innerHTML = '<span>' + rows.length + ' ' + (rows.length === 1 ? 'student' : 'students') + (P.q ? ' for \u201c' + esc(P.q) + '\u201d' : '') + (P.skills.length ? ' with ' + P.skills.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
   $('#cnPgrid').innerHTML = rows.length ? rows.map(personCard).join('') : ''; $('#cnPgrid').className = rows.length ? 'cn-ulist' : '';
-  $('#cnPempty').innerHTML = rows.length ? '' : empty('🔎', 'No students match', 'Try fewer skills or a broader search.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>');
+  $('#cnPempty').innerHTML = rows.length ? '' : (PF.length ? empty('\uD83D\uDD0D', 'No students match', 'Try a different name or clear your filters.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>') : empty('\uD83D\uDC65', 'No students yet', 'Students appear here after they sign in to Campus Loop.'));
 }
 function personModal(k){
-  var p = PF[k];
-  openM('<div class="cn-evb"><div class="cn-ph">' + av(p[0], k, 'lg') + '<div><b>' + esc(p[0]) + '</b><small>' + esc(p[1]) + ' · ' + yl(p[2]) + '</small></div></div><p>' + esc(p[5]) + '</p>' +
-   '<div><div class="cn-sub">Skills</div><div class="cn-chips">' + p[3].map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
-   '<div><div class="cn-sub">Interests</div><div class="cn-chips">' + p[4].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
-   (p[6] !== '—' ? '<div class="cn-meta"><div>' + ic('users') + '<span><b>Working on:</b> ' + esc(p[6]) + '</span></div></div>' : '') +
-   '<div class="cn-row">' + connBtn(k, 'data-mconn') + '<button class="cn-btn" type="button" data-close="1">Close</button></div><span class="cn-demo">Demo profile: requests are not sent anywhere.</span></div>', 'p', k);
+  var p = PF[k]; if(!p) return closeM();
+  var meta = [esc(p[1]), yl(p[2])].filter(Boolean).join(' \u00b7 '), mine = !!p[7] && p[7] === myUid();
+  openM('<div class="cn-evb"><div class="cn-ph">' + av(p[0], k, 'lg') + '<div><b>' + esc(p[0]) + (mine ? ' (you)' : '') + '</b>' + (meta ? '<small>' + meta + '</small>' : '') + '</div></div>' + (p[5] ? '<p>' + esc(p[5]) + '</p>' : '') +
+   (p[3].length ? '<div><div class="cn-sub">Skills</div><div class="cn-chips">' + p[3].map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
+   (p[4].length ? '<div><div class="cn-sub">Interests</div><div class="cn-chips">' + p[4].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
+   (p[6] && p[6] !== '?' && p[6] !== '\u2014' ? '<div class="cn-meta"><div>' + ic('users') + '<span><b>Working on:</b> ' + esc(p[6]) + '</span></div></div>' : '') +
+   '<div class="cn-row">' + (mine ? '' : connBtn(k, 'data-mconn')) + '<button class="cn-btn" type="button" data-close="1">Close</button></div>' + (mine ? '' : '<span class="cn-demo">Connection requests are not sent anywhere yet.</span>') + '</div>', 'p', k);
 }
-function togglePerson(k){ sent[k] = !sent[k]; drawPeople(); reshow(); toast(sent[k] ? 'Connection request sent (demo)' : 'Request withdrawn'); }
+function togglePerson(k){ var u = pkey(k); sent[u] = !sent[u]; drawPeople(); reshow(); toast(sent[u] ? 'Connection request sent (demo)' : 'Request withdrawn'); }
 function initPeople(){
   var box = $('#cnTpeople');
   box.innerHTML = '<h2 class="cn-sr-h">Find people</h2>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
-   '<div class="cn-sum"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips">' + chipbar('Filter by skill', [''].concat(skillList()), P.skills, 'data-sk') + '</div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
+   '<div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips"></div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
   $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
   box.addEventListener('click', function(e){
@@ -17664,6 +17718,7 @@ function sync(){
   var want = active() && st.tab === 'discover' && st.sub === 'articles';   // the existing Discover loads / listens only while on screen   // the existing Discover loads / listens only while on screen
   if(want && !artOn){ artOn = true; try{ window.discoverShow && window.discoverShow(); }catch(e){ console.warn('[Connect] Articles failed to open', e); } }
   else if(!want && artOn){ artOn = false; try{ window.discoverHide && window.discoverHide(); }catch(e){} }
+  if(wantPeople()) loadPeople();
 }
 function go(tab, sub, o){
   o = o || {}; st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams') st.tsub = sub;
