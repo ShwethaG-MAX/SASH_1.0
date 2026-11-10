@@ -2622,6 +2622,32 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-upd button{display:flex;gap:10px;align-items:center;text-align:left;border:0;background:none;color:var(--text);font:inherit;font-size:.86rem;min-height:44px;padding:4px 6px;border-radius:10px;cursor:pointer}
 .cn-upd button:hover{background:color-mix(in srgb,var(--cyan) 8%,transparent)}
 .cn-upd button span{display:grid}.cn-upd em{font-style:normal;color:var(--muted);font-size:.78rem}
+/* Events v4: cover pictures, Saved view, red "closing soon", detail modal */
+#sectionConnect{--cn-red:#e5392d}
+body.cn-modal-open #cnModeWrap{visibility:hidden}   /* the Connect tab bar must not float over an open popup */
+.cn-ev{cursor:pointer}
+.cn-cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.cn-ban.has-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.38),rgba(0,0,0,0) 45%,rgba(0,0,0,.5));pointer-events:none}
+.cn-ban>.cn-st,.cn-ban>.cn-bm,.cn-ban>.cn-lab,.cn-ban>.cn-x{z-index:2}
+.cn-st.soon{background:var(--cn-red);border-color:var(--cn-red);color:#fff}
+.cn-ev.is-soon{border-color:var(--cn-red);box-shadow:0 0 0 1px var(--cn-red)}
+.cn-ev.is-soon:hover{border-color:var(--cn-red)}
+.cn-dl.soon{background:color-mix(in srgb,var(--cn-red) 13%,transparent);color:var(--cn-red)}
+.cn-dl.soon b,.cn-dl.soon em,.cn-dl.soon .cn-ic{color:var(--cn-red)}
+.cn-seg button .cn-ic{width:15px;height:15px}
+.cn-modal .cn-card.cn-wide{max-width:680px}
+.cn-wide .cn-ban{height:210px}
+.cn-wide .cn-bm{right:54px}
+.cn-x{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:1.4rem;line-height:1;cursor:pointer}
+.cn-wide .cn-evb{gap:14px}
+.cn-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cn-fact{display:grid;gap:2px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--cyan) 7%,transparent);font-size:.86rem}
+.cn-fact span{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.cn-about{margin:0;font-size:.92rem;line-height:1.55}
+.cn-sch{display:grid;gap:6px}
+.cn-sch div{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--cyan) 7%,transparent);font-size:.86rem}
+.cn-ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.88rem}
+@media (max-width:560px){.cn-facts{grid-template-columns:1fr}.cn-sch div{grid-template-columns:1fr;gap:2px}.cn-wide .cn-ban{height:170px}}
 @media (max-width:560px){.cn-ev .cn-meta{grid-template-columns:1fr}.cn-urow{padding:10px}.cn-urow .cn-btn{min-width:84px;padding:8px 10px}.cn-big .cn-ic{width:68px;height:68px}}
 
 @media (prefers-reduced-motion:reduce){.cn-card,.cn-tab,.cn-toast{transition:none;animation:none}.cn-post:hover,.cn-prof:hover,.cn-ev:hover{transform:none}}
@@ -2987,6 +3013,24 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
 /* ===== Home: one shared section between Campus and Connect ===== */
 .sec-nav[data-active="home"],.sec-btn[data-sec="home"]{--sc:color-mix(in srgb,var(--accent) 62%,var(--brown-dark,#A9835C))}
 .sec-btn .unread-badge{top:0;right:4px}
+/* Settings → Saved */
+.sv-list{display:grid;gap:8px;margin-top:8px}
+.sv-row{display:flex;align-items:stretch;gap:6px;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.sv-main{flex:1;min-width:0;display:flex;gap:12px;align-items:center;padding:8px;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer;min-height:64px}
+.sv-main:hover{background:color-mix(in srgb,var(--cyan) 7%,transparent)}
+.sv-thumb{width:64px;height:48px;border-radius:10px;object-fit:cover;flex:none}
+.sv-txt{display:grid;gap:1px;min-width:0}.sv-txt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.92rem}
+.sv-txt small{color:var(--muted);font-size:.78rem}.sv-txt em{font-style:normal;font-size:.78rem;font-weight:700;color:var(--muted)}
+.sv-txt em.soon{color:#e5392d}
+.sv-rm{flex:none;width:44px;border:0;border-left:1px solid var(--line);background:none;color:var(--muted);font-size:1rem;cursor:pointer}
+.sv-rm:hover{color:#e5392d}
+.sv-empty{color:var(--muted);font-size:.9rem;margin:6px 0 10px}
+/* Section bar colours: Campus = light purple, Connect = green */
+.sec-nav[data-active="campus"],.sec-btn[data-sec="campus"]{--sc:#A58BEA}
+.sec-nav[data-active="connect"],.sec-btn[data-sec="connect"]{--sc:#34A96A}
+/* Connect gets a soft light-green background so it feels distinct from Campus */
+body[data-section="connect"]::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(52,169,106,.16),rgba(52,169,106,.09));animation:fadeIn .4s ease}
+[data-theme="dark"] body[data-section="connect"]::after{background:linear-gradient(180deg,rgba(52,169,106,.14),rgba(52,169,106,.06))}
 body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 @media (max-width:820px){body[data-section="home"]{padding-bottom:env(safe-area-inset-bottom,0px)}}
 
@@ -3226,9 +3270,10 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 
 <section class="sec-page cn-page hidden" id="sectionConnect" role="tabpanel" aria-labelledby="secBtnConnect" data-sec="connect" data-no-swipe>
   <div class="cn-shell">
+    <header class="cn-head"><div class="eyebrow">CAMPUS LOOP</div><h1>Connect</h1><p>Share your work, find teammates and discover articles and events.</p></header>
     <div class="cn-subtabs hidden" id="cnSub" role="tablist" aria-label="Discover sections">
-      <button type="button" class="cn-tab" role="tab" data-cnsub="events" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</button>
       <button type="button" class="cn-tab active" role="tab" data-cnsub="articles" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>Articles</button>
+      <button type="button" class="cn-tab" role="tab" data-cnsub="events" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</button>
     </div>
     <div class="cn-subtabs hidden" id="cnTsub" role="tablist" aria-label="Teams sections">
       <button type="button" class="cn-tab active" role="tab" data-cntsub="people" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Find People</button>
@@ -3239,6 +3284,11 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
     <div class="cn-pane hidden" id="cnDiscover" role="tabpanel">
       <div id="cnArticles">
 <div id="discoverMode">
+  <section class="comm-hero">
+    <div class="eyebrow">CAMPUS LOOP</div>
+    <h2 class="section-title">Articles</h2>
+    <p class="section-sub">Articles picked for your interests, a place to save the good ones, and anonymous discussion with other students.</p>
+  </section>
   <div class="dv-wrap">
     <div id="dvMain" class="hidden">
       <div class="dv-bar">
@@ -3314,6 +3364,7 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
   <section>
     <div class="eyebrow" data-sec-label="long">CAMPUS LOOP</div>
     <h2 class="section-title" style="font-size:1.9rem">Schedule</h2>
+    <p class="section-sub">Your timetable, event calendar, tasks and attendance in one place.</p>
     <div class="sch-tabs" role="tablist" aria-label="Schedule sections">
       <button type="button" class="pill sch-tab active" id="schTabTimetable" role="tab" aria-selected="true" aria-controls="schPaneTimetable" data-sch="timetable">🕒 Timetable</button>
       <button type="button" class="pill sch-tab" id="schTabCalendar" role="tab" aria-selected="false" aria-controls="schPaneCalendar" data-sch="calendar">🗓️ Event Calendar</button>
@@ -3407,6 +3458,7 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
   <section>
     <div class="eyebrow">📊 Attendance Tracker</div>
     <h2 class="section-title" style="font-size:1.3rem" id="atSectionTitle">Track your attendance</h2>
+    <p class="section-sub">Mark present / absent / no-class for each scheduled slot and watch your subject-wise and overall percentages update instantly.</p>
 
     <div class="at-dash">
       <div class="at-ring" id="atRing"><div class="at-ring-inner"><b id="atPct">0%</b><span>Overall</span></div></div>
@@ -3516,7 +3568,7 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
     <div id="detBody"></div>
   </section>
 
-  <section id="browse" class="hidden">
+  <section id="browse">
     <h2 class="section-title">Browse All Resources</h2>
     <p class="section-sub">Search notes, units, papers, textbooks and assignments across every subject.</p>
     <div class="search-row">
@@ -3568,6 +3620,11 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
         <div class="settings-section-title">👤 Profile</div>
         <div class="settings-field-label" id="stFieldLabel">Your Name</div>
         <div id="stNameCard"></div>
+      </div>
+      <div class="hm-card" id="savedCard" style="margin-top:16px">
+        <div class="settings-section-title">🔖 Saved</div>
+        <div class="settings-field-label">Events and hackathons you have saved</div>
+        <div id="svBody" aria-live="polite"></div>
       </div>
       <div class="hm-card" id="appearanceCard" style="margin-top:16px">
         <div class="settings-section-title">🎨 Appearance</div>
@@ -3976,9 +4033,9 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 <!-- Community backend: Firebase (Firestore + Anonymous Auth). Fill in YOUR project's
      config below — see the setup notes near FIREBASE_CONFIG in the script for how to
      get one (it's free) and the Firestore security rules to paste in. -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="vendor/firebase/10.14.1/firebase-app-compat.js"></script>
+<script src="vendor/firebase/10.14.1/firebase-auth-compat.js"></script>
+<script src="vendor/firebase/10.14.1/firebase-firestore-compat.js"></script>
 
 <script>
 // ---------- DATA ----------
@@ -7629,7 +7686,7 @@ modeScheduleBtn.addEventListener('click', ()=>setMode('schedule'));
     if(b){ try{ if(b.setCollectionEnabled) b.setCollectionEnabled(true); }catch(e){} settle('native'); console.log('[Analytics] using native Android Analytics'); return; }
     if(!window.firebase || !firebase.apps || !firebase.apps.length){ started = false; return; }
     var s = document.createElement('script');
-    s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics-compat.js';
+    s.src = 'vendor/firebase/10.14.1/firebase-analytics-compat.js';
     s.onload = function(){
       try{
         if(!firebase.analytics || !firebase.analytics.isSupported){ console.warn('[Analytics] SDK missing'); settle('off'); return; }
@@ -9040,7 +9097,7 @@ console.log('%c7-day auto-cleanup runs client-side (see cleanupExpired) — no B
 function sdkReady(){ return typeof firebase!=='undefined' && firebase.apps && firebase.auth && firebase.firestore; }
 function loadSdkScripts(done){
   if(sdkLoading) return; sdkLoading = true;
-  const base = 'https://www.gstatic.com/firebasejs/10.14.1/', files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
+  const base = 'vendor/firebase/10.14.1/', files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
   (function next(i){
     if(i >= files.length){ sdkLoading = false; done(true); return; }
     if(i === 1 && typeof firebase==='undefined'){ sdkLoading = false; done(false); return; }
@@ -10067,7 +10124,7 @@ function chatStorageReady(){
   chatStoragePromise = new Promise((res, rej)=>{
     if(typeof firebase === 'undefined') return rej(new Error('firebase'));
     if(firebase.storage) return res(chatStorageInit());
-    const s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js';
+    const s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-storage-compat.js';
     s.onload = ()=>firebase.storage ? res(chatStorageInit()) : rej(new Error('storage'));
     s.onerror = ()=>{ s.remove(); rej(new Error('storage')); };
     document.head.appendChild(s);
@@ -14286,7 +14343,7 @@ var S = { tab:'daily', today:null, run:null, review:null, lastResult:null, stats
 function loadFns(){ return new Promise(function(res, rej){
   if(typeof firebase === 'undefined') return rej(new Error('firebase'));
   if(firebase.functions) return res();
-  var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js';
+  var s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-functions-compat.js';
   s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); };
   document.head.appendChild(s); }); }
 function waitAuth(){ return new Promise(function(res, rej){ var t0 = Date.now(); (function chk(){
@@ -14882,7 +14939,7 @@ var S = { tab:'foryou', dom:'', interests:[], onboarded:false, loaded:false, uid
 function loadFns(){ return new Promise(function(res, rej){
   if(typeof firebase === 'undefined') return rej(new Error('firebase'));
   if(firebase.functions) return res();
-  var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js';
+  var s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-functions-compat.js';
   s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); };
   document.head.appendChild(s); }); }
 function waitAuth(){ return new Promise(function(res, rej){ var t0 = Date.now(); (function chk(){
@@ -16865,6 +16922,8 @@ var EV = [
  ev('Summer Internship Fair','College Event',15,12,'offline','Placement Cell','Training & Placement','💼','Pre-final year students','Meet 30+ companies offering internships for pre-final year students.','Internship offers',['Careers']),
  ev('Python Bootcamp Sprint','Workshop',1,-1,'offline','Seminar Hall A','Python Club','🐍','Individual · 1st year','A one-day bootcamp covering Python basics through a mini project.','Free entry',['Python'])
 ];
+/* Closing soon = registration closes within SOON days (shown in red). */
+var SOON = 7;
 var TM = [
  ['Campus Bus Tracker','🚌','Web & Mobile','Live bus tracking and arrival alerts for every campus route.',['React','Node.js','Maps API'],'Ananya Rao',['Ananya Rao','Sameer Ali','Dev Patel'],5,['UI/UX Designer','Backend Developer']],
  ['Neural Nomads','🧠','AI & Data','Building a speech recognition model for Kannada for a national hackathon.',['Python','PyTorch','NLP'],'Sneha Iyer',['Sneha Iyer','Arjun Reddy'],4,['ML Engineer','Data Annotator']],
@@ -16950,13 +17009,13 @@ function chipbar(label, items, sel, attr, counts){ return '<div class="cn-chipba
 function syncChips(box, sel, attr){ [].forEach.call(box.querySelectorAll('[' + attr + ']'), function(b){ var v = b.getAttribute(attr); b.setAttribute('aria-pressed', v === '' ? !sel.length : sel.indexOf(v) > -1); }); }
 function yl(y){ return ['1st', '2nd', '3rd', '4th'][y - 1] + ' Year'; }
 var cur = null, sent = {}, joined = {}, reg = {}, bm = {};
-function closeM(){ var m = $('#cnModal'); m.classList.add('hidden'); cur = null; }
-function openM(html, t, i){ var m = $('#cnModal'); cur = {t:t, i:i}; m.innerHTML = '<div class="cn-card" role="document">' + html + '</div>'; m.classList.remove('hidden'); var f = m.querySelector('button'); if(f) f.focus(); }
+function closeM(){ var m = $('#cnModal'); m.classList.add('hidden'); cur = null; document.body.classList.remove('cn-modal-open'); }
+function openM(html, t, i){ var m = $('#cnModal'); cur = {t:t, i:i}; m.innerHTML = '<div class="cn-card" role="document">' + html + '</div>'; m.classList.remove('hidden'); document.body.classList.add('cn-modal-open'); var f = m.querySelector('button'); if(f) f.focus(); }
 function initModal(){
   var m = document.createElement('div'); m.className = 'cn-modal hidden'; m.id = 'cnModal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); $('.cn-shell').appendChild(m);
   m.addEventListener('click', function(e){
     if(e.target === m) return closeM(); var b = e.target.closest('button'); if(!b) return;
-    if(b.dataset.close) closeM(); else if(b.dataset.mconn != null) togglePerson(+b.dataset.mconn); else if(b.dataset.mjoin != null) toggleTeam(+b.dataset.mjoin); else if(b.dataset.mreg != null) toggleReg(+b.dataset.mreg);
+    if(b.dataset.close) closeM(); else if(b.dataset.mconn != null) togglePerson(+b.dataset.mconn); else if(b.dataset.mjoin != null) toggleTeam(+b.dataset.mjoin); else if(b.dataset.mreg != null) toggleReg(+b.dataset.mreg); else if(b.dataset.msave != null) toggleSave(+b.dataset.msave); else if(b.dataset.mshare != null) shareEv(+b.dataset.mshare);
   });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && cur) closeM(); });
 }
@@ -16997,7 +17056,8 @@ function personModal(k){
 function togglePerson(k){ sent[k] = !sent[k]; drawPeople(); reshow(); toast(sent[k] ? 'Connection request sent (demo)' : 'Request withdrawn'); }
 function initPeople(){
   var box = $('#cnTpeople');
-  box.innerHTML = '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
+  box.innerHTML = hero('Find people', 'Search classmates by name, skill or interest. The percentage shows how many of your selected skills they have.') +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
    '<div class="cn-sum"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips">' + chipbar('Filter by skill', [''].concat(skillList()), P.skills, 'data-sk') + '</div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
   $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
@@ -17047,7 +17107,8 @@ function teamModal(k){
 function toggleTeam(k){ joined[k] = !joined[k]; drawTeams(); reshow(); toast(joined[k] ? 'Request to join sent (demo)' : 'Request withdrawn'); }
 function initTeamsTab(){
   var box = $('#cnTteams');
-  box.innerHTML = '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnTq">Search teams</label><input class="cn-in" id="cnTq" type="search" placeholder="Search by team, project, skill or interest" autocomplete="off"></div></div>' +
+  box.innerHTML = hero('Find teams', 'Browse student teams, see who is in them and what they still need, then request to join.') +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnTq">Search teams</label><input class="cn-in" id="cnTq" type="search" placeholder="Search by team, project, skill or interest" autocomplete="off"></div></div>' +
    '<div id="cnTchips">' + chipbar('Filter by skill or category', [''].concat(teamChips()), T.chips, 'data-tc') + '</div><div class="cn-sum" id="cnTsum" aria-live="polite"></div><div class="cn-grid" id="cnTgrid"></div><div id="cnTempty"></div>';
   drawTeams();
   $('#cnTq').addEventListener('input', function(e){ T.q = e.target.value.trim(); drawTeams(); });
@@ -17062,9 +17123,9 @@ function initTeamsTab(){
 function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div>'; initPeople(); initTeamsTab(); }
 
 /* ---------- Discover → Events ---------- */
-var ec = $('#cnEvents'), ef = {q:'', kind:'', mode:'all', sort:'closing'};
+var ec = $('#cnEvents'), ef = {q:'', kind:'', mode:'all', sort:'closing', view:'all'};
 function fs(o){ return new Date(now + o * D).toLocaleDateString(undefined, {day:'numeric', month:'short'}); }
-function dlInfo(x){ var d = x.dl; if(d == null) return {k:'none', l:'No registration deadline listed', s: x.off >= 0 ? 'event in ' + x.off + ' day' + (x.off === 1 ? '' : 's') : ''}; if(d < 0) return {k:'closed', l:'Registration closed', s:''}; return {k: d <= 3 ? 'soon' : 'open', l:'Register by ' + fs(d), s: d === 0 ? 'closes today' : d + ' day' + (d === 1 ? '' : 's') + ' left'}; }
+function dlInfo(x){ var d = x.dl; if(d == null) return {k:'none', l:'No registration deadline listed', s: x.off >= 0 ? 'event in ' + x.off + ' day' + (x.off === 1 ? '' : 's') : ''}; if(d < 0) return {k:'closed', l:'Registration closed', s:''}; return {k: d <= SOON ? 'soon' : 'open', l:'Register by ' + fs(d), s: d === 0 ? 'closes today' : d + ' day' + (d === 1 ? '' : 's') + ' left'}; }
 function stLbl(d){ return d.k === 'closed' ? 'Closed' : d.k === 'soon' ? 'Closing soon' : 'Registration open'; }
 function modeLbl(m){ return m === 'online' ? 'Online' : m === 'offline' ? 'Offline' : 'Hybrid'; }
 function modeOk(x){ return ef.mode === 'all' || x.mode === ef.mode || x.mode === 'hybrid'; }
@@ -17073,10 +17134,19 @@ function bigIc(x){ var n = x.tags.indexOf('Cybersecurity') > -1 ? 'shield' : x.t
 function fdr(x){ return x.ed ? fs(x.off) + ' – ' + fd(x.ed) : fd(x.off); }
 function dlHtml(d){ return '<div class="cn-dl ' + d.k + '">' + ic(d.k === 'closed' ? 'flag' : d.k === 'none' ? 'clock' : 'flag') + '<span><b>' + d.l + '</b>' + (d.s ? ' · <em>' + d.s + '</em>' : '') + '</span></div>'; }
 function metaHtml(x){ return '<div class="cn-meta"><div>' + ic('cal') + '<span>' + fdr(x) + '</span></div><div>' + ic(x.mode === 'online' ? 'monitor' : 'pin') + '<span>' + esc(x.loc) + '</span></div>' + (x.pz ? '<div>' + ic('trophy') + '<span><b>' + esc(x.pz) + '</b></span></div>' : '') + '<div>' + ic('users') + '<span>' + esc(x.el) + '</span></div></div>'; }
+function hue(t){ var h = 0; for(var k = 0; k < t.length; k++) h = (h * 31 + t.charCodeAt(k)) % 360; return h; }
+function cover(x){
+  if(x.img) return x.img;
+  var h = hue(x.t), h2 = (h + 55) % 360, g = '';
+  for(var k = 0; k < 9; k++) g += '<circle cx="' + (hue(x.t + k) % 100) * 8 + '" cy="' + (hue(x.t + 'y' + k) % 60) * 5 + '" r="' + (18 + k * 9) + '" fill="#fff" opacity=".07"/>';
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(' + h + ',62%,36%)"/><stop offset="1" stop-color="hsl(' + h2 + ',68%,20%)"/></linearGradient></defs><rect width="800" height="300" fill="url(#g)"/>' + g + '<text x="400" y="200" text-anchor="middle" font-family="monospace" font-size="150" font-weight="700" fill="#fff" opacity=".16">&lt;/&gt;</text></svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+function coverHtml(x){ return '<img class="cn-cover" src="' + esc(cover(x)) + '" alt="" loading="lazy" decoding="async" onerror="this.style.display=\'none\'">'; }
 function evCard(x, i){
   var d = dlInfo(x), closed = d.k === 'closed', ini = x.org.split(/\s+/).map(function(w){ return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
-  return '<article class="cn-card cn-ev' + (closed ? ' is-closed' : '') + '"><div class="cn-ban"><span class="cn-st ' + d.k + '">' + stLbl(d) + '</span>' +
-   '<button type="button" class="cn-bm" data-bm="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + ': ' + esc(x.t) + '">' + ic('bookmark') + '</button><span class="cn-big">' + bigIc(x) + '</span><span class="cn-lab">' + esc(x.k) + '</span></div>' +
+  return '<article class="cn-card cn-ev' + (closed ? ' is-closed' : '') + (d.k === 'soon' ? ' is-soon' : '') + '" data-i="' + i + '"><div class="cn-ban has-img">' + coverHtml(x) + '<span class="cn-st ' + d.k + '">' + (d.k === 'soon' ? '⏰ ' : '') + stLbl(d) + '</span>' +
+   '<button type="button" class="cn-bm" data-bm="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + ': ' + esc(x.t) + '">' + ic('bookmark') + '</button><span class="cn-lab">' + esc(x.k) + '</span></div>' +
    '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip">' + ic('pin') + modeLbl(x.mode) + '</span>' + x.tags.slice(0, 2).map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
    '<h3><button type="button" class="cn-tl" data-e="' + i + '">' + esc(x.t) + '</button></h3><div class="cn-org"><span class="cn-om" aria-hidden="true">' + esc(ini) + '</span>' + esc(x.org) + '</div>' + dlHtml(d) + metaHtml(x) +
    (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : 'Register') + '</button></div>') + '</div></article>';
@@ -17086,44 +17156,70 @@ function updates(){
   EV.forEach(function(x, i){ var d = dlInfo(x); if(d.k === 'soon') l.push({i:i, w:x.dl, ic:'clock', t:x.t, s:'Registration ' + (x.dl === 0 ? 'closes today' : 'closes in ' + x.dl + ' day' + (x.dl === 1 ? '' : 's'))}); else if(d.k !== 'closed' && x.off >= 0 && x.off <= 7) l.push({i:i, w:10 + x.off, ic:'cal', t:x.t, s:'Starts in ' + x.off + ' day' + (x.off === 1 ? '' : 's')}); });
   l.sort(function(a, b){ return a.w - b.w; }); return l.filter(function(u){ return modeOk(EV[u.i]); }).slice(0, 4);
 }
+function savedCount(){ var n = 0; for(var k in bm) if(bm[k]) n++; return n; }
 function drawEvents(){
-  var all = EV.map(function(x, i){ return {x:x, i:i}; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
+  var saved = ef.view === 'saved';
+  var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return !saved || bm[o.i]; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
   var cnt = {all:all.length, online:all.filter(function(o){ return o.x.mode !== 'offline'; }).length, offline:all.filter(function(o){ return o.x.mode !== 'online'; }).length}, kc = {};
   base.forEach(function(o){ kc[o.x.k] = (kc[o.x.k] || 0) + 1; });
   var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!q || [x.t, x.org, x.k, x.d, x.loc].join(' ').toLowerCase().indexOf(q) > -1); });
   l.sort(function(a, b){ var ca = dlInfo(a.x).k === 'closed', cb = dlInfo(b.x).k === 'closed'; if(ca !== cb) return ca - cb; return ef.sort === 'upcoming' ? a.x.off - b.x.off : (a.x.dl == null ? 99 : a.x.dl) - (b.x.dl == null ? 99 : b.x.dl); });
-  var up = (ef.q || ef.kind) ? [] : updates();
+  var up = (ef.q || ef.kind || saved) ? [] : updates();
+  $('#cnEview').innerHTML = [['all', 'All events', EV.length], ['saved', 'Saved', savedCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
   $('#cnEupd').innerHTML = up.length ? '<div class="cn-card cn-upd"><h3>' + ic('clock') + 'Updates</h3>' + up.map(function(u){ return '<button type="button" data-e="' + u.i + '">' + ic(u.ic) + '<span><b>' + esc(u.t) + '</b><em>' + u.s + '</em></span></button>'; }).join('') + '</div>' : '';
   $('#cnEmode').innerHTML = [['all', 'All'], ['online', 'Online'], ['offline', 'Offline']].map(function(m){ return '<button type="button" data-em="' + m[0] + '" aria-pressed="' + (ef.mode === m[0]) + '">' + m[1] + '<span class="n">' + cnt[m[0]] + '</span></button>'; }).join('');
   var ceb = $('#cnEchips .cn-chipbar'), csl = ceb ? ceb.scrollLeft : 0;
   $('#cnEchips').innerHTML = chipbar('Filter by event type', [''].concat(EKINDS.filter(function(k){ return kc[k]; })), ef.kind ? [ef.kind] : [], 'data-ek', kc);
   ceb = $('#cnEchips .cn-chipbar'); if(ceb) ceb.scrollLeft = csl;
   var any = ef.q || ef.kind;
-  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (l.length === 1 ? 'event' : 'events') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
   $('#cnEgrid').innerHTML = l.map(function(o){ return evCard(o.x, o.i); }).join('');
-  $('#cnEempty').innerHTML = l.length ? '' : empty('📅', 'No events found', ef.mode !== 'all' || any ? 'Nothing matches right now. Try another type or clear the filters.' : 'No events are listed yet. Check back soon.', any || ef.mode !== 'all' ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
+  $('#cnEempty').innerHTML = l.length ? '' : saved && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
+    empty(saved ? '🔖' : '📅', saved ? 'No saved events match' : 'No events found', ef.mode !== 'all' || any ? 'Nothing matches right now. Try another type or clear the filters.' : 'No events are listed yet. Check back soon.', any || ef.mode !== 'all' ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
 }
+function evSec(t, h){ return '<div><div class="cn-sub">' + t + '</div>' + h + '</div>'; }
+function evFact(l, v){ return v ? '<div class="cn-fact"><span>' + l + '</span><b>' + esc(v) + '</b></div>' : ''; }
 function eventModal(i){
   var x = EV[i], d = dlInfo(x), closed = d.k === 'closed';
-  openM('<div class="cn-ban"><span class="cn-st ' + d.k + '">' + stLbl(d) + '</span><span class="cn-big">' + bigIc(x) + '</span><span class="cn-lab">' + esc(x.k) + '</span></div><div class="cn-evb"><div class="cn-chips"><span class="cn-chip">' + ic('pin') + modeLbl(x.mode) + '</span>' + x.tags.map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div><h3 id="cnMt">' + esc(x.t) + '</h3><div class="cn-org">Organised by ' + esc(x.org) + '</div><p>' + esc(x.d) + '</p>' + dlHtml(d) + metaHtml(x) +
-   '<div class="cn-row">' + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-mreg="' + i + '">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register') + '</button>') + '<button class="cn-btn" type="button" data-close="1">Close</button></div><span class="cn-demo">Demo: registration is not sent anywhere.</span></div>', 'e', i);
-  $('#cnModal').setAttribute('aria-labelledby', 'cnMt');
+  var facts = evFact('Date', fdr(x)) + evFact('Venue', x.loc) + evFact('Mode', modeLbl(x.mode)) + evFact('Prizes', x.pz) + evFact('Who can join', x.el) + evFact('Team size', x.team) + evFact('Entry fee', x.fee);
+  openM('<div class="cn-ban has-img">' + coverHtml(x) + '<span class="cn-st ' + d.k + '">' + (d.k === 'soon' ? '⏰ ' : '') + stLbl(d) + '</span><button type="button" class="cn-bm" data-msave="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + '">' + ic('bookmark') + '</button><button type="button" class="cn-x" data-close="1" aria-label="Close">×</button><span class="cn-lab">' + esc(x.k) + '</span></div>' +
+   '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip">' + ic('pin') + modeLbl(x.mode) + '</span>' + x.tags.map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div><h3 id="cnMt">' + esc(x.t) + '</h3><div class="cn-org">Organised by ' + esc(x.org) + '</div>' + dlHtml(d) +
+   '<div class="cn-facts">' + facts + '</div>' +
+   evSec('About', '<p class="cn-about">' + esc(x.about || x.d) + '</p>') +
+   (x.themes && x.themes.length ? evSec('Themes and tracks', '<div class="cn-chips">' + x.themes.map(function(t){ return '<span class="cn-chip alt">' + esc(t) + '</span>'; }).join('') + '</div>') : '') +
+   (x.sched && x.sched.length ? evSec('Schedule', '<div class="cn-sch">' + x.sched.map(function(r){ return '<div><b>' + esc(r[0]) + '</b><span>' + esc(r[1]) + '</span></div>'; }).join('') + '</div>') : '') +
+   (x.perks && x.perks.length ? evSec('What you get', '<ul class="cn-ul">' + x.perks.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>') : '') +
+   (x.rules && x.rules.length ? evSec('Rules and requirements', '<ul class="cn-ul">' + x.rules.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>') : '') +
+   (x.contact ? evSec('Contact', '<p class="cn-about"><a href="mailto:' + esc(x.contact) + '">' + esc(x.contact) + '</a></p>') : '') +
+   '<div class="cn-row">' + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-mreg="' + i + '">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register') + '</button>') + '<button class="cn-btn" type="button" data-msave="' + i + '">' + (bm[i] ? '🔖 Saved' : 'Save for later') + '</button><button class="cn-btn" type="button" data-mshare="' + i + '">Share</button></div><span class="cn-demo">Demo: registration is not sent anywhere.</span></div>', 'e', i);
+  $('#cnModal').setAttribute('aria-labelledby', 'cnMt'); $('#cnModal .cn-card').classList.add('cn-wide');
 }
+var SAVE_KEY = 'csec_saved_events';
+function evId(x){ return x.id || (x.id = String(x.t).toLowerCase().replace(/[^a-z0-9]+/g, '-')); }
+function loadSaved(){ try{ var a = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); EV.forEach(function(x, i){ if(a.indexOf(evId(x)) > -1) bm[i] = true; }); }catch(e){} renderSavedCard(); }
+function persistSaved(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(EV.filter(function(x, i){ return bm[i]; }).map(evId))); }catch(e){} renderSavedCard(); }
+function toggleSave(i){ bm[i] = !bm[i]; persistSaved(); drawEvents(); reshow(); toast(bm[i] ? 'Saved' : 'Removed from saved'); }
+function shareEv(i){ var x = EV[i], u = location.href.split('#')[0] + '#connect/discover/events', f = function(){ toast('Link copied'); };
+  if(navigator.share){ navigator.share({title:x.t, text:x.d, url:u}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(u).then(f, function(){ toast('Sharing not available'); }); } else toast('Sharing not available'); }
 function toggleReg(i){ reg[i] = !reg[i]; drawEvents(); reshow(); toast(reg[i] ? 'Registered (demo)' : 'Registration cancelled'); }
 function initEvents(){
-  ec.innerHTML = '<div class="cn-seg" id="cnEmode" role="group" aria-label="Event mode" style="margin-bottom:12px"></div>' +
+  ec.innerHTML = hero('Events', 'Hackathons, coding competitions, workshops, webinars, fests and more. Pick a mode, search, or browse by type.') +
+   '<div class="cn-seg" id="cnEview" role="group" aria-label="Show events" style="margin-bottom:12px"></div>' +
+   '<div class="cn-seg" id="cnEmode" role="group" aria-label="Event mode" style="margin-bottom:12px"></div>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search by event, organiser or topic" autocomplete="off"></div>' +
    '<select class="cn-in cn-sel" id="cnEsort" aria-label="Sort events"><option value="closing">Closing soon</option><option value="upcoming">Starting soon</option></select></div>' +
    '<div id="cnEupd"></div><div id="cnEchips"></div><div class="cn-sum" id="cnEsum" aria-live="polite"></div><div class="cn-grid" id="cnEgrid"></div><div id="cnEempty"></div>';
-  drawEvents();
+  loadSaved(); drawEvents();
   $('#cnEq').addEventListener('input', function(e){ ef.q = e.target.value.trim(); drawEvents(); });
   $('#cnEsort').addEventListener('change', function(e){ ef.sort = e.target.value; drawEvents(); });
   ec.addEventListener('click', function(e){
-    var b = e.target.closest('button'); if(!b) return;
+    var b = e.target.closest('button');
+    if(!b){ var cd = e.target.closest('.cn-ev'); if(cd && cd.dataset.i != null && !e.target.closest('a')) eventModal(+cd.dataset.i); return; }
+    if(b.dataset.ev){ ef.view = b.dataset.ev; return drawEvents(); }
     if(b.dataset.em){ ef.mode = b.dataset.em; return drawEvents(); }
     if(b.dataset.ek != null){ ef.kind = ef.kind === b.dataset.ek ? '' : b.dataset.ek; return drawEvents(); }
-    if(b.dataset.reset){ ef = {q:'', kind:'', mode:'all', sort:'closing'}; $('#cnEq').value = ''; $('#cnEsort').value = 'closing'; return drawEvents(); }
-    if(b.dataset.bm != null){ var n = b.dataset.bm; bm[n] = !bm[n]; drawEvents(); return toast(bm[n] ? 'Saved' : 'Removed from saved'); }
+    if(b.dataset.reset){ ef = {q:'', kind:'', mode:'all', sort:'closing', view:ef.view}; $('#cnEq').value = ''; $('#cnEsort').value = 'closing'; return drawEvents(); }
+    if(b.dataset.bm != null) return toggleSave(+b.dataset.bm);
     if(b.dataset.e != null) return eventModal(+b.dataset.e);
     if(b.dataset.r != null) toggleReg(+b.dataset.r);
   });
@@ -17185,8 +17281,27 @@ function upcomingEvents(n){
     .map(function(o){ var x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0}; });
 }
 function openEvent(i){ go('discover', 'events'); if(EV[i]) eventModal(i); }
-function eventsChanged(){ try{ drawEvents(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
-window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged };
+function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
+/* ---------- Settings → Saved: list of saved events / hackathons ---------- */
+function showSaved(){ ef.view = 'saved'; go('discover', 'events'); drawEvents(); }
+function renderSavedCard(){
+  var box = document.getElementById('svBody'); if(!box) return;
+  var l = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return bm[o.i]; });
+  l.sort(function(a, b){ var ha = a.x.k === 'Hackathon' ? 0 : 1, hb = b.x.k === 'Hackathon' ? 0 : 1; return ha - hb || a.x.off - b.x.off; });
+  if(!l.length){ box.innerHTML = '<p class="sv-empty">Nothing saved yet. Tap the bookmark on any event in Connect → Discover → Events and it will show up here.</p><button type="button" class="btn btn-ghost" data-svall="1">Browse events</button>'; return; }
+  box.innerHTML = '<div class="sv-list">' + l.map(function(o){
+    var x = o.x, d = dlInfo(x);
+    return '<div class="sv-row"><button type="button" class="sv-main" data-svo="' + o.i + '"><img class="sv-thumb" src="' + esc(cover(x)) + '" alt=""><span class="sv-txt"><b>' + esc(x.t) + '</b><small>' + esc(x.k) + ' · ' + fdr(x) + '</small><em class="' + d.k + '">' + (d.k === 'soon' ? '⏰ Closing soon' : d.l) + (d.s ? ' · ' + d.s : '') + '</em></span></button>' +
+      '<button type="button" class="sv-rm" data-svr="' + o.i + '" aria-label="Remove ' + esc(x.t) + ' from saved">✕</button></div>';
+  }).join('') + '</div><button type="button" class="btn btn-ghost" data-svall="1" style="margin-top:10px">Open in Events</button>';
+}
+(function(){ var b = document.getElementById('svBody'); if(!b) return;
+  b.addEventListener('click', function(e){ var t = e.target.closest('button'); if(!t) return;
+    if(t.dataset.svo != null) return openEvent(+t.dataset.svo);
+    if(t.dataset.svr != null){ var i = +t.dataset.svr; bm[i] = false; persistSaved(); return drawEvents(); }
+    if(t.dataset.svall) showSaved(); });
+})();
+window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved };
 try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   // Home may have rendered before Connect finished loading
 
 })();
