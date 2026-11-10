@@ -1,17 +1,19 @@
-[README.md](https://github.com/user-attachments/files/34617803/README.md)
 <div align="center">
 
 # ∞ CampusLoop — CL-App
 
 ### CampusLoop, built for Android.
 
+</div>
+
 [![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Android Studio](https://img.shields.io/badge/IDE-Android_Studio-4285F4?style=for-the-badge&logo=androidstudio&logoColor=white)](https://developer.android.com/studio)
+[![WebView](https://img.shields.io/badge/UI-Android_WebView-3A76F0?style=for-the-badge)](https://developer.android.com/develop/ui/views/layout/webapps/webview)
+[![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 
 **The Android companion to CampusLoop.** An app-first experience that brings the CampusLoop web platform together with Android-native reminders, notifications, and app utilities.
 
-</div>
 
 ---
 
