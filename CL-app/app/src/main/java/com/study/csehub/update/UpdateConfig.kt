@@ -22,6 +22,7 @@ object UpdateConfig {
      */
     val TRUSTED_PUBLIC_KEYS: List<String> = listOf(
         // BEGIN-TRUSTED-KEYS
+        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEitljJqvQsunRhqEtdTIyQWO/aiDFEpcCXrgQ5Ss9ZKnl+LOOq5M54mnrZ6UEG8CW6gl5OgkUJxD0yF1AVecqGg==",
         // END-TRUSTED-KEYS
     )
 

@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "1.0.1",
+  "releaseUrl": "https://cse-c-hub.web.app/app-releases/1.0.1.zip",
+  "sha256": "6a5018ec181a50677944b9f6a62a485e19346945735e4445825665429b50ead6",
+  "size": 1177509,
+  "minimumAppVersion": 8,
+  "rollback": false,
+  "publishedAt": "2026-11-10T05:35:48.092Z",
+  "signature": "MEYCIQCPKKPB9qiNaTfGbshLGzHARktVC46rOns6KzR+fjLokwIhAJUhk7NtWxfAHBD4b8iPuLTWYSjshlbhH1Il/+TOtIt1"
+}

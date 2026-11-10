@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "version": "1.0.0",
+ "entry": "index.html",
+ "builtAt": "2026-11-10T05:23:40.926Z",
+ "files": [
+  {
+   "path": "docs/academic-calendar-1st-sem-2026-27.pdf",
+   "size": 279156,
+   "sha256": "16ce6ddd9eb8d3a9ff3c5e30c1e1d74eb3059782268747f8abeee4f3c0d9f295"
+  },
+  {
+   "path": "index.html",
+   "size": 1890820,
+   "sha256": "013fd218e30360722a5200e29109ba916d71da354bc9753346feb73893d25f8f"
+  },
+  {
+   "path": "vendor/firebase/10.14.1/firebase-analytics-compat.js",
+   "size": 26459,
+   "sha256": "f65efe5bbacf58be7e2a3025369b26d02a184724a059cf5ec6e5c3b8829f30ad"
+  },
+  {
+   "path": "vendor/firebase/10.14.1/firebase-app-compat.js",
+   "size": 31799,
+   "sha256": "2ac3f051aa8c357f050c18b6a8d57867f59ed85b61949acf21142139581f5cc4"
+  },
+  {
+   "path": "vendor/firebase/10.14.1/firebase-auth-compat.js",
+   "size": 139319,
+   "sha256": "444be4c9e8bb4d16d2778177bb35fcad0f7b5b3927a81e6095a4978bad324572"
+  },
+  {
+   "path": "vendor/firebase/10.14.1/firebase-firestore-compat.js",
+   "size": 343790,
+   "sha256": "a0f75faf230ae93e1618625b89d32497fed320eae790227c06aace4fc127d9ae"
+  },
+  {
+   "path": "vendor/firebase/10.14.1/firebase-functions-compat.js",
+   "size": 8223,
+   "sha256": "637b8337572a8e3b42d7d7f56f4c6f3d852cd396ac192fc573248a98ee0a48b0"
+  },
+  {
+   "path": "vendor/firebase/10.14.1/firebase-storage-compat.js",
+   "size": 40330,
+   "sha256": "107f18e44c935866f5e19039b27022eeb9a319f4dad24544d7354a7c39cf9081"
+  }
+ ]
+}

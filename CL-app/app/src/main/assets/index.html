@@ -3984,9 +3984,9 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 <!-- Community backend: Firebase (Firestore + Anonymous Auth). Fill in YOUR project's
      config below — see the setup notes near FIREBASE_CONFIG in the script for how to
      get one (it's free) and the Firestore security rules to paste in. -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="vendor/firebase/10.14.1/firebase-app-compat.js"></script>
+<script src="vendor/firebase/10.14.1/firebase-auth-compat.js"></script>
+<script src="vendor/firebase/10.14.1/firebase-firestore-compat.js"></script>
 
 <script>
 // ---------- DATA ----------
@@ -7637,7 +7637,7 @@ modeScheduleBtn.addEventListener('click', ()=>setMode('schedule'));
     if(b){ try{ if(b.setCollectionEnabled) b.setCollectionEnabled(true); }catch(e){} settle('native'); console.log('[Analytics] using native Android Analytics'); return; }
     if(!window.firebase || !firebase.apps || !firebase.apps.length){ started = false; return; }
     var s = document.createElement('script');
-    s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics-compat.js';
+    s.src = 'vendor/firebase/10.14.1/firebase-analytics-compat.js';
     s.onload = function(){
       try{
         if(!firebase.analytics || !firebase.analytics.isSupported){ console.warn('[Analytics] SDK missing'); settle('off'); return; }
@@ -9048,7 +9048,7 @@ console.log('%c7-day auto-cleanup runs client-side (see cleanupExpired) — no B
 function sdkReady(){ return typeof firebase!=='undefined' && firebase.apps && firebase.auth && firebase.firestore; }
 function loadSdkScripts(done){
   if(sdkLoading) return; sdkLoading = true;
-  const base = 'https://www.gstatic.com/firebasejs/10.14.1/', files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
+  const base = 'vendor/firebase/10.14.1/', files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
   (function next(i){
     if(i >= files.length){ sdkLoading = false; done(true); return; }
     if(i === 1 && typeof firebase==='undefined'){ sdkLoading = false; done(false); return; }
@@ -10075,7 +10075,7 @@ function chatStorageReady(){
   chatStoragePromise = new Promise((res, rej)=>{
     if(typeof firebase === 'undefined') return rej(new Error('firebase'));
     if(firebase.storage) return res(chatStorageInit());
-    const s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js';
+    const s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-storage-compat.js';
     s.onload = ()=>firebase.storage ? res(chatStorageInit()) : rej(new Error('storage'));
     s.onerror = ()=>{ s.remove(); rej(new Error('storage')); };
     document.head.appendChild(s);
@@ -14294,7 +14294,7 @@ var S = { tab:'daily', today:null, run:null, review:null, lastResult:null, stats
 function loadFns(){ return new Promise(function(res, rej){
   if(typeof firebase === 'undefined') return rej(new Error('firebase'));
   if(firebase.functions) return res();
-  var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js';
+  var s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-functions-compat.js';
   s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); };
   document.head.appendChild(s); }); }
 function waitAuth(){ return new Promise(function(res, rej){ var t0 = Date.now(); (function chk(){
@@ -14890,7 +14890,7 @@ var S = { tab:'foryou', dom:'', interests:[], onboarded:false, loaded:false, uid
 function loadFns(){ return new Promise(function(res, rej){
   if(typeof firebase === 'undefined') return rej(new Error('firebase'));
   if(firebase.functions) return res();
-  var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js';
+  var s = document.createElement('script'); s.src = 'vendor/firebase/10.14.1/firebase-functions-compat.js';
   s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); };
   document.head.appendChild(s); }); }
 function waitAuth(){ return new Promise(function(res, rej){ var t0 = Date.now(); (function chk(){

@@ -17005,8 +17005,7 @@ function personModal(k){
 function togglePerson(k){ sent[k] = !sent[k]; drawPeople(); reshow(); toast(sent[k] ? 'Connection request sent (demo)' : 'Request withdrawn'); }
 function initPeople(){
   var box = $('#cnTpeople');
-  box.innerHTML = hero('Find people', 'Search classmates by name, skill or interest. The percentage shows how many of your selected skills they have.') +
-   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
+  box.innerHTML = '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
    '<div class="cn-sum"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips">' + chipbar('Filter by skill', [''].concat(skillList()), P.skills, 'data-sk') + '</div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
   $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
@@ -17056,8 +17055,7 @@ function teamModal(k){
 function toggleTeam(k){ joined[k] = !joined[k]; drawTeams(); reshow(); toast(joined[k] ? 'Request to join sent (demo)' : 'Request withdrawn'); }
 function initTeamsTab(){
   var box = $('#cnTteams');
-  box.innerHTML = hero('Find teams', 'Browse student teams, see who is in them and what they still need, then request to join.') +
-   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnTq">Search teams</label><input class="cn-in" id="cnTq" type="search" placeholder="Search by team, project, skill or interest" autocomplete="off"></div></div>' +
+  box.innerHTML = '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnTq">Search teams</label><input class="cn-in" id="cnTq" type="search" placeholder="Search by team, project, skill or interest" autocomplete="off"></div></div>' +
    '<div id="cnTchips">' + chipbar('Filter by skill or category', [''].concat(teamChips()), T.chips, 'data-tc') + '</div><div class="cn-sum" id="cnTsum" aria-live="polite"></div><div class="cn-grid" id="cnTgrid"></div><div id="cnTempty"></div>';
   drawTeams();
   $('#cnTq').addEventListener('input', function(e){ T.q = e.target.value.trim(); drawTeams(); });
@@ -17121,8 +17119,7 @@ function eventModal(i){
 }
 function toggleReg(i){ reg[i] = !reg[i]; drawEvents(); reshow(); toast(reg[i] ? 'Registered (demo)' : 'Registration cancelled'); }
 function initEvents(){
-  ec.innerHTML = hero('Events', 'Hackathons, coding competitions, workshops, webinars, fests and more. Pick a mode, search, or browse by type.') +
-   '<div class="cn-seg" id="cnEmode" role="group" aria-label="Event mode" style="margin-bottom:12px"></div>' +
+  ec.innerHTML = '<div class="cn-seg" id="cnEmode" role="group" aria-label="Event mode" style="margin-bottom:12px"></div>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search by event, organiser or topic" autocomplete="off"></div>' +
    '<select class="cn-in cn-sel" id="cnEsort" aria-label="Sort events"><option value="closing">Closing soon</option><option value="upcoming">Starting soon</option></select></div>' +
    '<div id="cnEupd"></div><div id="cnEchips"></div><div class="cn-sum" id="cnEsum" aria-live="polite"></div><div class="cn-grid" id="cnEgrid"></div><div id="cnEempty"></div>';
