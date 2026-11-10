@@ -3226,10 +3226,9 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 
 <section class="sec-page cn-page hidden" id="sectionConnect" role="tabpanel" aria-labelledby="secBtnConnect" data-sec="connect" data-no-swipe>
   <div class="cn-shell">
-    <header class="cn-head"><div class="eyebrow">CAMPUS LOOP</div><h1>Connect</h1><p>Share your work, find teammates and discover articles and events.</p></header>
     <div class="cn-subtabs hidden" id="cnSub" role="tablist" aria-label="Discover sections">
-      <button type="button" class="cn-tab active" role="tab" data-cnsub="articles" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>Articles</button>
       <button type="button" class="cn-tab" role="tab" data-cnsub="events" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</button>
+      <button type="button" class="cn-tab active" role="tab" data-cnsub="articles" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>Articles</button>
     </div>
     <div class="cn-subtabs hidden" id="cnTsub" role="tablist" aria-label="Teams sections">
       <button type="button" class="cn-tab active" role="tab" data-cntsub="people" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Find People</button>
@@ -3240,11 +3239,6 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
     <div class="cn-pane hidden" id="cnDiscover" role="tabpanel">
       <div id="cnArticles">
 <div id="discoverMode">
-  <section class="comm-hero">
-    <div class="eyebrow">CAMPUS LOOP</div>
-    <h2 class="section-title">Articles</h2>
-    <p class="section-sub">Articles picked for your interests, a place to save the good ones, and anonymous discussion with other students.</p>
-  </section>
   <div class="dv-wrap">
     <div id="dvMain" class="hidden">
       <div class="dv-bar">
@@ -3320,7 +3314,6 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
   <section>
     <div class="eyebrow" data-sec-label="long">CAMPUS LOOP</div>
     <h2 class="section-title" style="font-size:1.9rem">Schedule</h2>
-    <p class="section-sub">Your timetable, event calendar, tasks and attendance in one place.</p>
     <div class="sch-tabs" role="tablist" aria-label="Schedule sections">
       <button type="button" class="pill sch-tab active" id="schTabTimetable" role="tab" aria-selected="true" aria-controls="schPaneTimetable" data-sch="timetable">🕒 Timetable</button>
       <button type="button" class="pill sch-tab" id="schTabCalendar" role="tab" aria-selected="false" aria-controls="schPaneCalendar" data-sch="calendar">🗓️ Event Calendar</button>
@@ -3414,7 +3407,6 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
   <section>
     <div class="eyebrow">📊 Attendance Tracker</div>
     <h2 class="section-title" style="font-size:1.3rem" id="atSectionTitle">Track your attendance</h2>
-    <p class="section-sub">Mark present / absent / no-class for each scheduled slot and watch your subject-wise and overall percentages update instantly.</p>
 
     <div class="at-dash">
       <div class="at-ring" id="atRing"><div class="at-ring-inner"><b id="atPct">0%</b><span>Overall</span></div></div>
@@ -3524,7 +3516,7 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
     <div id="detBody"></div>
   </section>
 
-  <section id="browse">
+  <section id="browse" class="hidden">
     <h2 class="section-title">Browse All Resources</h2>
     <p class="section-sub">Search notes, units, papers, textbooks and assignments across every subject.</p>
     <div class="search-row">
