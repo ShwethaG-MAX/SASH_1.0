@@ -11,7 +11,7 @@
 
 **One connected student ecosystem for academics, community, and personal growth.**
 
-[Open CampusLoop](https://class-c-hub.netlify.app/)
+[Open CampusLoop](csehub.site/)
 
 </div>
 
