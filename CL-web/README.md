@@ -5,13 +5,13 @@
 
 ### Your campus. Your community. Your growth.
 
-[![CampusLoop](https://img.shields.io/badge/CampusLoop-CL--Web-16a34a?style=for-the-badge)](csehub.site/)
+[![CampusLoop](https://img.shields.io/badge/CampusLoop-CL--Web-16a34a?style=for-the-badge)](https://csehub.site/)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
 **The web experience powering CampusLoop.** A student-focused platform bringing academic tools, collaboration, discovery, and campus life together in one place.
 
-[Live Website](csehub.site/) · [Report an Issue](../../issues) · [Request a Feature](../../issues)
+[Live Website](https://csehub.site/) · [Report an Issue](../../issues) · [Request a Feature](../../issues)
 
 </div>
 
