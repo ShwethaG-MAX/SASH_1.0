@@ -5,7 +5,7 @@
 
 ### Campus · Connect · Grow
 
-[![CampusLoop](https://img.shields.io/badge/CampusLoop-Student_Platform-16a34a?style=for-the-badge)](https://class-c-hub.netlify.app/)
+[![CampusLoop](https://img.shields.io/badge/CampusLoop-Student_Platform-16a34a?style=for-the-badge)](csehub.site/)
 [![Web](https://img.shields.io/badge/CL--Web-Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Android](https://img.shields.io/badge/CL--App-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
 
