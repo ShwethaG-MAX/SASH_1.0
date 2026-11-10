@@ -1,23 +1,17 @@
-CLASS C HUB – NOTIFICATIONS PACK
-================================
-Project folder (Windows):  C:\Users\Sanketh VS\AndroidStudioProjects\CSEHUB
-
-PHASE 1  (offline reminders + backup fix + notification centre/settings)
-  phase1_android\MainActivity.kt          -> app\src\main\java\com\study\csehub\   (REPLACE the old one)
-  phase1_android\Notifs.kt                -> app\src\main\java\com\study\csehub\
-  phase1_android\NotifStore.kt            -> app\src\main\java\com\study\csehub\
-  phase1_android\ReminderScheduler.kt     -> app\src\main\java\com\study\csehub\
-  phase1_android\AlarmReceiver.kt         -> app\src\main\java\com\study\csehub\
-  phase1_android\BootReceiver.kt          -> app\src\main\java\com\study\csehub\
-  phase1_android\Push.kt                  -> app\src\main\java\com\study\csehub\   (temporary stub)
-  phase1_android\ic_notification.xml      -> app\src\main\res\drawable\
-  index.html (separate download)          -> app\src\main\assets\                  (REPLACE the old one)
-  + edit AndroidManifest.xml (see the chat guide)
-
-PHASE 2  (push notifications for community / LinkLearn / resources / announcements)
-  phase2_firebase\Push.kt                 -> REPLACES the Phase 1 Push.kt
-  phase2_firebase\HubMessagingService.kt  -> app\src\main\java\com\study\csehub\
-  phase2_firebase\functions\index.js      -> your Firebase "functions" folder
-  phase2_firebase\functions\package.json  -> your Firebase "functions" folder
-  + google-services.json (from Firebase Console) -> app\
-  + Gradle + Manifest edits (see the chat guide)
+CampusLoop Android App (CL-App)
+CL-App is the Android application wrapper for CampusLoop. It packages the CampusLoop web experience in an Android WebView and adds native Android capabilities.
+Features (brief)
+- CampusLoop experience: Home, Campus, Connect and Grow areas, with the campus tools and content available in the embedded web interface.
+- Student access: student sign-in/guest access, email and Google sign-in flows; CR and admin entry points where enabled.
+- Native notifications: Android notification support and notification routing into relevant app screens.
+- Alarms & reminders: scheduled reminders/alarms, notification delivery and boot-time rescheduling support.
+- App lifecycle integration: WebView resume/reconnect handling to restore Firebase and live community features after backgrounding.
+- App updates: release metadata/manifest verification, update scheduling and installation flow.
+- Android integration: app launcher identity/icons, native activity and receiver components, Android permissions and system notification settings.
+- Web features inside the app: timetable, attendance, tasks/calendar, materials, quizzes/tests, community chat, Q&A/LinkLearn, Discover, events, Connect, themes and dashboards.
+Project structure
+- app/src/main/assets/index.html — bundled CampusLoop frontend
+- app/src/main/java/ — Android activity, alarm/reminder, notification, chat storage and update components
+- app/src/main/res/ — launcher icons, layouts, themes and app resources
+Build
+Open CL-app in Android Studio, allow Gradle sync, select the app configuration and build/run on an Android device or emulator. Keep Firebase configuration and signing/release settings appropriate for your environment.
