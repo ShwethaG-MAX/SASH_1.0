@@ -99,12 +99,10 @@ flowchart TD
 
 ## 📦 Repositories & documentation
 
-If the projects are maintained separately, use their dedicated repositories and README files:
-
 - **CL-Web:** web frontend, Firebase configuration, rules, indexes, and Cloud Functions.
 - **CL-App:** Android Studio project, native Kotlin modules, WebView integration, and app update/notification code.
 
-> Add the actual GitHub repository URLs here when publishing this overview README.
+>https://github.com/ShwethaG-MAX/SASH_1.0/tree/main.
 
 ## 🔒 Security & deployment notes
 
