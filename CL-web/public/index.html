@@ -3056,6 +3056,59 @@ body[data-section="connect"] nav .brand .cl-inf{color:#9D5EC9}
 #living-avatar .xp-chip.xp-shx .xp-unit{font-size:.72em;opacity:.8}
 #living-avatar .xp-chip.xp-shx:hover{transform:translateY(-1px)}
 [data-theme="dark"] #living-avatar .xp-chip.xp-shx{color:#EBDDFF;background:rgba(40,32,56,.72);border-color:rgba(196,168,246,.3)}
+/* ===== Connect: deeper, richer palette (Connect section only; overrides colours/tokens set above, no layout or behaviour changes) ===== */
+/* light theme: deeper lavender surfaces, darker ink for contrast */
+#sectionConnect,#cnModeWrap{--cn-p:#6440B8;--cn-p2:#7551C8;--cn-p3:#8E6FE0;--cn-bg:#D9D0EC;--cn-tx:#1B1830;--cn-tx2:#4B4666;--cn-bd:rgba(96,62,184,.32);--cn-glow:rgba(100,64,184,.20);
+  --cn-grad:linear-gradient(135deg,#8C6AD8 0%,#6F4BC0 48%,#5836A6 100%);--cn-line:rgba(96,62,184,.30);--cn-ink:#3F2680;--cn-ink-h:#2F1D69;--cn-chip:rgba(222,212,243,.82);--cn-wash:rgba(96,62,184,.15);
+  --sage:#6440B8;--sage-dark:#502F9C;--cyan:#7551C8;--violet:#6544BA;--accent:#6440B8;--accent-dark:#502F9C;--accent-light:rgba(96,62,184,.16);--sage-light:rgba(96,62,184,.16);
+  --p2-navy:linear-gradient(145deg,#8C6AD8 0%,#6F4BC0 50%,#5836A6 100%);--glow:rgba(96,62,184,.30);--gl-active-glow:rgba(88,54,166,.40);--gl-hover-bg:rgba(96,62,184,.15);--gl-ring:rgba(96,62,184,.22);--gl-ring-h:rgba(96,62,184,.34)}
+#sectionConnect{--card:#E3DBF4;--card-h:#DAD0EF;--bg2:#D3C8EA;--line:#B7A9DA;--muted:#4B4666;
+  --cg-fill:rgba(226,217,246,.76);--cg-fill-h:rgba(219,208,242,.88);--cg-sheen:rgba(255,255,255,.26);--cg-edge:rgba(96,62,184,.40);--cg-hi:rgba(255,255,255,.42);--cg-lo:rgba(60,34,140,.13);
+  --cg-sh:0 1px 2px rgba(60,34,140,.10),0 12px 28px -18px rgba(60,34,140,.42);--cg-sh-h:0 2px 4px rgba(60,34,140,.12),0 16px 32px -18px rgba(60,34,140,.48)}
+@media (pointer:coarse),(hover:none){#sectionConnect{--cg-fill:rgba(226,217,246,.88);--cg-fill-h:rgba(219,208,242,.93)}}
+@media (prefers-contrast:more){#sectionConnect{--cg-fill:rgba(226,217,246,.96);--cg-fill-h:rgba(219,208,242,.97)}}
+body[data-section="connect"]{background:radial-gradient(900px 520px at 12% 8%,rgba(110,76,200,.28),transparent 60%),radial-gradient(760px 520px at 92% 30%,rgba(88,54,166,.20),transparent 62%),radial-gradient(820px 600px at 50% 105%,rgba(100,64,184,.20),transparent 60%),#D4CAE9;background-attachment:fixed}
+body[data-section="connect"] .sec-ind{background:linear-gradient(135deg,#8E6FE0,#6F4BC0 50%,#5836A6)}
+.cd-posting{color:#A85FC4}.cd-teams{color:#7E45AD}.cd-discover{color:#B045CC}.cd-requests{color:#8A58C0}
+body[data-cnbg="posting"] :is(#sectionConnect,#cnModeWrap){--cn-grad:linear-gradient(135deg,#B466D0 0%,#8348BE 55%,#5836A6 100%);--cg-edge:rgba(170,100,200,.46);--cn-wash:rgba(170,100,200,.20);--cn-line:rgba(160,90,190,.34)}
+body[data-cnbg="teams"] :is(#sectionConnect,#cnModeWrap),body[data-cnbg="requests"] :is(#sectionConnect,#cnModeWrap){--cn-grad:linear-gradient(135deg,#9560BE 0%,#7E45AD 50%,#3F2680 100%);--cg-edge:rgba(126,69,173,.40);--cn-wash:rgba(126,69,173,.16);--cn-line:rgba(126,69,173,.32)}
+body[data-cnbg="discover"] :is(#sectionConnect,#cnModeWrap){--cn-grad:linear-gradient(135deg,#C04FDA 0%,#9444BD 52%,#5836A6 100%);--cg-edge:rgba(176,69,204,.38);--cn-wash:rgba(176,69,204,.16);--cn-line:rgba(176,69,204,.32)}
+html:root #sectionConnect .mt-hero{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 55%),linear-gradient(135deg,#8E5AB8 0%,#7A44A8 50%,#3F2680 100%)}
+#sectionConnect .cn-in{background:rgba(214,204,238,.72)}
+#sectionConnect .cn-btn:hover:not([disabled]){border-color:rgba(96,62,184,.50)}
+#sectionConnect .cn-btn.done{background:rgba(96,62,184,.18);border-color:rgba(96,62,184,.45)}
+#sectionConnect .cn-chip{background:rgba(96,62,184,.15);border-color:rgba(96,62,184,.34)}
+#sectionConnect .cn-act:hover{background:rgba(96,62,184,.15)}
+#sectionConnect :where(.cn-card,.dv-card,.cn-ulist):hover{border-color:rgba(96,62,184,.50)}
+#sectionConnect .mt-create,#sectionConnect .cn-btn.mt-hbtn{background:#E6DCF7;border-color:#E6DCF7;color:#3A0A78}
+#sectionConnect .rq-n{background:#C77FE0}
+#sectionConnect .hk{--hk:#6A00C0;--hk2:#8A3FDB;--hk3:#4E0096;--hk-soft:rgba(106,0,192,.11);--hk-line:rgba(106,0,192,.30)}
+#sectionConnect .hk-logo,#sectionConnect .hk-prize,#sectionConnect .hk .cn-chip.alt,#sectionConnect .hk-foot .cn-btn.pri{background:linear-gradient(135deg,var(--hk2),#6A00C0 55%,var(--hk3))}
+#sectionConnect .hk-tl li::before{background:linear-gradient(135deg,var(--hk2),#6A00C0)}
+#sectionConnect .hk-n{background:#6A00C0}
+#sectionConnect .hk-foot .cn-btn.pri{border-color:#6A00C0}
+/* dark theme: deeper charcoal-violet surfaces */
+[data-theme="dark"] #sectionConnect,[data-theme="dark"] #cnModeWrap{--cn-tx:#F3EFFF;--cn-tx2:#B0A5CC;--cn-bd:rgba(196,168,246,.18);--cn-glow:rgba(167,139,250,.16);--cn-ink:#D9CCF7;--cn-ink-h:#F1EAFF;--cn-chip:rgba(22,18,34,.62);--cn-wash:rgba(167,139,250,.11);--cn-line:rgba(196,168,246,.18);
+  --cn-grad:linear-gradient(135deg,#7554D0 0%,#6444BE 55%,#4F349C 100%);--sage:#6444BE;--sage-dark:#4A2F94;--cyan:#9D82E2;--violet:#8E6FD8;--accent:#A78BFA;--accent-dark:#6444BE;
+  --p2-navy:linear-gradient(145deg,#7554D0 0%,#6444BE 50%,#4F349C 100%);--gl-hover-bg:rgba(196,168,246,.12);--gl-ring:rgba(196,168,246,.16);--gl-ring-h:rgba(196,168,246,.28);--gl-active-glow:rgba(100,68,190,.42)}
+[data-theme="dark"] #sectionConnect{--card:#1B1727;--card-h:#231E32;--bg2:#131020;--line:#383051;--muted:#C2B9D8;
+  --cg-fill:rgba(18,15,28,.70);--cg-fill-h:rgba(28,23,42,.82);--cg-sheen:rgba(255,255,255,.04);--cg-edge:rgba(196,168,246,.18);--cg-hi:rgba(255,255,255,.06);--cg-lo:rgba(0,0,0,.40);
+  --cg-sh:0 1px 2px rgba(0,0,0,.45),0 14px 30px -18px rgba(14,6,40,.75);--cg-sh-h:0 2px 4px rgba(0,0,0,.5),0 18px 34px -18px rgba(0,0,0,.8),0 0 22px -16px rgba(140,100,230,.40)}
+@media (pointer:coarse),(hover:none){[data-theme="dark"] #sectionConnect{--cg-fill:rgba(18,15,28,.86);--cg-fill-h:rgba(28,23,42,.90)}}
+@media (prefers-contrast:more){[data-theme="dark"] #sectionConnect{--cg-fill:rgba(18,15,28,.96);--cg-fill-h:rgba(28,23,42,.97)}}
+[data-theme="dark"] body[data-section="connect"]{background:radial-gradient(900px 520px at 12% 8%,rgba(100,64,184,.18),transparent 60%),radial-gradient(760px 520px at 92% 30%,rgba(110,76,200,.10),transparent 62%),linear-gradient(160deg,#0B0910,#100D18);background-attachment:fixed}
+[data-theme="dark"] body[data-section="connect"] .sec-ind{background:linear-gradient(135deg,#7554D0,#6444BE 50%,#4F349C)}
+[data-theme="dark"] .cd-posting{color:#C987DE}[data-theme="dark"] .cd-teams{color:#A57DD0}[data-theme="dark"] .cd-discover{color:#CC7DDC}[data-theme="dark"] .cd-requests{color:#B394DC}
+[data-theme="dark"] body[data-cnbg="posting"] :is(#sectionConnect,#cnModeWrap){--cn-grad:linear-gradient(135deg,#A860C4 0%,#7A4DB8 55%,#4F349C 100%);--cg-edge:rgba(210,140,235,.30);--cn-wash:rgba(210,140,235,.12);--cn-line:rgba(190,120,215,.24)}
+[data-theme="dark"] body[data-cnbg="teams"] :is(#sectionConnect,#cnModeWrap),[data-theme="dark"] body[data-cnbg="requests"] :is(#sectionConnect,#cnModeWrap){--cn-grad:linear-gradient(135deg,#8C5BB5 0%,#7440A0 50%,#3B2478 100%);--cg-edge:rgba(157,94,201,.26);--cn-wash:rgba(157,94,201,.10);--cn-line:rgba(157,94,201,.22)}
+[data-theme="dark"] body[data-cnbg="discover"] :is(#sectionConnect,#cnModeWrap){--cn-grad:linear-gradient(135deg,#B14ACB 0%,#8A40B3 52%,#4F349C 100%);--cg-edge:rgba(205,100,235,.28);--cn-wash:rgba(205,100,235,.10);--cn-line:rgba(205,100,235,.22)}
+html:root[data-theme="dark"] #sectionConnect .mt-hero{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0) 55%),linear-gradient(135deg,#7A4AA2 0%,#66378F 50%,#2F1C60 100%)}
+[data-theme="dark"] #sectionConnect .cn-in{background:rgba(16,13,26,.62)}
+[data-theme="dark"] #sectionConnect .cn-btn.done{background:rgba(139,101,232,.16);border-color:rgba(139,101,232,.38)}
+[data-theme="dark"] #sectionConnect .cn-chip{background:rgba(139,101,232,.12);border-color:rgba(139,101,232,.28)}
+[data-theme="dark"] #sectionConnect .mt-create,[data-theme="dark"] #sectionConnect .cn-btn.mt-hbtn{background:#D9CCF0;border-color:#D9CCF0;color:#32086A}
+[data-theme="dark"] #sectionConnect .rq-n{background:#C57FDC}
+[data-theme="dark"] #sectionConnect .hk{--hk:#B88AF0;--hk2:#7A3FD0;--hk3:#4E0096;--hk-soft:rgba(140,60,230,.12);--hk-line:rgba(184,138,240,.28)}
 </style>
 <style id="glassUi">
 /* =====================================================================================================
