@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Live events: CampusLoop feed server (GET /events). Clear the content to run on sample listings only. -->
+<meta name="campusloop-api" content="https://matchme-skje.onrender.com">
+<!-- Optional extra JSON or RSS event feeds, space separated. The first one is the CampusLoop Event Collector
+     (Devfolio, Devpost, HackerEarth, Hack Club, IEEE vTools and official Mysuru college pages, with source health). -->
+<meta name="campusloop-feeds" content="https://project--e765d56a-9e94-496e-9b6c-b518a58b9bd9.lovable.app/api/public/events">
 <script id="appShellDetect">
 /* Flags the installed/wrapped app (Android WebView, Capacitor, iOS WKWebView shell, standalone PWA) as html.is-app.
    In those the WebView already begins BELOW the system status bar, so the header must not add the status-bar inset a second time. */
@@ -2924,6 +2929,38 @@ body[data-section="campus"] .mode-bar-wrap .mode-btn.active{box-shadow:0 4px 18p
 @media (max-width:560px){.cn-ev .cn-meta{grid-template-columns:1fr}.cn-urow{padding:10px}.cn-urow .cn-btn{min-width:84px;padding:8px 10px}.cn-big .cn-ic{width:68px;height:68px}}
 
 @media (prefers-reduced-motion:reduce){.cn-card,.cn-tab,.cn-toast{transition:none;animation:none}.cn-post:hover,.cn-prof:hover,.cn-ev:hover{transform:none}}
+/* Connect -> Events: Mysuru-first sections, filters and source health */
+#cnEmode.cn-areas{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+#cnEmode.cn-areas button{flex:0 0 auto;white-space:nowrap}
+.cn-evsecs{display:flex;flex-direction:column;gap:26px}
+.cn-evsecs .cn-evsec{padding:0;margin:0}
+.cn-evsec-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:0 2px 10px}
+.cn-evsec-h h3{margin:0;font-size:1.06rem;display:flex;align-items:center;gap:8px}
+.cn-evsec-h h3 .n{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--cn-wash,var(--accent-light));color:var(--cn-ink,var(--accent))}
+.cn-evsec-h p{margin:3px 0 0;font-size:.82rem;color:var(--cn-tx2,var(--muted))}
+.cn-evsec-h .cn-link{white-space:nowrap}
+.cn-evsec[data-sec="mysuru"] .cn-evsec-h h3::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--cn-p,var(--accent));box-shadow:0 0 0 4px var(--cn-wash,var(--accent-light))}
+.cn-secempty{border:1px dashed var(--cn-bd,var(--line));border-radius:16px;padding:16px 18px;color:var(--cn-tx2,var(--muted));font-size:.86rem}
+.cn-secempty b{display:block;color:var(--cn-tx,var(--text));margin-bottom:2px}
+.cn-secempty p{margin:2px 0 8px}
+.cn-disc{display:flex;flex-wrap:wrap;gap:6px}
+.cn-disc a{display:inline-flex;align-items:center;min-height:32px;padding:5px 12px;border-radius:999px;border:1px solid var(--cn-bd,var(--line));background:var(--cn-chip,var(--card));color:var(--cn-ink,var(--text));font-size:.8rem;font-weight:600;text-decoration:none}
+.cn-disc a:hover{border-color:var(--cn-p,var(--accent))}
+.cn-disc a:focus-visible{outline:2px solid var(--cn-p3,var(--cyan));outline-offset:2px}
+.cn-discall{padding-top:6px;border-top:1px solid var(--cn-bd,var(--line))}
+.cn-chip.cn-geo.mysuru,.cn-chip.cn-geo.nearby{background:var(--cn-wash,var(--accent-light));color:var(--cn-ink,var(--accent));font-weight:700}
+.cn-chip.cn-tbv,.cn-chip.cn-geo.verify{border-style:dashed}
+.cn-hlbox{padding:14px 16px;margin-bottom:12px}
+.cn-hlbox h3{margin:0 0 8px;font-size:.92rem;display:flex;align-items:center;gap:6px}
+.cn-hl{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.cn-hl li{display:grid;grid-template-columns:10px minmax(120px,max-content) 1fr;gap:8px;align-items:baseline;font-size:.82rem}
+.cn-hl-n a{color:inherit;font-weight:600}
+.cn-hl-n{font-weight:600}
+.cn-hl-s{color:var(--cn-tx2,var(--muted))}
+.cn-hl-d{width:8px;height:8px;padding:0;margin:0;border-radius:50%;background:#9AA3A8;align-self:center}
+.cn-hl-d.hl-ok{background:#2E9E6A}.cn-hl-d.hl-empty{background:#C9A227}.cn-hl-d.hl-error{background:#D2483C}.cn-hl-d.hl-blocked{background:#C97A27}
+.cn-hl-note{margin:0;font-size:.82rem;color:var(--cn-tx2,var(--muted))}
+@media (max-width:560px){.cn-evsec-h{flex-direction:column;align-items:flex-start}.cn-hl li{grid-template-columns:10px 1fr}.cn-hl-s{grid-column:2}}
 @media (max-width:560px){.sec-page.cn-page{padding:16px 12px 56px}.cn-tab{padding:8px 14px}.cn-tabs{justify-content:flex-start}.cn-grid{grid-template-columns:1fr}.cn-act span{display:none}}
 /* ===== Connect cards: soft lavender glassmorphism. Scoped to #sectionConnect (.cn-card = posts, composer, profiles, teams, events, updates; .dv-card = Discover articles; .cn-ulist/.cn-hero = lists and hero strips).
    Dialogs (.cn-modal .cn-card) stay solid for reading. Light: pale lavender-white glass. Dark: charcoal glass with a purple undertone. ===== */
@@ -3856,7 +3893,8 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
 #mainPanel .comm-hero .eyebrow,#mainPanel .hero-simple .eyebrow{font-size:.72rem !important;margin-bottom:2px}
 #mainPanel .comm-hero,#mainPanel .hero-simple{padding-top:6px !important;padding-bottom:10px !important}
 </style>
-<style id="clSchedHdr">#scheduleMode>section:first-child>h2.section-title{font-size:1.05rem !important;line-height:1.3 !important;margin:0 !important;font-family:"Space Grotesk",Inter,sans-serif}#scheduleMode>section:first-child>.section-sub{font-size:.88rem !important;line-height:1.4;margin:2px 0 0 !important}#scheduleMode>section:first-child>.eyebrow{font-size:.72rem !important;margin-bottom:2px}</style></head>
+<style id="clSchedHdr">#scheduleMode>section:first-child>h2.section-title{font-size:1.05rem !important;line-height:1.3 !important;margin:0 !important;font-family:"Space Grotesk",Inter,sans-serif}#scheduleMode>section:first-child>.section-sub{font-size:.88rem !important;line-height:1.4;margin:2px 0 0 !important}#scheduleMode>section:first-child>.eyebrow{font-size:.72rem !important;margin-bottom:2px}</style>
+<style id="eventsLiveCss">@media (max-width:600px){#cnEvents .cn-toolbar .cn-search{flex-basis:100%}#cnEvents .cn-toolbar .cn-sel{flex:1 1 0;min-width:0;max-width:none;text-overflow:ellipsis}}</style></head>
 <body>
 <div class="mode-graphics" id="modeGraphics" aria-hidden="true"></div>
 
@@ -17632,23 +17670,7 @@ var H = 36e5, D = 864e5, now = Date.now();
 var posts = [];
 
 function ev(t, k, off, dl, mode, loc, org, e, el, d, pz, tags, ed, url){ return {t:t, k:k, off:off, dl:dl, mode:mode, loc:loc, org:org, e:e, el:el, d:d, pz:pz, tags:tags || [], ed:ed, url:url}; }
-var EV = [
- ev('Careers in Cybersecurity: Industry Seminar','Seminar',3,2,'offline','Seminar Hall, Riverbend University','Security Club','🛡️','Open to nearby colleges','Industry speakers explain career paths, certifications and how to start in security.','Free entry',['Cybersecurity']),
- ev('HardHack 24: Hardware Hackathon','Hackathon',11,4,'offline','Innovation Lab, Lakeside College','Lakeside College of Engineering','🔌','Open to nearby colleges','Build working hardware prototypes in 36 hours with kits and mentors provided.','Prize pool of Rs 75,000',['Hardware & IoT','Robotics'],12),
- ev('OCSEFhacks','Hackathon',5,null,'offline','Westminster, California','Hack Club','🏆','Open to all colleges','A community hackathon for students who want to ship something in a weekend.','Goodies for all',['Physical hackathon']),
- ev('Campus Loop Hack 2026','Hackathon',6,4,'offline','Main Auditorium','Coding Club','💻','Teams of 2–4 · Open to all students','A 24-hour build-athon with tracks in AI, Web and Social Good. Mentors, prizes and food included.','Prizes worth Rs 50,000',['AI','Web Dev']),
- ev('Idea Forge Ideathon','Ideathon',15,12,'hybrid','Innovation Lab / Google Meet','E-Cell','💡','Teams of 3–5 · All branches','Pitch a solution to a real campus problem in 5 minutes. No code needed, just a great idea.','Seed grant of Rs 25,000',['Open Innovation']),
- ev('Intro to Generative AI','Workshop',3,2,'online','Google Meet','AI Club','🤖','Individual · Open to all','Hands-on session on prompt design and building small AI tools. Bring a laptop.','Free · certificate',['AI','Machine Learning']),
- ev('CodeSprint Weekly Contest','Coding Competition',2,1,'online','HackerRank','Competitive Programming Cell','🏁','Individual · Open to all','Three problems, 90 minutes. Top scorers receive certificates and swag.','Certificates and swag',['DSA']),
- ev('Algorithm Arena','Coding Competition',26,19,'offline','Computer Lab 2','Coding Club','⚔️','Teams of 2 · 1st and 2nd year','Pair up and solve algorithmic puzzles against the clock.','Cash prizes',['DSA']),
- ev('Cloud Careers Webinar','Webinar',9,7,'online','Zoom','Alumni Network','☁️','Open to all students','Alumni from top cloud teams share how to break into the industry and what to learn first.','Free entry',['Cloud']),
- ev('Web3 Basics Workshop','Workshop',18,16,'online','Microsoft Teams','Blockchain Club','⛓️','Individual · Beginners welcome','Understand wallets, smart contracts and how to deploy a simple dApp.','Free · certificate',['Web3']),
- ev('TechnoVista Fest','Tech Fest',21,14,'offline','Campus Grounds','Student Council','🎪','Individual or teams · All branches','Three days of robotics shows, gaming, project exhibitions and live music.','Prizes across 12 events',['Robotics','Gaming'],23),
- ev('National Conference on AI & Society','Conference',30,20,'hybrid','Seminar Hall B + Zoom','Dept. of AIML','🎤','Paper authors and attendees','Keynotes and paper presentations on responsible AI. Student papers welcome.','Best paper award',['AI','Research'],31),
- ev('Open Source Day','College Event',12,10,'offline','Library Lab','Open Source Society','🌱','Open to all students','Make your first pull request with guidance from experienced contributors.','Free entry',['Open Source']),
- ev('Summer Internship Fair','College Event',15,12,'offline','Placement Cell','Training & Placement','💼','Pre-final year students','Meet 30+ companies offering internships for pre-final year students.','Internship offers',['Careers']),
- ev('Python Bootcamp Sprint','Workshop',1,-1,'offline','Seminar Hall A','Python Club','🐍','Individual · 1st year','A one-day bootcamp covering Python basics through a mini project.','Free entry',['Python'])
-];
+var EV = [];
 /* Event pictures. Only real photos you supplied are used, matched by category. Any event can carry its own picture:
    add img:'path-or-url' (and optionally pos:'center 40%' for the focal point) to that event. Events with no picture show a plain neutral tile. */
 var EV_PICS = {
@@ -17679,8 +17701,289 @@ EV.forEach(function(x){ var h = HK_INFO[x.t]; if(h) for(var k in h) if(x[k] == n
 /* Closing soon = registration closes within SOON days (shown in red). */
 var SOON = 7;
 var PF = [];   /* [name, branch, year, skills, interests, bio, project, uid], filled from Firestore publicProfiles */
-var EKINDS = ['Hackathon','Coding Competition','Workshop','Seminar','Webinar','Tech Fest','Ideathon','Conference','College Event'];
+var EKINDS = ['Hackathon','Coding Competition','Competition','Workshop','Seminar','Webinar','Tech Fest','Ideathon','Conference','College Event'];
 function fd(off){ return new Date(now + off * D).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }
+
+/* ---------- Live events: feed sync, normalisation, de-duplication and caching ----------
+   Logic ported from the CampusLoop Live Hub. Real listings come from the CampusLoop feed server
+   (<meta name="campusloop-api"> + /events, which collects Unstop, Devfolio, Hack Club and more) and from any extra
+   JSON or RSS feed URLs (<meta name="campusloop-feeds">, space separated, or localStorage csec_live_feeds).
+   Each listing is normalised into the EV shape above, merged with an existing record when it has the same id, link or
+   title, and cached on this device (csec_live_events) so it shows instantly next time. It re-syncs every 10 minutes.
+   The hand-written listings above are demo data: they carry sample:true and are labelled "Sample listing". */
+var LV_KEY = 'csec_live_events', LV_POLL = 10 * 6e4, LV_TIMEOUT = 45e3;
+var LV_FIELDS = ['id','src','srcName','t','k','iso','mode','loc','org','el','d','about','pz','tags','reg','added','e','venue','city','state','country','lat','lng','img','themes','team','url','sources'];
+function lvMeta(n){ var m = document.querySelector('meta[name="' + n + '"]'); return m ? String(m.getAttribute('content') || '').trim() : ''; }
+var LIVE = {api:lvMeta('campusloop-api'), busy:false, st:'idle', ok:0, tried:0, errs:[], had:false};
+var LV_SRC = {unstop:'Unstop', devfolio:'Devfolio', devpost:'Devpost', hackerearth:'HackerEarth', hack2skill:'Hack2Skill', mlh:'MLH', dorahacks:'DoraHacks', ethglobal:'ETHGlobal', hackclub:'Hack Club', hackindia:'HackIndia', kaggle:'Kaggle', lablab:'Lablab.ai', sih:'Smart India Hackathon', mygov:'MyGov', isro:'ISRO', aicte:'AICTE', iic:'Institution\u2019s Innovation Council', brabble:'Brabble', hackradar:'Hackathon Radar', ieee:'IEEE vTools', gdg:'Google Developer Groups', hackmysuru:'HackMysuru (official site)', symbiot:'Symbiot VVCE (official site)', mriothon:'MRIOTHON (official site)', jssaher:'JSS AHER (official site)', nextknock:'NextKnock', indiahackathons:'IndiaHackathons', college:'Official College Website', custom:'Web feed', api:'Live feed'};
+/* Domain tags: [label, words that suggest it]. Used for the domain filter, search and the picture on live listings. */
+var LV_DOMAINS = [
+ ['AI/ML', /\b(ai|ml|machine learning|deep learning|llms?|gen ?ai|computer vision|nlp|neural)\b/i],
+ ['Web Development', /\b(web|frontend|front-end|backend|full[- ]?stack|react|javascript|websites?)\b/i],
+ ['App Development', /\b(apps?|android|ios|flutter|mobile)\b/i],
+ ['Blockchain', /\b(blockchain|web3|crypto|ethereum|eth[a-z]*|solidity|defi|nfts?)\b/i],
+ ['Robotics', /\b(robot|robotics|robo|rover|drones?)/i],
+ ['Hardware & IoT', /\b(hardware|iot|embedded|sensors?|arduino|pcb|solder)/i],
+ ['Cybersecurity', /\b(security|cyber|ctf|infosec)/i],
+ ['Data Science', /\b(data science|analytics|kaggle|datasets?)\b/i],
+ ['Sustainability', /\b(green|sustainab|climate|energy|environment)/i],
+ ['Competitive Programming', /\b(algorithms?|competitive programming|coding contest|online judge|dsa)\b/i],
+ ['Open Source', /\b(open source|pull requests?|github)\b/i],
+ ['Startups', /\b(startups?|entrepreneur|pitch|incubat|e-cell)/i],
+ ['Research', /\b(research|papers?|symposium)\b/i],
+ ['Healthcare', /\b(health|healthcare|medical|medtech|longevity)\b/i],
+ ['Gaming', /\b(games?|gaming|game jam)\b/i],
+ ['Open Innovation', /\b(open innovation|prototype|ideathon|any domain)\b/i]
+];
+var LV_FILTERS = [['Status', [['open', 'Registration open'], ['soon', 'Closing soon'], ['closed', 'Registration closed']]],
+ ['Deadline', [['week', 'Closes within 7 days'], ['two', 'Closes within 2 weeks'], ['month', 'Closes within a month']]],
+ ['Prize', [['cash', 'Has a cash prize'], ['50k', 'Rs 50,000 or more'], ['1l', 'Rs 1 lakh or more']]],
+ ['Listing', [['real', 'Real listings only'], ['interested', 'Interested']]]];
+function lvFilterOpts(){ return '<option value="">Any status</option>' + LV_FILTERS.map(function(g){ return '<optgroup label="' + g[0] + '">' + g[1].map(function(o){ return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</optgroup>'; }).join(''); }
+function lvH32(s){ var h = 0; s = String(s); for(var k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) | 0; return (h >>> 0).toString(36); }
+function lvPad(n){ return (n < 10 ? '0' : '') + n; }
+function lvYmd(s){ if(!s) return ''; var m = /^(\d{4}-\d{2}-\d{2})(?:$|T00:00(?::00(?:\.0+)?)?Z?$)/.exec(String(s).trim()); if(m) return m[1];
+  var d = new Date(s); return isNaN(d) ? '' : d.getFullYear() + '-' + lvPad(d.getMonth() + 1) + '-' + lvPad(d.getDate()); }
+function lvOff(iso){ var a = String(iso).split('-'), t = new Date(+a[0], a[1] - 1, +a[2]), b = new Date(); b.setHours(0, 0, 0, 0); return Math.round((t - b) / D); }
+function lvEnded(x){ return (x.ed != null ? x.ed : x.off) < 0; }
+function lvText(s){ var t = document.createElement('textarea'); t.innerHTML = String(s || '').replace(/<[^>]+>/g, ' '); return t.value.replace(/\s+/g, ' ').trim(); }
+function lvSafe(u){ u = String(u || '').trim(); if(!u) return ''; if(!/^[a-z][a-z0-9+.-]*:/i.test(u) && /\./.test(u)) u = 'https://' + u.replace(/^\/+/, '');
+  try{ var p = new URL(u); return /^https?:$/.test(p.protocol) ? p.href : ''; }catch(e){ return ''; } }
+function lvUrlKey(u){ return String(u || '').toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/[?#].*$/, '').replace(/\/+$/, ''); }
+function lvHost(u){ try{ return new URL(u).hostname.replace(/^www\./, ''); }catch(e){ return String(u || '').replace(/^https?:\/\//, '').slice(0, 44); } }
+function lvKey(t){ return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+function lvInferMode(t){ t = String(t || '').toLowerCase(); return /\b(online|virtual|remote|webinar|zoom|discord)\b/.test(t) ? 'online' : /\b(on-?campus|in[- ]person|venue|auditorium|offline|physical|onsite|fest|symposium)\b/.test(t) ? 'offline' : 'tbv'; }
+function lvKind(t){ t = String(t || ''); return /ideathon/i.test(t) ? 'Ideathon' : /\bworkshop\b/i.test(t) ? 'Workshop' : /\bwebinar\b/i.test(t) ? 'Webinar' : /\b(conference|summit)\b/i.test(t) ? 'Conference' :
+  /\b(coding contest|coding competition|code sprint|programming contest)\b/i.test(t) ? 'Coding Competition' : /\btech ?fest\b/i.test(t) ? 'Tech Fest' : 'Hackathon'; }
+function lvDoms(x){ if(x._doms) return x._doms; var t = [x.t, x.d, x.k, x.about || '', (x.tags || []).join(' '), (x.themes || []).join(' ')].join(' ');
+  return x._doms = LV_DOMAINS.filter(function(d){ return d[1].test(t); }).map(function(d){ return d[0]; }).slice(0, 3); }
+/* First amount in the prize text, in rupees (dollars converted at about 83). 0 when there is no cash amount. */
+function lvPrize(x){ var m = /(\u20b9|rs\.?|inr|\$|usd)\s*([\d,]+(?:\.\d+)?)\s*(k|thousand|lakhs?|lacs?|crores?|cr|million|m)?\b/i.exec(String(x.pz || '')); if(!m) return 0;
+  var v = parseFloat(m[2].replace(/,/g, '')) || 0, u = String(m[3] || '').toLowerCase(); if(u === 'k' || u === 'thousand') v *= 1e3; else if(/^la/.test(u)) v *= 1e5; else if(/^cr/.test(u)) v *= 1e7; else if(u === 'm' || u === 'million') v *= 1e6; if(/\$|usd/i.test(m[1])) v *= 83; return v; }
+function lvPass(x, f){ if(!f) return true; var d = dlInfo(x), dl = x.dl;
+  if(f === 'open') return d.k === 'open' || d.k === 'none'; if(f === 'soon') return d.k === 'soon'; if(f === 'closed') return d.k === 'closed';
+  if(f === 'week' || f === 'two' || f === 'month'){ var lim = {week:7, two:14, month:31}[f]; return dl != null && dl >= 0 && dl <= lim; }
+  if(f === 'cash') return lvPrize(x) > 0; if(f === '50k') return lvPrize(x) >= 5e4; if(f === '1l') return lvPrize(x) >= 1e5;
+  if(f === 'real') return !x.sample; if(f === 'sample') return !!x.sample; if(f === 'interested') return evFlag('csec_ev_interested', evId(x));
+  return true; }
+function lvBadge(x, ep){ var c = ep ? 'ep-chip' : 'cn-chip', more = x.sources && x.sources.length > 1 ? ' +' + (x.sources.length - 1) : '', l = x.live ? '\u25cf ' + (x.srcName || 'Live feed') + more : x.curated ? '\u2713 Curated listing' : x.sample ? 'Sample listing' : '';
+  var tip = x.live ? 'Listed on ' + (x.sources && x.sources.length ? x.sources.map(function(s){ return s.name; }).join(', ') : x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') : x.curated ? 'Added from the official website' : 'Demo data, not a real event';
+  return l ? '<span class="' + c + '" title="' + esc(tip) + '">' + esc(l) + '</span>' : ''; }
+function lvPic(x){ if(x.img) return; var ds = lvDoms(x), key = ds.indexOf('Cybersecurity') > -1 ? 'cyber' : ds.indexOf('AI/ML') > -1 ? (x.k === 'Hackathon' ? 'aiBrain' : 'aiLaptop') : '';
+  if(key && EV_PICS[key]){ x.img = EV_PICS[key]; x.pos = EV_POS[key]; x._autoPic = true; } }
+function lvDates(x){ var i = x.iso; x.off = lvOff(i.date); x.ed = i.end && i.end > i.date ? lvOff(i.end) : undefined; x.dl = i.dl ? lvOff(i.dl) : null; }
+/* ---------- Mysuru-first geography: which Events section a listing belongs to ----------
+   Same rules as the CampusLoop Event Collector. Only location fields are read (venue, city, state, country, coordinates),
+   never the description. Distances are straight-line km from Mysuru city centre, shown only when the place is known. */
+var LV_GEO = {"P":[["Mysuru","m",12.2958,76.6394,"mysuru|mysore|vvce|vidyavardhaka|vidya vardhaka|sjce|jssstu|jss science and technology university|national institute of engineering|manasagangotri|university of mysore|jss aher|jss academy of higher education|atme college|gsss institute|vidya vikas institute|hootagalli|kuvempunagar|gokulam|vijayanagar mysuru"],["Mandya","n",12.5223,76.897,"mandya|mrit mandya"],["Srirangapatna","n",12.4141,76.7042,"srirangapatna|srirangapattana|srirangapatnam"],["Nanjangud","n",12.1197,76.6835,"nanjangud|nanjanagudu"],["T. Narasipura","n",12.2111,76.9033,"t narasipura|t. narasipura|tirumakudalu narasipura"],["H.D. Kote","n",12.0844,76.3315,"h d kote|h.d. kote|hd kote|heggadadevanakote"],["Hunsur","n",12.3093,76.2905,"hunsur"],["K.R. Nagar","n",12.4385,76.383,"k r nagar|k.r. nagar|krishnarajanagara"],["Pandavapura","n",12.5003,76.6744,"pandavapura"],["Melukote","n",12.66,76.648,"melukote|melkote"],["K.R. Pet","n",12.6596,76.4887,"k r pet|k.r. pet|krishnarajpet"],["Maddur","n",12.5843,77.0434,"maddur"],["Malavalli","n",12.3854,77.0596,"malavalli"],["Chamarajanagar","n",11.9261,76.9437,"chamarajanagar|chamarajanagara"],["Kollegal","n",12.1537,77.11,"kollegal|kollegala"],["Gundlupet","n",11.81,76.69,"gundlupet"],["Hassan","n",13.0072,76.0962,"hassan"],["Channarayapatna","n",12.9026,76.3892,"channarayapatna"],["Holenarasipur","n",12.7864,76.2433,"holenarasipur|holenarasipura"],["Sakleshpur","n",12.9443,75.7849,"sakleshpur|sakleshpura"],["Madikeri (Kodagu)","n",12.4244,75.7382,"madikeri|kodagu|coorg|mercara"],["Kushalnagar","n",12.4573,75.959,"kushalnagar|kushalnagara"],["Virajpet","n",12.1979,75.8048,"virajpet|virajpete"],["Bengaluru","k",12.9716,77.5946,"bengaluru|bangalore|bengaluru urban|electronic city|whitefield|yelahanka|rvce|r v college|bmsce|bms college|pes university|msrit|ramaiah institute|iisc|iiit bangalore|dayananda sagar|reva university|nmit|sir mvit|new horizon college|cmr institute|presidency university|christ university|jain university"],["Mangaluru","k",12.9141,74.856,"mangaluru|mangalore|surathkal|nitk"],["Udupi","k",13.3409,74.7421,"udupi|manipal"],["Nitte","k",13.1846,74.9365,"nitte|karkala"],["Moodbidri","k",13.0687,74.995,"moodbidri|moodabidri|mudbidri|moodubidire"],["Shivamogga","k",13.9299,75.5681,"shivamogga|shimoga"],["Davanagere","k",14.4644,75.9218,"davanagere|davangere"],["Tumakuru","k",13.3379,77.1173,"tumakuru|tumkur|tumakur"],["Chikkamagaluru","k",13.3161,75.772,"chikkamagaluru|chikmagalur|chikkamagalur"],["Hubballi","k",15.3647,75.124,"hubballi|hubli"],["Dharwad","k",15.4589,75.0078,"dharwad"],["Belagavi","k",15.8497,74.4977,"belagavi|belgaum"],["Kalaburagi","k",17.3297,76.8343,"kalaburagi|gulbarga"],["Ballari","k",15.1394,76.9214,"ballari|bellary"],["Hosapete","k",15.2689,76.3909,"hosapete|hospet"],["Vijayapura","k",16.8302,75.71,"vijayapura|bijapur"],["Bagalkote","k",16.1691,75.6615,"bagalkot|bagalkote"],["Chitradurga","k",14.2251,76.398,"chitradurga"],["Ramanagara","k",12.7209,77.2799,"ramanagara|ramanagaram"],["Kolar","k",13.1367,78.1292,"kolar"],["Chikkaballapura","k",13.4355,77.7315,"chikkaballapura|chikkaballapur|chikballapur"],["Raichur","k",16.212,77.3439,"raichur"],["Bidar","k",17.9104,77.5199,"bidar"],["Karwar","k",14.8136,74.1297,"karwar"],["Gadag","k",15.4315,75.6355,"gadag"],["Koppal","k",15.355,76.1548,"koppal"],["Haveri","k",14.7951,75.3991,"haveri"],["Sirsi","k",14.6195,74.8354,"sirsi"],["Bhatkal","k",13.9853,74.5553,"bhatkal"]],"I":"india|andhra pradesh|arunachal pradesh|assam|bihar|chhattisgarh|goa|gujarat|haryana|himachal pradesh|jharkhand|kerala|madhya pradesh|maharashtra|manipur|meghalaya|mizoram|nagaland|odisha|orissa|punjab|rajasthan|sikkim|tamil nadu|telangana|tripura|uttar pradesh|uttarakhand|west bengal|delhi|new delhi|jammu|kashmir|ladakh|puducherry|pondicherry|chandigarh|mumbai|pune|hyderabad|chennai|kolkata|ahmedabad|jaipur|lucknow|noida|gurgaon|gurugram|bhopal|indore|nagpur|kochi|cochin|coimbatore|bhubaneswar|patna|guwahati|visakhapatnam|vizag|vijayawada|thiruvananthapuram|trivandrum|surat|vadodara|kanpur|dehradun|ranchi|raipur|mohali|ludhiana|agartala|shillong|navi mumbai|thane|madurai|tiruchirappalli|vellore|warangal|nashik|aurangabad|jodhpur|amritsar|varanasi|prayagraj|allahabad|ghaziabad|faridabad","A":"usa|u.s.|united states|america|canada|united kingdom|uk|england|scotland|ireland|germany|france|spain|italy|netherlands|belgium|switzerland|sweden|norway|denmark|finland|poland|portugal|austria|singapore|malaysia|indonesia|thailand|vietnam|philippines|japan|china|hong kong|taiwan|korea|australia|new zealand|uae|united arab emirates|dubai|abu dhabi|saudi arabia|qatar|israel|turkey|egypt|nigeria|kenya|south africa|ghana|brazil|mexico|argentina|chile|colombia|peru|pakistan|bangladesh|sri lanka|nepal|bhutan|maldives|london|new york|san francisco|berlin|paris|toronto|california|texas|massachusetts|oregon|washington dc|boston|seattle|chicago"};
+var LV_PL = LV_GEO.P.map(function(p){ return {name:p[0], s:p[1], lat:p[2], lng:p[3], al:p[4].split('|')}; });
+var LV_IN = LV_GEO.I.split('|'), LV_AB = LV_GEO.A.split('|'), LV_MYS = {lat:12.2958, lng:76.6394};
+var LV_TIERS = [
+ ['mysuru', 'Near Mysuru', 'Hackathons held in Mysuru that you attend in person.'],
+ ['nearby', 'Nearby Offline Hackathons', 'Mandya, Srirangapatna, Nanjangud, Hassan, Kodagu and other towns near Mysuru, nearest first.'],
+ ['karnataka', 'Karnataka Hackathons', 'Bengaluru, Mangaluru, Udupi, Shivamogga, Davanagere, Tumakuru and the rest of Karnataka.'],
+ ['india', 'Other Indian Offline Hackathons', 'In-person hackathons in other states.'],
+ ['online', 'Online Hackathons', 'Take part from anywhere, wherever the organiser is based.'],
+ ['verify', 'Location / Mode to be verified', 'The listing does not clearly say where or how it runs. Check the official page before you plan.'],
+ ['international', 'International Hackathons', 'In-person hackathons outside India.']];
+var LV_SEC_N = 6;
+/* Official listing pages for sources without a permitted feed. Shown in empty sections and at the end of Events. */
+var LV_DISCOVER = {
+ local:[['HackMysuru', 'https://hackmysuru.rankbook.in/'], ['Symbiot · VVCE', 'https://www.symbiotvvce.in/'], ['MRIOTHON · Mandya', 'https://mriothon.in/'], ['JSS AHER events', 'https://jssuni.edu.in/jssaher/activities-and-events/']],
+ india:[['Unstop', 'https://unstop.com/hackathons'], ['Devfolio', 'https://devfolio.co/hackathons'], ['Hack2Skill', 'https://hack2skill.com/'], ['HackIndia', 'https://hackindia.org/hackathons'], ['IndiaHackathons', 'https://indiahackathons.com/'], ['NextKnock', 'https://www.nextknock.in/hackathons'], ['IEEE vTools', 'https://events.vtools.ieee.org/'], ['GDG events', 'https://gdg.community.dev/events/']],
+ online:[['Devpost', 'https://devpost.com/hackathons'], ['HackerEarth', 'https://www.hackerearth.com/challenges/'], ['Unstop', 'https://unstop.com/hackathons'], ['Devfolio', 'https://devfolio.co/hackathons']],
+ world:[['Devpost', 'https://devpost.com/hackathons'], ['Hack Club', 'https://hackathons.hackclub.com/'], ['MLH', 'https://mlh.io/']]};
+function lvN(s){ return ' ' + String(s || '').toLowerCase().replace(/[^a-z0-9.]+/g, ' ').replace(/\s+/g, ' ') + ' '; }
+function lvW(t, w){ return t.indexOf(' ' + String(w).toLowerCase().replace(/[^a-z0-9.]+/g, ' ').trim() + ' ') > -1; }
+function lvKm(a, b){ var r = function(d){ return d * Math.PI / 180; }, dA = r(b.lat - a.lat), dB = r(b.lng - a.lng), h = Math.pow(Math.sin(dA / 2), 2) + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.pow(Math.sin(dB / 2), 2); return Math.round(2 * 6371 * Math.asin(Math.sqrt(h))); }
+function lvScope(c){ return c === 'm' ? 'mysuru' : c === 'n' ? 'nearby' : 'karnataka'; }
+function lvLocate(x){
+  var f = [x.venue, x.city, x.state, x.country].filter(Boolean);
+  if(!f.length && x.loc && !/^(online|see event page|online and in person|location \/ mode)/i.test(x.loc)) f = [String(x.loc).replace(/\s*\+\s*online$/i, '')];
+  var text = lvN(f.join(' , ')), cn = String(x.country || '').trim().toLowerCase(), cnN = lvN(cn);
+  var co = x.lat != null && x.lng != null && isFinite(x.lat) && isFinite(x.lng) && !(+x.lat === 0 && +x.lng === 0) ? {lat:+x.lat, lng:+x.lng} : null;
+  var anyIn = function(t){ return LV_IN.some(function(w){ return lvW(t, w); }); }, anyAb = function(t){ return LV_AB.some(function(w){ return lvW(t, w); }); };
+  var parts = f.join(',').split(','), last = lvN(parts[parts.length - 1] || '');
+  if(anyAb(last) && !anyIn(last) && !lvW(last, 'karnataka')) return {s:'international'};   // "Lahore, Punjab, Pakistan" is abroad
+  var abroadC = !!cn && !/^(india|in|bharat)$/.test(cn) && /^[a-z .]+$/.test(cn) && !lvW(cnN, 'karnataka') && !anyIn(cnN);
+  if(!abroadC){
+    var cityT = lvN(x.city || ''), addr = text.replace(/ (mysore|mysuru) (road|rd|highway) /g, ' ');   // Mysore Road is a street in Bengaluru
+    var byCity = null; LV_PL.some(function(p){ if(p.al.some(function(a){ return lvW(cityT, a); })){ byCity = p; return true; } return false; });
+    var other = LV_IN.some(function(w){ return w !== 'india' && lvW(text, w); }) && !lvW(text, 'karnataka');
+    var list = byCity ? [byCity] : LV_PL, hay = byCity ? cityT : addr;
+    for(var k = 0; k < list.length; k++){ var p = list[k];
+      if(p.al.some(function(a){ return lvW(hay, a); })){ if(other && p.s !== 'm') continue; var at = co && lvKm(co, p) < 40 ? co : p; return {s:lvScope(p.s), place:p.name, km:lvKm(LV_MYS, at), exact:at === co}; } }
+    if(co){ var best = null, bk = Infinity; LV_PL.forEach(function(p){ var d = lvKm(co, p); if(d < bk){ bk = d; best = p; } });
+      if(best && bk <= 15) return {s:lvScope(best.s), place:best.name, km:lvKm(LV_MYS, co), exact:true};
+      if(!(co.lat > 6 && co.lat < 37.5 && co.lng > 68 && co.lng < 97.5)) return {s:'international'}; }
+    if(lvW(text, 'karnataka')) return {s:'karnataka'};
+    if(anyIn(text) || cn === 'in') return {s:'india'};
+  }
+  if(abroadC || anyAb(text)) return {s:'international'};
+  return {s:'unknown'};
+}
+/* Section for one listing. Online events are grouped together wherever they are hosted; hybrid events go by their venue. */
+function lvGeo(x){
+  if(x._geo) return x._geo;
+  var m = x.mode, g;
+  if(m === 'online') g = {t:'online'};
+  else { var w = lvLocate(x);
+    if(w.s === 'international') g = {t: m === 'hybrid' ? 'online' : 'international'};
+    else if(m === 'tbv') g = {t:'verify', place:w.place};
+    else if(w.s === 'unknown') g = {t: m === 'hybrid' ? 'online' : 'verify'};
+    else g = {t:w.s, place:w.place, km:w.km, exact:w.exact}; }
+  return x._geo = g;
+}
+function lvTierIx(t){ for(var k = 0; k < LV_TIERS.length; k++) if(LV_TIERS[k][0] === t) return k; return 5; }
+function lvGeoLbl(x){ var g = lvGeo(x);
+  if(g.t === 'mysuru') return 'Mysuru'; if(g.t === 'nearby') return (g.place || 'Near Mysuru') + (g.km != null ? ' \u00b7 \u2248' + g.km + ' km' : '');
+  if(g.t === 'karnataka') return (g.place || 'Karnataka'); if(g.t === 'india') return x.state || x.city || 'India'; if(g.t === 'international') return x.country || 'International';
+  if(g.t === 'verify') return 'Location to be verified'; return ''; }
+/* Inside one section: registration open first, then (nearby) nearest first, then deadline, then start date. */
+function lvSecCmp(a, b){
+  var ra = dlInfo(a).k, rb = dlInfo(b).k, rank = function(k){ return k === 'closed' ? 2 : k === 'none' ? 1 : 0; };
+  if(rank(ra) !== rank(rb)) return rank(ra) - rank(rb);
+  if(ef.sort === 'recent') return (b.added || 0) - (a.added || 0) || a.off - b.off;
+  if(ef.sort === 'prize') return lvPrize(b) - lvPrize(a) || a.off - b.off;
+  if(ef.sort === 'upcoming') return a.off - b.off;
+  var ga = lvGeo(a), gb = lvGeo(b);
+  if(ga.t === 'nearby' && gb.t === 'nearby'){ var da = ga.km == null ? 1e9 : ga.km, db = gb.km == null ? 1e9 : gb.km; if(da !== db) return da - db; }
+  return ((a.dl == null ? a.off : a.dl) - (b.dl == null ? b.off : b.dl)) || a.off - b.off;
+}
+/* Filters: All, Offline, Online, Hybrid, Near Mysuru, Karnataka, India, International. */
+var LV_AREAS = [['all', 'All'], ['offline', 'Offline'], ['online', 'Online'], ['hybrid', 'Hybrid'], ['mysuru', 'Near Mysuru'], ['ka', 'Karnataka'], ['in', 'India'], ['intl', 'International']];
+function lvArea(x, a){ var t = lvGeo(x).t;
+  if(!a || a === 'all') return true; if(a === 'offline' || a === 'online' || a === 'hybrid') return x.mode === a;
+  if(a === 'mysuru') return t === 'mysuru' || t === 'nearby'; if(a === 'ka') return t === 'mysuru' || t === 'nearby' || t === 'karnataka';
+  if(a === 'in') return t === 'mysuru' || t === 'nearby' || t === 'karnataka' || t === 'india'; if(a === 'intl') return t === 'international'; return true; }
+function lvAreaSecs(a){ return a === 'online' ? ['online'] : a === 'mysuru' ? ['mysuru', 'nearby'] : a === 'ka' ? ['mysuru', 'nearby', 'karnataka'] : a === 'in' ? ['mysuru', 'nearby', 'karnataka', 'india'] : a === 'intl' ? ['international'] : a === 'offline' ? ['mysuru', 'nearby', 'karnataka', 'india', 'verify', 'international'] : LV_TIERS.map(function(t){ return t[0]; }); }
+function lvDiscFor(t){ return t === 'mysuru' || t === 'nearby' ? LV_DISCOVER.local : t === 'karnataka' || t === 'india' ? LV_DISCOVER.india : t === 'online' ? LV_DISCOVER.online : t === 'international' ? LV_DISCOVER.world : []; }
+function lvDiscHtml(l){ return l.length ? '<div class="cn-disc">' + l.map(function(s){ return '<a href="' + esc(s[1]) + '" target="_blank" rel="noopener noreferrer">' + esc(s[0]) + ' \u2197</a>'; }).join('') + '</div>' : ''; }
+/* Source health for the live-events status line. */
+function lvHealthAll(){ return (LIVE.health || []).concat(LIVE.feedHealth || []); }
+function lvHealthHtml(){
+  var l = lvHealthAll(); if(!l.length) return '<p class="cn-hl-note">No source details yet. Refresh to check the feeds.</p>';
+  var lbl = {ok:'Updating', empty:'Nothing upcoming', error:'Unavailable', blocked:'Blocked by site rules', link:'Browse link only', disabled:'Switched off'};
+  return '<ul class="cn-hl">' + l.map(function(s){ var st = s.status || 'ok';
+    return '<li><span class="cn-hl-d hl-' + esc(st) + '" aria-hidden="true"></span><span class="cn-hl-n">' + (s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.name) + '</a>' : esc(s.name)) + '</span><span class="cn-hl-s">' + esc(st === 'ok' ? (s.count || 0) + ' found' : lbl[st] || st) + (s.message ? ' \u00b7 ' + esc(s.message) : '') + '</span></li>'; }).join('') + '</ul>'; }
+function lvHealthSum(){ var l = lvHealthAll().filter(function(s){ return s.status !== 'link' && s.status !== 'disabled'; }); if(!l.length) return ''; var ok = l.filter(function(s){ return s.status === 'ok' || s.status === 'empty'; }).length;
+  return ' <button type="button" class="cn-link" data-lhealth="1" aria-expanded="' + !!ef.health + '">Sources ' + ok + '/' + l.length + ' OK</button>'; }
+
+/* One feed item -> one EV record. Items without a title or date, and events that are already over, are dropped. */
+function lvNorm(e, sid){
+  if(!e || typeof e !== 'object') return null;
+  var title = lvText(e.title || e.name || ''), link = lvSafe(e.link || e.url || e.website || ''), date = lvYmd(e.date || e.start || e.startDate || e.start_date || e.starts_at || e.pubDate);
+  var end = lvYmd(e.end || e.endDate || e.end_date || e.ends_at); if(end && end < date) end = '';
+  if(!title || !date || lvOff(end || date) < 0) return null;
+  var desc = lvText(e.desc || e.description || e.summary || ''), txt = [title, desc, e.location, e.city, e.type].join(' ');
+  var mode = e.mode === 'offline' || e.mode === 'online' || e.mode === 'hybrid' ? e.mode : e.mode === 'unknown' ? 'tbv' : (e.online === false || /in[- ]person|offline|physical/i.test(txt) ? 'offline' : lvInferMode(txt));
+  var nm = LV_SRC[sid] || lvText(e.sourceName || '') || 'Web feed', org = lvText(e.org || e.organizer || ''), place = lvText(e.location || e.city || '');
+  if(/^(online|virtual|remote)$/i.test(place)) place = '';
+  var loc = mode === 'online' ? 'Online \u00b7 ' + (lvText(e.platform || '') || nm) : mode === 'hybrid' ? (place ? place + ' + online' : 'Online and in person') : mode === 'tbv' ? (place ? place + ' \u00b7 mode to be verified' : 'Location / mode to be verified') : (place || 'Venue not announced');
+  var o = {id:'x-' + lvH32(link || title + date), live:true, sample:false, src:sid, srcName:nm, t:title.slice(0, 80), k:lvKind(title + ' ' + (e.type || '')),
+    iso:{date:date, end:end, dl:lvYmd(e.deadline || e.registration_deadline || e.registrationDeadline)}, mode:mode, loc:loc.slice(0, 120),
+    org:(org ? org + ' \u00b7 ' : '') + nm, e:'\ud83c\udfc6', el:lvText(e.eligibility || '') || 'See the official page', d:desc.slice(0, 300), about:desc.slice(0, 1500),
+    pz:lvText(e.prize || e.prizes || '').slice(0, 80), tags:[].concat(e.tags || []).map(String).slice(0, 4), reg:link, added:+e.seen || Date.now()};
+  /* Location, cover and source details from feeds that provide them (the CampusLoop Event Collector does). Missing ones stay empty. */
+  ['venue', 'city', 'state', 'country'].forEach(function(f){ var v = lvText(e[f] || ''); if(v && mode !== 'online') o[f] = v.slice(0, 160); });
+  if(mode !== 'online' && e.lat != null && e.lng != null && isFinite(e.lat) && isFinite(e.lng)){ o.lat = +e.lat; o.lng = +e.lng; }
+  var cov = lvSafe(e.img || e.image || e.cover || ''); if(cov) o.img = cov;
+  var site = lvSafe(e.website || ''); if(site && lvUrlKey(site) !== lvUrlKey(link)) o.url = site;
+  if(Array.isArray(e.themes) && e.themes.length) o.themes = e.themes.map(function(t){ return lvText(t); }).filter(Boolean).slice(0, 8);
+  if(e.teamSize) o.team = lvText(e.teamSize).slice(0, 60);
+  o.sources = Array.isArray(e.sources) && e.sources.length ? e.sources.filter(function(s){ return s && s.name; }).map(function(s){ return {name:lvText(s.name).slice(0, 60), url:lvSafe(s.url) || ''}; }).slice(0, 6) : [{name:nm, url:lvSafe(e.sourceUrl) || link}];
+  if(o.sources.length > 1) o.srcName = o.sources[0].name;
+  if(!o.tags.length) o.tags = lvDoms(o).slice();
+  lvDates(o); return o;
+}
+/* Same record: same id, same registration link, or the same title within ~6 weeks (sample listings have no real dates). */
+function lvFind(o){ var ok = lvUrlKey(o.reg), tk = lvKey(o.t);
+  for(var k = 0; k < EV.length; k++){ var x = EV[k];
+    if(evId(x) === o.id) return k;
+    if(ok && (lvUrlKey(x.reg) === ok || lvUrlKey(x.url) === ok)) return k;
+    if(tk && lvKey(x.t) === tk && (!x.iso || Math.abs(lvOff(x.iso.date) - lvOff(o.iso.date)) <= 45)) return k;
+    if(x.iso && o.city && x.city && lvKey(x.city) === lvKey(o.city) && x.iso.date === o.iso.date && (x.iso.end || '') === (o.iso.end || '') && lvKey(String(x.org || '').split(' \u00b7 ')[0]) && lvKey(String(x.org || '').split(' \u00b7 ')[0]) === lvKey(String(o.org || '').split(' \u00b7 ')[0])) return k; }
+  return -1; }
+/* Update an existing record from fresh feed data. Sample records keep their hand-written text but take the real dates and link. */
+function lvMerge(x, o){
+  var sig = function(){ return JSON.stringify([x.iso, x.mode, x.loc, x.reg, x.pz, x.d, x.t]); }, before = sig(), wasSample = !!x.sample || !!x.wasSample;
+  evId(x); x.live = true; x.sample = false; x.iso = o.iso;
+  if(!x.src || !x.sources || !x.sources.length){ x.src = o.src; x.srcName = o.srcName; }
+  /* A clear mode or venue is never replaced by an unclear one from another source. */
+  if(o.mode !== 'tbv' || !x.mode || x.mode === 'tbv'){ x.mode = o.mode; if(o.loc && o.loc !== 'Venue not announced') x.loc = o.loc; }
+  ['venue', 'city', 'state', 'country', 'lat', 'lng', 'img', 'url', 'themes', 'team'].forEach(function(f){ if(o[f] != null && o[f] !== '' && (x[f] == null || x[f] === '' || (f === 'img' && x._autoPic))){ x[f] = o[f]; if(f === 'img'){ x._autoPic = false; x.pos = undefined; } } });
+  var srcs = (x.sources || []).slice(); (o.sources || []).forEach(function(s){ if(!srcs.some(function(r){ return r.name === s.name && lvUrlKey(r.url) === lvUrlKey(s.url); })) srcs.push(s); }); x.sources = srcs.slice(0, 6);
+  x._geo = null;
+  if(o.reg) x.reg = o.reg; if(o.pz) x.pz = o.pz;
+  if(wasSample){ x.wasSample = true; if(!x.d) x.d = o.d; if(!x.about) x.about = o.about; }
+  else { x.t = o.t; x.k = o.k; if(o.org) x.org = o.org; if(o.d && (o.d.length >= (x.d || '').length)){ x.d = o.d; x.about = o.about; } if(o.el && o.el !== 'See the official page') x.el = o.el; if(o.tags && o.tags.length) x.tags = o.tags; }
+  x._doms = null; lvDates(x); return before !== sig(); }
+function lvMark(i){ try{ var a = JSON.parse(localStorage.getItem('csec_saved_events') || '[]'); if(a.indexOf(evId(EV[i])) > -1) bm[i] = true; }catch(e){} }
+function lvIngest(e, sid, fresh, cnt){ var o = lvNorm(e, sid); if(!o) return; var k = lvFind(o);
+  if(k < 0){ lvPic(o); EV.push(o); fresh.push(o); lvMark(EV.length - 1); } else if(lvMerge(EV[k], o)) cnt.n++; }
+function lvSave(){ try{ localStorage.setItem(LV_KEY, JSON.stringify({t:LIVE.ok, ev:EV.filter(function(x){ return x.live && !lvEnded(x); }).map(function(x){ var o = {}; LV_FIELDS.forEach(function(k){ if(x[k] != null && !(k === 'img' && x._autoPic)) o[k] = x[k]; }); o.id = evId(x); return o; })})); }catch(e){} }
+function lvRestore(){ var c = null; try{ c = JSON.parse(localStorage.getItem(LV_KEY) || 'null'); }catch(e){}
+  if(!c || !Array.isArray(c.ev)) return; LIVE.ok = +c.t || 0; LIVE.had = true;
+  c.ev.forEach(function(r){ if(!r || !r.t || !r.iso || !r.iso.date) return; lvDates(r); if(lvEnded(r)) return; r.live = true; r.sample = false; r.tags = Array.isArray(r.tags) ? r.tags : []; if(r.mode === 'online') ['venue', 'city', 'state', 'country', 'lat', 'lng'].forEach(function(f){ delete r[f]; });
+    var k = lvFind(r); if(k < 0){ lvPic(r); EV.push(r); } else lvMerge(EV[k], r); }); }
+function lvRSS(x){ var d = new DOMParser().parseFromString(String(x || ''), 'text/xml'); return [].map.call(d.querySelectorAll('item,entry'), function(i){ var g = function(s){ var n = i.querySelector(s); return n ? (n.textContent || n.getAttribute('href') || '').trim() : ''; }; return {title:g('title'), link:g('link') || g('guid'), desc:g('description') || g('summary'), date:g('pubDate') || g('published') || g('updated')}; }); }
+function lvGet(u){ var ctl = window.AbortController ? new AbortController() : null, tm = ctl ? setTimeout(function(){ ctl.abort(); }, LV_TIMEOUT) : 0;
+  return fetch(u, {headers:{accept:'application/json, application/rss+xml, text/xml'}, cache:'no-store', signal:ctl ? ctl.signal : undefined})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(function(t){ clearTimeout(tm); try{ return JSON.parse(t); }catch(e){ return lvRSS(t); } }, function(e){ clearTimeout(tm); throw (e && e.name === 'AbortError') ? new Error('timed out') : e; }); }
+function lvList(j){ var l = !j ? [] : Array.isArray(j) ? j : (j.events || j.hackathons || j.data || j.items || j.results || []); return Array.isArray(l) ? l : []; }
+function lvFeeds(){ var s = lvMeta('campusloop-feeds'); try{ s += ' ' + (localStorage.getItem('csec_live_feeds') || ''); }catch(e){} return s.split(/\s+/).filter(function(u){ return /^https?:\/\//i.test(u); }); }
+function lvLiveCount(){ return EV.filter(function(x){ return x.live && !lvEnded(x); }).length; }
+function lvStatusHtml(){ var btn = function(l){ return ' <button type="button" class="cn-link" data-lsync="1">' + l + '</button>'; }, n = lvLiveCount();
+  if(LIVE.st === 'off') return 'No live feed connected';
+  if(LIVE.st === 'loading') return n ? 'Updating live events\u2026' : 'Loading live events\u2026';
+  if(LIVE.st === 'error') return 'Live feed unreachable' + (n ? ' \u00b7 showing ' + n + ' saved' : '') + btn('Retry') + lvHealthSum();
+  if(LIVE.ok) return n + ' live \u00b7 updated ' + ago(LIVE.ok).toLowerCase() + btn('Refresh') + lvHealthSum();
+  return btn('Load live events'); }
+function lvStatus(){ var e = document.getElementById('cnElive'); if(e) e.innerHTML = lvStatusHtml(); }
+function lvOpen(x){ try{ window.open(x.reg, '_blank', 'noopener,noreferrer'); }catch(e){ location.href = x.reg; } toast('Opening the official registration page on ' + lvHost(x.reg)); }
+function lvSync(manual){
+  if(LIVE.busy) return; var feeds = lvFeeds();
+  if(!LIVE.api && !feeds.length){ LIVE.st = 'off'; lvStatus(); if(manual) toast('No live feed is connected.', 'err'); return; }
+  LIVE.busy = true; LIVE.st = 'loading'; LIVE.tried = Date.now(); lvStatus();
+  var fresh = [], cnt = {n:0}, errs = [], okN = 0, jobs = [], fh = [], sh = null;
+  /* Each feed is fetched on its own: one that is down never stops the others. */
+  var run = function(u, sid, label, fb){ var t0 = Date.now(); jobs.push(lvGet(u).then(function(j){ okN++; var l = lvList(j), n0 = fresh.length;
+      l.forEach(function(e){ try{ lvIngest(e, sid || (e && e.source) || fb, fresh, cnt); }catch(x){} });
+      if(j && Array.isArray(j.sources)) sh = (sh || []).concat(j.sources.filter(function(s){ return s && s.name; }));
+      fh.push({name:label, url:'', status:l.length ? 'ok' : 'empty', count:l.length, ms:Date.now() - t0}); })
+    .catch(function(e){ var m = (e && e.message) || 'failed', why = /fetch|network|load failed/i.test(m) ? 'the site blocks direct browser access (CORS) or is offline' : m; errs.push(label + ': ' + why); fh.push({name:label, url:'', status:'error', count:0, message:why}); })); };
+  if(LIVE.api) run(LIVE.api.replace(/\/$/, '') + '/events', '', 'CampusLoop feed server (Unstop, Devfolio, Hack Club)', 'api');
+  feeds.forEach(function(u){ run(u, '', /\/api\/public\/events/.test(u) ? 'CampusLoop Event Collector' : lvHost(u), 'custom'); });
+  Promise.all(jobs).then(function(){
+    LIVE.busy = false; LIVE.errs = errs; LIVE.st = okN ? 'ok' : 'error'; if(okN) LIVE.ok = Date.now(); LIVE.feedHealth = fh; if(sh) LIVE.health = sh;
+    try{ localStorage.setItem('csec_live_health', JSON.stringify({h:LIVE.health || [], f:fh})); }catch(e){}
+    lvSave(); if(fresh.length || cnt.n){ eventsChanged(); try{ reshow(); }catch(e){} } else { try{ drawEvents(); }catch(e){ lvStatus(); } }
+    if(errs.length) console.warn('[Events] live sync problems:', errs);
+    if(manual) toast(!okN ? 'Could not reach the live feed. Showing saved listings.' : fresh.length ? fresh.length + ' new event' + (fresh.length > 1 ? 's' : '') + ' found' : cnt.n ? cnt.n + ' event' + (cnt.n > 1 ? 's' : '') + ' updated' : errs.length ? 'Updated, but some feeds had problems' : 'Already up to date', okN ? '' : 'err');
+    else if(fresh.length && LIVE.had) toast(fresh.length + ' new hackathon' + (fresh.length > 1 ? 's' : '') + ' added to Events');
+    LIVE.had = true;
+  });
+}
+function lvStart(){
+  try{ var hc = JSON.parse(localStorage.getItem('csec_live_health') || 'null'); if(hc){ LIVE.health = hc.h || []; LIVE.feedHealth = hc.f || []; } }catch(e){}
+  setTimeout(function(){ lvSync(false); }, 1500);
+  setInterval(function(){ if(!document.hidden) lvSync(false); }, LV_POLL);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden && Date.now() - LIVE.tried > LV_POLL) lvSync(false); });
+  window.addEventListener('online', function(){ if(LIVE.st === 'error') lvSync(false); });
+}
+/* A verified real listing carried over from the source app (official details from imaginecup.microsoft.com). */
+function lvCurated(){ return {id:'imagine27', curated:true, sample:false, t:'Microsoft Imagine Cup 2027', k:'Competition', iso:{date:'2027-02-28', end:'', dl:'2027-02-28'}, mode:'online', loc:'Online \u00b7 Official site (Award Force)', org:'Microsoft Imagine Cup', e:'\ud83c\udfc6',
+  el:'Startups founded on or after Nov 2, 2024 \u00b7 18+', team:'Up to 4 members', d:'Have an idea worth building? Applications are open to startups building software products that solve real problems with AI and Microsoft Azure.',
+  about:'Have an idea worth building? Applications are open to startups building software products that solve real problems with AI and Microsoft Azure.\n\nHow to apply: create an Award Force account on the official site, set up your startup profile, choose a category, complete the eligibility requirements, validate your Azure Subscription ID, and submit before the deadline. Azure progress credits are conditional benefits, not guaranteed.',
+  pz:'Up to $250,000 cash + $1,000,000 Azure credits', tags:['AI/ML', 'Startups'], themes:['Developer Tools', 'Retail', 'Healthcare & Life Sciences', 'Cybersecurity', 'Financial Services', 'Deep Tech + Physical AI', 'Student Startup'],
+  perks:['First: $250,000 cash + $1,000,000 Azure credits', 'Second: $50,000 cash + $350,000 Azure credits', 'Third: $25,000 cash + $350,000 Azure credits', 'Student Startup: $25,000 cash + $250,000 Azure credits', 'Microsoft executive mentoring, startup promotion and visibility'],
+  rules:['Applicants must be at least 18 at entry', 'The startup must be a legal entity founded on or after Nov 2, 2024 and meet Microsoft for Startups requirements', 'A valid Azure Subscription ID for the solution is required', 'Student Startup applicants must meet student enrollment requirements', 'Up to four official team members may register'],
+  dates:[['Registration and submission', 'Nov 2, 2026 to Feb 28, 2027'], ['Expert review', 'Mar 1 to 12, 2027'], ['Category live interviews', 'Mar 16 to 31, 2027'], ['Final judging', 'April 2027'], ['Winners and World Championship', 'May to June 2027']],
+  reg:'https://imaginecup.microsoft.com/', url:'https://imaginecup.microsoft.com/', added:1}; }
+EV.forEach(function(x){ if(x.sample == null) x.sample = true; if(x.added == null) x.added = 0; });
+(function(){ var c = lvCurated(); lvDates(c); if(!lvEnded(c) && lvFind(c) < 0){ lvPic(c); EV.push(c); } })();
+lvRestore();
 
 /* ---------- Posting ---------- */
 var pc = $('#cnPosting'), pf = {cat:'All'}, draft = {tags:[], imgs:[], fls:[]}, pid = 10;
@@ -18001,13 +18304,13 @@ function initReqs(){
 }
 
 /* ---------- Discover → Events ---------- */
-var ec = $('#cnEvents'), ef = {q:'', kind:'', mode:'all', sort:'closing', view:'all'};
+var ec = $('#cnEvents'), ef = {q:'', kind:'', mode:'all', area:'all', more:{}, health:false, sort:'closing', view:'all', dom:'', st:''};
 function fs(o){ return new Date(now + o * D).toLocaleDateString(undefined, {day:'numeric', month:'short'}); }
-function dlInfo(x){ var d = x.dl; if(d == null) return {k:'none', l:'No registration deadline listed', s: x.off >= 0 ? 'event in ' + x.off + ' day' + (x.off === 1 ? '' : 's') : ''}; if(d < 0) return {k:'closed', l:'Registration closed', s:''}; return {k: d <= SOON ? 'soon' : 'open', l:'Register by ' + fs(d), s: d === 0 ? 'closes today' : d + ' day' + (d === 1 ? '' : 's') + ' left'}; }
+function dlInfo(x){ var d = x.dl; if(d == null){ if(lvEnded(x)) return {k:'closed', l:'Event is over', s:''}; return {k:'none', l:'No registration deadline listed', s: x.off >= 0 ? 'event in ' + x.off + ' day' + (x.off === 1 ? '' : 's') : ''}; } if(d < 0) return {k:'closed', l:'Registration closed', s:''}; return {k: d <= SOON ? 'soon' : 'open', l:'Register by ' + fs(d), s: d === 0 ? 'closes today' : d + ' day' + (d === 1 ? '' : 's') + ' left'}; }
 function stLbl(d){ return d.k === 'closed' ? 'Closed' : d.k === 'soon' ? 'Closing soon' : 'Registration open'; }
-function modeLbl(m){ return m === 'online' ? 'Online' : m === 'offline' ? 'Offline' : 'Hybrid'; }
-function modeOk(x){ return ef.mode === 'all' || x.mode === ef.mode || x.mode === 'hybrid'; }
-var KI = {'Hackathon':'trophy', 'Coding Competition':'code', 'Workshop':'tool', 'Seminar':'mic', 'Webinar':'monitor', 'Tech Fest':'star', 'Ideathon':'bulb', 'Conference':'mic', 'College Event':'cal'};
+function modeLbl(m){ return m === 'online' ? 'Online' : m === 'offline' ? 'Offline' : m === 'tbv' ? 'Mode to be verified' : 'Hybrid'; }
+function modeOk(x){ return lvArea(x, ef.area); }
+var KI = {'Hackathon':'trophy', 'Coding Competition':'code', 'Competition':'trophy', 'Workshop':'tool', 'Seminar':'mic', 'Webinar':'monitor', 'Tech Fest':'star', 'Ideathon':'bulb', 'Conference':'mic', 'College Event':'cal'};
 function bigIc(x){ var n = x.tags.indexOf('Cybersecurity') > -1 ? 'shield' : x.tags.indexOf('Hardware & IoT') > -1 ? 'chip' : KI[x.k] || 'cal'; return ic(n); }
 function fdr(x){ return x.ed ? fs(x.off) + ' – ' + fd(x.ed) : fd(x.off); }
 function dlHtml(d){ return '<div class="cn-dl ' + d.k + '">' + ic(d.k === 'closed' ? 'flag' : d.k === 'none' ? 'clock' : 'flag') + '<span><b>' + d.l + '</b>' + (d.s ? ' · <em>' + d.s + '</em>' : '') + '</span></div>'; }
@@ -18024,9 +18327,9 @@ function evCard(x, i){
   var d = dlInfo(x), closed = d.k === 'closed', ini = x.org.split(/\s+/).map(function(w){ return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
   return '<article class="cn-card cn-ev' + (closed ? ' is-closed' : '') + (d.k === 'soon' ? ' is-soon' : '') + '" data-i="' + i + '"><div class="cn-ban ' + banCls(x) + '">' + coverHtml(x) + '<span class="cn-st ' + d.k + '">' + (d.k === 'soon' ? '⏰ ' : '') + stLbl(d) + '</span>' +
    '<button type="button" class="cn-bm" data-bm="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + ': ' + esc(x.t) + '">' + ic('bookmark') + '</button><span class="cn-lab">' + esc(x.k) + '</span></div>' +
-   '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip">' + ic('pin') + modeLbl(x.mode) + '</span>' + x.tags.slice(0, 2).map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
+   '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip' + (x.mode === 'tbv' ? ' cn-tbv' : '') + '">' + ic(x.mode === 'online' ? 'monitor' : 'pin') + modeLbl(x.mode) + '</span>' + (lvGeoLbl(x) ? '<span class="cn-chip cn-geo ' + lvGeo(x).t + '">' + esc(lvGeoLbl(x)) + '</span>' : '') + lvBadge(x) + x.tags.slice(0, 1).map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
    '<h3><button type="button" class="cn-tl" data-e="' + i + '">' + esc(x.t) + '</button></h3><div class="cn-org"><span class="cn-om" aria-hidden="true">' + esc(ini) + '</span>' + esc(x.org) + '</div>' + dlHtml(d) + metaHtml(x) +
-   (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : 'Register') + '</button></div>') + '</div></article>';
+   (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : x.live && hkUrl(x.reg) ? 'Register ↗' : 'Register') + '</button></div>') + '</div></article>';
 }
 function updates(){
   var l = [];
@@ -18037,22 +18340,40 @@ function savedCount(){ var n = 0; for(var k in bm) if(bm[k]) n++; return n; }
 function drawEvents(){
   var saved = ef.view === 'saved';
   var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return !saved || bm[o.i]; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
-  var cnt = {all:all.length, online:all.filter(function(o){ return o.x.mode !== 'offline'; }).length, offline:all.filter(function(o){ return o.x.mode !== 'online'; }).length}, kc = {};
+  var ac = {}, kc = {}; LV_AREAS.forEach(function(a){ ac[a[0]] = all.filter(function(o){ return lvArea(o.x, a[0]); }).length; });
   base.forEach(function(o){ kc[o.x.k] = (kc[o.x.k] || 0) + 1; });
-  var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!q || [x.t, x.org, x.k, x.d, x.loc].join(' ').toLowerCase().indexOf(q) > -1); });
-  l.sort(function(a, b){ var ca = dlInfo(a.x).k === 'closed', cb = dlInfo(b.x).k === 'closed'; if(ca !== cb) return ca - cb; return ef.sort === 'upcoming' ? a.x.off - b.x.off : (a.x.dl == null ? 99 : a.x.dl) - (b.x.dl == null ? 99 : b.x.dl); });
+  /* Search covers event name, college/organiser, city, state, venue and technology domain. */
+  var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!ef.dom || lvDoms(x).indexOf(ef.dom) > -1) && lvPass(x, ef.st) && (!q || [x.t, x.org, x.k, x.d, x.loc, x.venue || '', x.city || '', x.state || '', x.country || '', lvGeo(x).place || '', (x.tags || []).join(' '), (x.themes || []).join(' '), lvDoms(x).join(' '), x.srcName || ''].join(' ').toLowerCase().indexOf(q) > -1); });
   var up = [];   /* Updates card removed from Events */
   $('#cnEview').innerHTML = [['all', 'All events', EV.length], ['saved', 'Saved', savedCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
   $('#cnEupd').innerHTML = up.length ? '<div class="cn-card cn-upd"><h3>' + ic('clock') + 'Updates</h3>' + up.map(function(u){ return '<button type="button" data-e="' + u.i + '">' + ic(u.ic) + '<span><b>' + esc(u.t) + '</b><em>' + u.s + '</em></span></button>'; }).join('') + '</div>' : '';
-  $('#cnEmode').innerHTML = [['all', 'All'], ['online', 'Online'], ['offline', 'Offline']].map(function(m){ return '<button type="button" data-em="' + m[0] + '" aria-pressed="' + (ef.mode === m[0]) + '">' + m[1] + '<span class="n">' + cnt[m[0]] + '</span></button>'; }).join('');
+  $('#cnEmode').innerHTML = LV_AREAS.map(function(m){ return '<button type="button" data-ea="' + m[0] + '" aria-pressed="' + (ef.area === m[0]) + '">' + m[1] + '<span class="n">' + ac[m[0]] + '</span></button>'; }).join('');
   var ceb = $('#cnEchips .cn-chipbar'), csl = ceb ? ceb.scrollLeft : 0;
   $('#cnEchips').innerHTML = chipbar('Filter by event type', [''].concat(EKINDS.filter(function(k){ return kc[k]; })), ef.kind ? [ef.kind] : [], 'data-ek', kc);
   ceb = $('#cnEchips .cn-chipbar'); if(ceb) ceb.scrollLeft = csl;
-  var any = ef.q || ef.kind;
-  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
-  $('#cnEgrid').innerHTML = l.map(function(o){ return evCard(o.x, o.i); }).join('');
+  var dsel = $('#cnEdom'); if(dsel){ var dc = {}; base.forEach(function(o){ lvDoms(o.x).forEach(function(t){ dc[t] = (dc[t] || 0) + 1; }); }); var dl_ = LV_DOMAINS.map(function(z){ return z[0]; }).filter(function(t){ return dc[t]; }); if(ef.dom && dl_.indexOf(ef.dom) < 0) dl_.push(ef.dom);
+    dsel.innerHTML = '<option value="">All domains</option>' + dl_.map(function(t){ return '<option value="' + esc(t) + '"' + (ef.dom === t ? ' selected' : '') + '>' + esc(t) + ' (' + (dc[t] || 0) + ')</option>'; }).join(''); }
+  var any = ef.q || ef.kind || ef.dom || ef.st || ef.area !== 'all';
+  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span><span id="cnElive">' + lvStatusHtml() + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  var hb = $('#cnEhealth'); if(hb) hb.innerHTML = ef.health ? '<div class="cn-card cn-hlbox"><h3>' + ic('flag') + 'Event sources</h3>' + lvHealthHtml() + '</div>' : '';
+  /* Sections in strict order: Mysuru, nearby, Karnataka, rest of India, online, to verify, international. */
+  var groups = {}; LV_TIERS.forEach(function(t){ groups[t[0]] = []; });
+  l.forEach(function(o){ groups[lvGeo(o.x).t].push(o); });
+  var show = lvAreaSecs(ef.area), html = '';
+  LV_TIERS.forEach(function(t){
+    var id = t[0], g = groups[id]; if(show.indexOf(id) < 0) return;
+    if(!g.length && (saved || q || ef.kind || ef.dom || ef.st || ef.area === 'hybrid' || ef.area === 'offline' && id === 'verify')) return;
+    g.sort(function(a, b){ return lvSecCmp(a.x, b.x); });
+    var open = !!ef.more[id], vis = open ? g : g.slice(0, LV_SEC_N);
+    html += '<section class="cn-evsec" data-sec="' + id + '" aria-labelledby="cnEs_' + id + '"><div class="cn-evsec-h"><div><h3 id="cnEs_' + id + '">' + esc(t[1]) + ' <span class="n">' + g.length + '</span></h3><p>' + esc(t[2]) + '</p></div>' +
+      (g.length > LV_SEC_N ? '<button type="button" class="cn-link" data-emore="' + id + '" aria-expanded="' + open + '">' + (open ? 'Show fewer' : 'View all ' + g.length) + '</button>' : '') + '</div>' +
+      (g.length ? '<div class="cn-grid">' + vis.map(function(o){ return evCard(o.x, o.i); }).join('') + '</div>' :
+        '<div class="cn-secempty"><b>' + (q ? 'No matches here' : id === 'mysuru' ? 'No Mysuru hackathons listed right now' : id === 'nearby' ? 'No hackathons near Mysuru listed right now' : 'Nothing listed here right now') + '</b>' +
+        (lvDiscFor(id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
+  });
+  $('#cnEgrid').innerHTML = html + (l.length && !saved ? '<div class="cn-evsec cn-discall"><div class="cn-evsec-h"><div><h3>Browse more hackathons</h3><p>Official listing pages, including sites without a live feed.</p></div></div>' + lvDiscHtml(LV_DISCOVER.local.concat(LV_DISCOVER.india, LV_DISCOVER.world.slice(0, 1).concat(LV_DISCOVER.online.slice(1, 2)))) + '</div>' : '');
   $('#cnEempty').innerHTML = l.length ? '' : saved && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
-    empty(saved ? '🔖' : '📅', saved ? 'No saved events match' : 'No events found', ef.mode !== 'all' || any ? 'Nothing matches right now. Try another type or clear the filters.' : 'No events are listed yet. Check back soon.', any || ef.mode !== 'all' ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
+    empty(saved ? '🔖' : '📅', saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. Check back soon.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
 }
 function evSec(t, h){ return '<div><div class="cn-sub">' + t + '</div>' + h + '</div>'; }
 function evFact(l, v){ return v ? '<div class="cn-fact"><span>' + l + '</span><b>' + esc(v) + '</b></div>' : ''; }
@@ -18147,7 +18468,7 @@ function eventModalOld(i){
 /* ---- Event detail page (full-screen, responsive) ---- */
 function evFlag(key, id, on){ var a; try{ a = JSON.parse(localStorage.getItem(key)) || []; }catch(e){ a = []; } var k = a.indexOf(id); if(on === undefined) return k > -1; if(on && k < 0) a.push(id); if(!on && k > -1) a.splice(k, 1); try{ localStorage.setItem(key, JSON.stringify(a)); }catch(e){} return on; }
 function evIcs(i){ var x = EV[i], st = new Date(now + x.off * D), en = new Date(now + (x.ed != null ? x.ed : x.off) * D + 864e5), f = function(d){ return d.toISOString().slice(0, 10).replace(/-/g, ''); };
-  var t = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Campus Loop//EN', 'BEGIN:VEVENT', 'UID:' + evId(x) + '@campusloop', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]|\.\d+/g, ''), 'DTSTART;VALUE=DATE:' + f(st), 'DTEND;VALUE=DATE:' + f(en), 'SUMMARY:' + String(x.t).replace(/[,;\n]/g, ' '), 'LOCATION:' + String(x.loc || modeLbl(x.mode)).replace(/[,;\n]/g, ' '), 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  var t = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Campus Loop//EN', 'BEGIN:VEVENT', 'UID:' + evId(x) + '@campusloop', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]|\.\d+/g, ''), 'DTSTART;VALUE=DATE:' + f(st), 'DTEND;VALUE=DATE:' + f(en), 'SUMMARY:' + String(x.t).replace(/[,;\n]/g, ' '), 'LOCATION:' + String(x.loc || modeLbl(x.mode)).replace(/[,;\n]/g, ' '), hkUrl(x.reg || x.url) ? 'URL:' + (x.reg || x.url) : '', 'END:VEVENT'].concat(x.dl != null && x.dl >= 0 ? ['BEGIN:VEVENT', 'UID:' + evId(x) + '-dl@campusloop', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]|\.\d+/g, ''), 'DTSTART;VALUE=DATE:' + f(new Date(now + x.dl * D)), 'DTEND;VALUE=DATE:' + f(new Date(now + (x.dl + 1) * D)), 'SUMMARY:Registration closes: ' + String(x.t).replace(/[,;\n]/g, ' '), 'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:Registration closes tomorrow', 'END:VALARM', 'END:VEVENT'] : []).concat(['END:VCALENDAR']).filter(Boolean).join('\r\n');
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], {type: 'text/calendar'})); a.download = evId(x) + '.ics'; document.body.appendChild(a); a.click(); a.remove(); }
 function evPage(i){
   var x = EV[i], d = dlInfo(x), closed = d.k === 'closed', sp = {}; try{ sp = hkSplit(x) || {}; }catch(e){}
@@ -18168,14 +18489,18 @@ function evPage(i){
   var fact = function(ic_, l, v, sub){ return v ? '<div class="ep-fact"><span class="ep-fi">' + ic(ic_) + '</span><div><small>' + l + '</small><b>' + esc(v) + '</b>' + (sub ? '<em>' + esc(sub) + '</em>' : '') + '</div></div>' : ''; };
   var team = sp.team || x.team, elig = sp.elig || x.el;
   var facts = fact('flag', 'Registration deadline', x.dl == null ? 'Not listed' : fd(x.dl), d.s) + fact('cal', 'Event date', fdr(x), x.off >= 0 ? 'Starts in ' + x.off + ' day' + (x.off === 1 ? '' : 's') : '') +
-    fact(x.mode === 'online' ? 'monitor' : 'pin', x.mode === 'online' ? 'Platform' : 'Location', x.loc || modeLbl(x.mode)) + fact('clock', 'Duration', x.dur) + fact('users', 'Team size', team || 'Solo or team') +
-    fact('trophy', 'Prizes', x.pz) + fact('star', 'Entry fee', x.fee) + fact('flag', 'Eligibility', elig || 'Open to college students');
+    fact(x.mode === 'online' ? 'monitor' : 'pin', x.mode === 'online' ? 'Platform' : 'Location', x.loc || modeLbl(x.mode), lvGeo(x).t === 'nearby' && lvGeo(x).km != null ? '\u2248' + lvGeo(x).km + ' km from Mysuru (straight line)' : '') +
+    fact('pin', 'City and state', x.mode === 'online' ? '' : [x.city, x.state, x.country && !/^(india|in)$/i.test(x.country) ? x.country : ''].filter(Boolean).join(', ')) +
+    fact('monitor', 'Participation', modeLbl(x.mode), x.mode === 'tbv' ? 'Check the official page' : x.mode === 'hybrid' ? 'Online and in person' : '') +
+    fact('star', 'Listed on', x.sources && x.sources.length ? x.sources.map(function(s){ return s.name; }).join(', ') : x.live ? x.srcName : '') + fact('clock', 'Duration', x.dur) + fact('users', 'Team size', team || 'Solo or team') +
+    fact('trophy', 'Prizes', x.pz) + fact('star', 'Entry fee', x.fee) + fact('flag', 'Eligibility', elig || 'Not announced');
   var tl = [[d.k === 'closed' ? 'Registration closed' : 'Registration closes', x.dl == null ? 'Not listed' : fd(x.dl) + (d.s ? ' · ' + d.s : ''), 'next'], [(x.k || 'Event') + ' ' + (x.ed != null ? 'starts' : 'day'), fd(x.off), '']];
   if(x.ed != null) tl.push([(x.k || 'Event') + ' ends', fd(x.ed), '']);
   (x.dates || []).concat(x.sched || []).forEach(function(r){ tl.push([r[0], r[1], '']); });
   var sec = function(t, ic_, body){ return body ? '<section class="ep-card"><h3>' + ic(ic_) + t + '</h3>' + body + '</section>' : ''; };
   var list = function(a){ return a && a.length ? '<ul class="ep-ul">' + a.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : ''; };
-  var links = []; if(x.reg) links.push(['Official registration page', x.reg]); if(x.url) links.push(['Official website', x.url]);
+  var links = []; if(x.reg) links.push(['Official registration page', x.reg]); if(x.url && lvUrlKey(x.url) !== lvUrlKey(x.reg)) links.push(['Official website', x.url]);
+  (x.sources || []).forEach(function(s){ if(s.url && !links.some(function(k){ return lvUrlKey(k[1]) === lvUrlKey(s.url); })) links.push(['Listed on ' + s.name, s.url]); });
   var linkHtml = links.map(function(l){ var h = ''; try{ h = new URL(l[1]).hostname; }catch(e){} return '<a class="ep-link" href="' + esc(l[1]) + '" target="_blank" rel="noopener noreferrer"><span><b>' + l[0] + '</b><small>' + esc(h) + '</small></span>↗</a>'; }).join('');
   var teamsReg = []; try{ var rs = rgAll(); (JSON.parse(localStorage.getItem('csec_myteams')) || []).forEach(function(t){ if(rs[id] && rs[id].tid === t.id) teamsReg.push(t); }); }catch(e){}
   var teamsHtml = teamsReg.length ? teamsReg.map(function(t){ return '<div class="ep-team"><b>' + esc(t.name) + '</b><small>' + (1 + (t.members || []).length) + ' members · registered</small></div>'; }).join('') : '<p class="ep-mute">No teams have registered for this event yet.</p>';
@@ -18183,11 +18508,11 @@ function evPage(i){
   var banStyle = x.img ? ' style="background-image:url(' + esc(x.img) + ');background-position:' + esc(x.pos || 'center') + '"' : '';
   ov.innerHTML = '<div class="ep-bar"><button type="button" data-ep="back">← All opportunities</button></div><div class="ep-wrap">' +
    '<div class="ep-hero"><div class="ep-ban"' + banStyle + '><span class="ep-st ' + d.k + '">' + (d.k === 'soon' ? '⏰ ' : '') + esc(stLbl(d)) + '</span></div>' +
-   '<div class="ep-hb"><div class="ep-logo">' + logo + '</div><div class="ep-chips">' + chip(ic(x.mode === 'online' ? 'monitor' : 'pin') + esc(modeLbl(x.mode)), 'alt') + chip(esc(x.k || 'Event')) + tags.slice(0, 4).map(function(t){ return chip(esc(t)); }).join('') + '</div>' +
+   '<div class="ep-hb"><div class="ep-logo">' + logo + '</div><div class="ep-chips">' + chip(ic(x.mode === 'online' ? 'monitor' : 'pin') + esc(modeLbl(x.mode)), 'alt') + chip(esc(x.k || 'Event')) + lvBadge(x, 1) + tags.slice(0, 4).map(function(t){ return chip(esc(t)); }).join('') + '</div>' +
    '<h1>' + esc(x.t) + '</h1><div class="ep-org">Organised by <b>' + esc(x.org || 'Campus Loop') + '</b></div>' +
    '<div class="ep-dl ' + d.k + '">' + ic('flag') + '<b>' + esc(d.l) + '</b>' + (d.s ? '<em>' + esc(d.s) + '</em>' : '') + '</div>' +
    (rg ? '<div class="ep-reg">✓ You are registered · ' + (rg.type === 'team' ? 'Team: ' + esc(rg.team) : 'Solo') + '</div>' : '') +
-   '<div class="ep-acts">' + (closed ? '' : '<button type="button" class="ep-b pri" data-ep="reg">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register now') + '</button>') +
+   '<div class="ep-acts">' + (closed ? '' : '<button type="button" class="ep-b pri" data-ep="reg">' + (reg[i] ? '✓ Registered (tap to undo)' : x.live && hkUrl(x.reg) ? 'Register now ↗' : 'Register now') + '</button>') +
    '<button type="button" class="ep-b" data-ep="save">' + (bm[i] ? '🔖 Saved' : '🔖 Save') + '</button><button type="button" class="ep-b' + (inter ? ' on' : '') + '" data-ep="int">' + (inter ? '★ Interested' : '☆ Interested') + '</button>' +
    '<button type="button" class="ep-b" data-ep="mates">Find teammates</button><button type="button" class="ep-b" data-ep="share">Share</button><button type="button" class="ep-b" data-ep="cal">Add to calendar</button><button type="button" class="ep-b' + (rem ? ' on' : '') + '" data-ep="rem">' + (rem ? '🔔 Reminder on' : '🔔 Remind me') + '</button></div></div></div>' +
    '<div class="ep-facts">' + facts + '</div><div class="ep-cols"><div class="ep-main">' +
@@ -18200,7 +18525,7 @@ function evPage(i){
    '</div><aside class="ep-side">' + sec('Important links', 'flag', linkHtml || '<p class="ep-mute">No official links listed yet.</p>') +
    sec('Teams for this event', 'users', teamsHtml + '<div class="ep-acts"><button type="button" class="ep-b pri" data-ep="newteam">+ Create a team</button><button type="button" class="ep-b" data-ep="mates">Find students</button></div>') +
    (x.contact || x.phone ? sec('Contact', 'bulb', '<p class="ep-p">' + (x.contact ? '<a href="mailto:' + esc(x.contact) + '">' + esc(x.contact) + '</a>' : '') + (x.phone ? '<br>' + esc(x.phone) : '') + '</p>') : '') +
-   '</aside></div><p class="ep-demo">Demo: registration, saves and reminders are stored on this device only.</p></div>';
+   '</aside></div><p class="ep-demo">' + (x.live ? 'Live listing from ' + esc(x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') + '. Register on the official page; saves and reminders are stored on this device only.' : x.curated ? 'Curated listing from the official website. Register there; saves and reminders are stored on this device only.' : 'Sample listing. Demo: registration, saves and reminders are stored on this device only.') + '</p></div>';
   ov.classList.add('on'); document.body.classList.add('cl-ov-open'); ov.scrollTop = keep;
 }
 function epClose(){ var ov = document.getElementById('evPage'); if(ov) ov.classList.remove('on'); document.body.classList.remove('cl-ov-open'); cur = null; }
@@ -18249,24 +18574,31 @@ function rgChoose(i){
   });
   document.body.appendChild(o); draw();
 }
-function toggleReg(i){ if(reg[i]){ reg[i] = false; rgSet(evId(EV[i]), null); drawEvents(); reshow(); toast('Registration cancelled'); } else rgChoose(i); }
+function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated) && !reg[i] && hkUrl(lx.reg)) return lvOpen(lx); if(reg[i]){ reg[i] = false; rgSet(evId(EV[i]), null); drawEvents(); reshow(); toast('Registration cancelled'); } else rgChoose(i); }
 function initEvents(){
   ec.innerHTML = 
    '<div class="cn-seg" id="cnEview" role="group" aria-label="Show events" style="margin-bottom:12px"></div>' +
-   '<div class="cn-seg" id="cnEmode" role="group" aria-label="Event mode" style="margin-bottom:12px"></div>' +
-   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search by event, organiser or topic" autocomplete="off"></div>' +
-   '<select class="cn-in cn-sel" id="cnEsort" aria-label="Sort events"><option value="closing">Closing soon</option><option value="upcoming">Starting soon</option></select></div>' +
-   '<div id="cnEupd"></div><div id="cnEchips"></div><div class="cn-sum" id="cnEsum" aria-live="polite"></div><div class="cn-grid" id="cnEgrid"></div><div id="cnEempty"></div>';
+   '<div class="cn-seg cn-areas" id="cnEmode" role="group" aria-label="Filter by mode or place" style="margin-bottom:12px"></div>' +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search event, college, organiser, city or tech" autocomplete="off"></div>' +
+   '<select class="cn-in cn-sel" id="cnEsort" aria-label="Sort events"><option value="closing">Closing soon</option><option value="upcoming">Starting soon</option><option value="recent">Recently added</option><option value="prize">Highest prize</option></select>' +
+   '<select class="cn-in cn-sel" id="cnEdom" aria-label="Filter by domain"><option value="">All domains</option></select>' +
+   '<select class="cn-in cn-sel" id="cnEst" aria-label="Filter by status, deadline or prize">' + lvFilterOpts() + '</select></div>' +
+   '<div id="cnEupd"></div><div id="cnEchips"></div><div class="cn-sum" id="cnEsum" aria-live="polite"></div><div id="cnEhealth"></div><div class="cn-evsecs" id="cnEgrid"></div><div id="cnEempty"></div>';
   loadSaved(); drawEvents();
   $('#cnEq').addEventListener('input', function(e){ ef.q = e.target.value.trim(); drawEvents(); });
   $('#cnEsort').addEventListener('change', function(e){ ef.sort = e.target.value; drawEvents(); });
+  $('#cnEdom').addEventListener('change', function(e){ ef.dom = e.target.value; drawEvents(); });
+  $('#cnEst').addEventListener('change', function(e){ ef.st = e.target.value; drawEvents(); });
   ec.addEventListener('click', function(e){
     var b = e.target.closest('button');
     if(!b){ var cd = e.target.closest('.cn-ev'); if(cd && cd.dataset.i != null && !e.target.closest('a')) eventModal(+cd.dataset.i); return; }
+    if(b.dataset.lsync) return lvSync(true);
     if(b.dataset.ev){ ef.view = b.dataset.ev; return drawEvents(); }
-    if(b.dataset.em){ ef.mode = b.dataset.em; return drawEvents(); }
+    if(b.dataset.ea){ ef.area = b.dataset.ea; ef.more = {}; return drawEvents(); }
+    if(b.dataset.emore){ ef.more[b.dataset.emore] = !ef.more[b.dataset.emore]; drawEvents(); var sc = ec.querySelector('[data-sec="' + b.dataset.emore + '"]'); if(sc && !ef.more[b.dataset.emore]) sc.scrollIntoView({block:'nearest'}); return; }
+    if(b.dataset.lhealth){ ef.health = !ef.health; return drawEvents(); }
     if(b.dataset.ek != null){ ef.kind = ef.kind === b.dataset.ek ? '' : b.dataset.ek; return drawEvents(); }
-    if(b.dataset.reset){ ef = {q:'', kind:'', mode:'all', sort:'closing', view:ef.view}; $('#cnEq').value = ''; $('#cnEsort').value = 'closing'; return drawEvents(); }
+    if(b.dataset.reset){ ef = {q:'', kind:'', mode:'all', area:'all', more:{}, health:ef.health, sort:'closing', view:ef.view, dom:'', st:''}; $('#cnEq').value = ''; $('#cnEsort').value = 'closing'; $('#cnEdom').value = ''; $('#cnEst').value = ''; return drawEvents(); }
     if(b.dataset.bm != null) return toggleSave(+b.dataset.bm);
     if(b.dataset.e != null) return eventModal(+b.dataset.e);
     if(b.dataset.r != null) toggleReg(+b.dataset.r);
@@ -18778,7 +19110,8 @@ function renderSavedCard(){
     if(t.dataset.svr != null){ var i = +t.dataset.svr; bm[i] = false; persistSaved(); return drawEvents(); }
     if(t.dataset.svall) showSaved(); });
 })();
-window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved };
+window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
+lvStart();
 try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   // Home may have rendered before Connect finished loading
 
 })();

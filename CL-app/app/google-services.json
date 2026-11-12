@@ -12,7 +12,20 @@
           "package_name": "com.study.csehub"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "221968776813-7o5hn7pd90bbh9p7dqhsidnk9bi369mq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.study.csehub",
+            "certificate_hash": "4c8be62e20d84dee08297be6096fdc02094bf2ee"
+          }
+        },
+        {
+          "client_id": "221968776813-kihimmrh4j0oopma4jnber26bjt6162f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBqz0iPQKnd1J-QtvbqpGMafYvKzZJIznY"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "221968776813-kihimmrh4j0oopma4jnber26bjt6162f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
