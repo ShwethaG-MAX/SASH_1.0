@@ -18165,22 +18165,25 @@ function publishMe(){
     if(BR.indexOf(br) < 0) br = '';
     var key = u.uid + '|' + nm + '|' + yr + '|' + br; if(key === pubKey) return; pubKey = key;
     var doc = {name:nm, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}; if(yr) doc.year = yr; if(br) doc.branch = br;
-    db.collection('publicProfiles').doc(u.uid).set(doc).catch(function(e){ pubKey = ''; console.warn('[Connect] could not publish profile', e && e.code); });
+    db.collection('publicProfiles').doc(u.uid).set(doc, {merge:true}).catch(function(e){ pubKey = ''; console.warn('[Connect] could not publish profile', e && e.code); });
   }catch(e){ pubKey = ''; }
 }
+var PD = {}, PL = null, PLuid = '';
 function loadPeople(){
-  if(PBusy) return;
   var db = fb(), u = fbUser();
   if(!db || !u) return setPS('wait');                 /* Firebase / sign-in not ready yet: retried by the timer below */
   if(u.isAnonymous) return setPS('guest');
-  if(PS === 'ok' && Date.now() - PT < 60000) return;
-  PBusy = true; if(PS !== 'ok') setPS('loading');
+  if(PL && PLuid === u.uid) return;
+  if(PL){ try{ PL(); }catch(e){} PL = null; }
+  PLuid = u.uid; if(PS !== 'ok') setPS('loading');
   publishMe();
-  db.collection('publicProfiles').orderBy('name').limit(500).get().then(function(snap){
-    PF = snap.docs.map(function(d){ var x = d.data() || {}, n = String(x.name || '').trim(); return n ? [n, x.branch || '', +x.year || 0, [], [], '', '?', d.id] : null; }).filter(Boolean);
-    PT = Date.now(); PS = 'ok';
-  }).catch(function(e){ console.warn('[Connect] could not load students (is the publicProfiles rule published?)', e && e.code); PS = 'err'; })
-  .then(function(){ PBusy = false; drawPeople(); });
+  PL = db.collection('publicProfiles').orderBy('name').limit(500).onSnapshot(function(snap){
+    PD = {};
+    PF = snap.docs.map(function(d){ var x = d.data() || {}, n = String(x.name || '').trim(); if(!n) return null; PD[d.id] = x;
+      var sk = (x.skills || []).map(function(a){ return String(a && a.n || a || ''); }).filter(Boolean), pr = (x.projects || [])[0];
+      return [n, x.branch || '', +x.year || 0, sk, (x.interests || []).map(String), String(x.bio || x.headline || ''), pr && pr.title ? String(pr.title) : '', d.id]; }).filter(Boolean);
+    PT = Date.now(); PS = 'ok'; drawPeople();
+  }, function(e){ console.warn('[Connect] could not load students (is the publicProfiles rule published?)', e && e.code); PL = null; PS = 'err'; drawPeople(); });
 }
 setInterval(function(){ publishMe(); connTick(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
 
@@ -18305,7 +18308,9 @@ function initConn(){
 function connOpened(){ drawConn(); markRead(); loadSug(); }
 /* Small bridge so the separate peer-profile overlay uses the same real connection state. */
 var cnWatch = null;
+window.cnPeerDoc = function(u){ return PD[u] || null; };
 window.cnConn = {
+  count:function(){ return CS.connL.length; },
   label:function(u){ var q = cState(u); return q === 'conn' ? '\u2713 Connected' : q === 'out' ? '\u2713 Request sent' : q === 'inc' ? 'Accept request' : 'Connect'; },
   act:function(u){ if(cState(u) === 'conn') return; if(cState(u) === 'inc') return cAct('connRespond', {from:u, accept:true}, 'Connected'); doConnect(u); },
   watch:function(f){ cnWatch = f; }
@@ -18700,7 +18705,7 @@ function evPage(i){
    '</div><aside class="ep-side">' + sec('Important links', 'flag', linkHtml || '<p class="ep-mute">No official links listed yet.</p>') +
    sec('Teams for this event', 'users', teamsHtml + '<div class="ep-acts"><button type="button" class="ep-b pri" data-ep="newteam">+ Create a team</button><button type="button" class="ep-b" data-ep="mates">Find students</button></div>') +
    (x.contact || x.phone ? sec('Contact', 'bulb', '<p class="ep-p">' + (x.contact ? '<a href="mailto:' + esc(x.contact) + '">' + esc(x.contact) + '</a>' : '') + (x.phone ? '<br>' + esc(x.phone) : '') + '</p>') : '') +
-   '</aside></div><p class="ep-demo">' + (x.live ? 'Live listing from ' + esc(x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') + '. Register on the official page; saves and reminders are stored on this device only.' : x.curated ? 'Curated listing from the official website. Register there; saves and reminders are stored on this device only.' : 'Sample listing. Demo: registration, saves and reminders are stored on this device only.') + '</p></div>';
+   '</aside></div><p class="ep-demo">' + (x.manual ? 'Listed by the Campus Loop team. Register on the official page; saves and reminders are stored on this device only.' : x.live ? 'Live listing from ' + esc(x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') + '. Register on the official page; saves and reminders are stored on this device only.' : x.curated ? 'Curated listing from the official website. Register there; saves and reminders are stored on this device only.' : 'Sample listing. Demo: registration, saves and reminders are stored on this device only.') + '</p></div>';
   ov.classList.add('on'); document.body.classList.add('cl-ov-open'); ov.scrollTop = keep;
 }
 function epClose(){ var ov = document.getElementById('evPage'); if(ov) ov.classList.remove('on'); document.body.classList.remove('cl-ov-open'); cur = null; }
@@ -18750,6 +18755,117 @@ function rgChoose(i){
   document.body.appendChild(o); draw();
 }
 function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated) && !reg[i] && hkUrl(lx.reg)) return lvOpen(lx); if(reg[i]){ reg[i] = false; rgSet(evId(EV[i]), null); drawEvents(); reshow(); toast('Registration cancelled'); } else rgChoose(i); }
+/* ---------- Admin-managed hackathons: Firestore `manualHackathons` (rules: public reads published, only the admin/owner writes) ---------- */
+var MH = {docs: {}, un: null, mode: '', errMode: ''}, MHo = {uid: '', own: false};
+function mhDb(){ try{ return firebase.apps.length ? firebase.firestore() : null; }catch(e){ return null; } }
+function mhLines(a){ return Array.isArray(a) ? a.map(String) : []; }
+function mhRec(id, x){
+  if(!x || x.published !== true || !x.title || !/^\d{4}-\d{2}-\d{2}$/.test(x.startDate || '')) return null;
+  var end = /^\d{4}-\d{2}-\d{2}$/.test(x.endDate || '') && x.endDate >= x.startDate ? x.endDate : '', dl = /^\d{4}-\d{2}-\d{2}$/.test(x.deadline || '') ? x.deadline : '';
+  var mode = x.mode === 'online' || x.mode === 'offline' || x.mode === 'hybrid' ? x.mode : 'tbv', place = [x.venue, x.city, x.state].filter(Boolean).join(', ');
+  var o = {id: 'mh-' + id, mhId: id, manual: true, curated: true, sample: false, src: 'manual', srcName: 'Campus Loop', t: String(x.title).slice(0, 120), k: x.kind || 'Hackathon', iso: {date: x.startDate, end: end, dl: dl}, mode: mode,
+    loc: mode === 'online' ? 'Online' : mode === 'hybrid' ? (place ? place + ' + online' : 'Online and in person') : (place || 'Venue not announced'),
+    org: x.organizer || 'Campus Loop', e: '🏆', el: x.eligibility || 'See the official page', d: x.shortDesc || '', about: x.about || x.shortDesc || '', pz: x.prize || '', fee: x.fee || '', team: x.teamSize || '',
+    tags: [], themes: mhLines(x.themes), problems: mhLines(x.problems), rules: mhLines(x.rules), perks: mhLines(x.perks),
+    dates: mhLines(x.dates).map(function(r){ var p = r.split('|'); return [p[0].trim(), p.slice(1).join('|').trim()]; }),
+    reg: x.regUrl || '', url: x.website || '', contact: x.contactEmail || '', phone: x.contactPhone || '', added: tms(x.createdAt) || 1};
+  if(x.venue) o.venue = x.venue; if(x.city) o.city = x.city; if(x.state) o.state = x.state;
+  lvDates(o); if(lvEnded(o)) return null; lvPic(o); return o;
+}
+function mhApply(){
+  var sv = {}, rg = {}; EV.forEach(function(x, i){ if(bm[i]) sv[evId(x)] = 1; if(reg[i]) rg[evId(x)] = 1; });
+  EV = EV.filter(function(x){ return !x.manual; });
+  Object.keys(MH.docs).forEach(function(id){ var r = mhRec(id, MH.docs[id]); if(r) EV.push(r); });
+  bm = {}; reg = {}; EV.forEach(function(x, i){ if(sv[evId(x)]) bm[i] = true; if(rg[evId(x)]) reg[i] = true; });
+  eventsChanged(); mhList();
+}
+function mhOwnerCheck(cb){
+  var u = null; try{ u = firebase.auth().currentUser; }catch(e){}
+  if(!u || u.isAnonymous){ MHo = {uid: '', own: false}; return cb(); }
+  if(MHo.uid === u.uid) return cb();
+  MHo = {uid: u.uid, own: false}; u.getIdTokenResult().then(function(r){ MHo.own = r.claims.owner === true; cb(); }, function(){ cb(); });
+}
+function mhTick(){
+  var db = mhDb(); if(!db) return;
+  mhOwnerCheck(function(){
+    var mode = MHo.own ? 'all' : 'pub';
+    if(MH.mode !== mode && MH.errMode !== mode){
+      if(MH.un){ try{ MH.un(); }catch(e){} } MH.mode = mode; MH.docs = {};
+      var q = mode === 'all' ? db.collection('manualHackathons') : db.collection('manualHackathons').where('published', '==', true);
+      MH.un = q.onSnapshot(function(sn){ MH.docs = {}; sn.docs.forEach(function(d){ MH.docs[d.id] = d.data(); }); mhApply(); },
+        function(e){ console.warn('[Hackathons] listener failed (is the manualHackathons rule published?)', e && e.code); MH.errMode = mode; MH.mode = ''; });
+    }
+    var bar = document.getElementById('mhBar'); if(bar) bar.style.display = MHo.own ? '' : 'none';
+    if(!MHo.own){ var o = document.getElementById('mhOv'); if(o) o.remove(); }
+  });
+}
+function mhTxt(id, label, val, extra){ return '<div class="mt-f"><label class="cn-lbl" for="' + id + '">' + label + '</label><input class="cn-in" id="' + id + '" value="' + esc(val || '') + '" ' + (extra || '') + '></div>'; }
+function mhArea(id, label, val, hint, rows){ return '<div class="mt-f"><label class="cn-lbl" for="' + id + '">' + label + (hint ? ' <span class="opt">(' + hint + ')</span>' : '') + '</label><textarea class="cn-in" id="' + id + '" rows="' + (rows || 3) + '">' + esc(val || '') + '</textarea></div>'; }
+function mhOv(html){
+  var o = document.getElementById('mhOv'); if(!o){ o = document.createElement('div'); o.id = 'mhOv'; o.className = 'mh-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); document.body.appendChild(o); }
+  o.innerHTML = '<div class="cn-card mh-box">' + html + '</div>'; document.body.classList.add('cn-modal-open'); return o;
+}
+function mhClose(){ var o = document.getElementById('mhOv'); if(o) o.remove(); document.body.classList.remove('cn-modal-open'); }
+function mhForm(id){
+  var x = id ? (MH.docs[id] || {}) : {}, kinds = Object.keys(KI);
+  var h = '<form id="mhForm" novalidate><div class="mt-mh"><h2>' + (id ? 'Edit hackathon' : 'Add hackathon') + '</h2><p>Visible to every student once published.</p><button type="button" class="mt-x" data-mh="close" aria-label="Close">' + ic('x') + '</button></div><div class="mt-mb">' +
+    mhTxt('mhTitle', 'Title *', x.title, 'maxlength="120"') +
+    '<div class="cn-row"><div class="mt-f"><label class="cn-lbl" for="mhKind">Type</label><select class="cn-in" id="mhKind">' + kinds.map(function(k){ return '<option' + ((x.kind || 'Hackathon') === k ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></div>' + mhTxt('mhOrg', 'Organizer / college', x.organizer, 'maxlength="100"') + '</div>' +
+    '<div class="cn-row">' + mhTxt('mhStart', 'Start date *', x.startDate, 'type="date"') + mhTxt('mhEnd', 'End date', x.endDate, 'type="date"') + mhTxt('mhDl', 'Registration deadline', x.deadline, 'type="date"') + '</div>' +
+    '<div class="cn-row"><div class="mt-f"><label class="cn-lbl" for="mhMode">Mode</label><select class="cn-in" id="mhMode">' + ['offline', 'online', 'hybrid'].map(function(m){ return '<option value="' + m + '"' + ((x.mode || 'offline') === m ? ' selected' : '') + '>' + m.charAt(0).toUpperCase() + m.slice(1) + '</option>'; }).join('') + '</select></div>' +
+      mhTxt('mhVenue', 'Venue', x.venue, 'maxlength="120"') + mhTxt('mhCity', 'City', x.city, 'maxlength="60"') + mhTxt('mhState', 'State', x.state, 'maxlength="60"') + '</div>' +
+    '<div class="cn-row">' + mhTxt('mhElig', 'Eligibility', x.eligibility, 'maxlength="200"') + mhTxt('mhTeam', 'Team size (e.g. 2-4 members)', x.teamSize, 'maxlength="60"') + '</div>' +
+    '<div class="cn-row">' + mhTxt('mhFee', 'Entry fee', x.fee, 'maxlength="60"') + mhTxt('mhPrize', 'Prize', x.prize, 'maxlength="120"') + '</div>' +
+    '<div class="cn-row">' + mhTxt('mhReg', 'Registration link (https://…)', x.regUrl, 'type="url" maxlength="300"') + mhTxt('mhWeb', 'Website (https://…)', x.website, 'type="url" maxlength="300"') + '</div>' +
+    mhArea('mhShort', 'Short description', x.shortDesc, 'max 300', 2) + mhArea('mhAbout', 'About', x.about, 'max 5000', 5) +
+    mhArea('mhThemes', 'Themes', mhLines(x.themes).join('\n'), 'one per line, max 12') + mhArea('mhProb', 'Problem statements', mhLines(x.problems).join('\n'), 'one per line, max 20') +
+    mhArea('mhRules', 'Rules', mhLines(x.rules).join('\n'), 'one per line, max 30') + mhArea('mhPerks', 'Prizes &amp; perks', mhLines(x.perks).join('\n'), 'one per line, max 30') +
+    mhArea('mhDates', 'Key dates', mhLines(x.dates).join('\n'), 'one per line as Label | Date, max 20') +
+    '<div class="cn-row">' + mhTxt('mhMail', 'Contact email', x.contactEmail, 'type="email" maxlength="120"') + mhTxt('mhPhone', 'Contact phone', x.contactPhone, 'maxlength="30"') + '</div>' +
+    '<div class="mt-f"><label class="mt-ck"><input type="checkbox" id="mhPub"' + (x.published !== false ? ' checked' : '') + '><span>Published (visible to students)</span></label><p class="mt-err" id="mhErr" role="alert"></p></div>' +
+    '</div><div class="mt-ft"><button type="button" class="cn-btn" data-mh="back">Cancel</button><button type="submit" class="cn-btn pri">' + (id ? 'Save changes' : 'Add hackathon') + '</button></div></form>';
+  var o = mhOv(h); o.querySelector('#mhForm').onsubmit = function(e){ e.preventDefault(); mhSave(id); }; var f = o.querySelector('#mhTitle'); if(f) f.focus();
+}
+function mhV(id){ var f = document.getElementById(id); return f ? f.value.trim() : ''; }
+function mhL(id, n){ return mhV(id).split('\n').map(function(l){ return l.trim().slice(0, 300); }).filter(Boolean).slice(0, n); }
+function mhSave(id){
+  var err = function(m){ var e = document.getElementById('mhErr'); if(e) e.textContent = m; return false; }, url = /^https?:\/\/[^\s]+$/;
+  var d = {title: mhV('mhTitle').slice(0, 120), kind: mhV('mhKind'), organizer: mhV('mhOrg').slice(0, 100), startDate: mhV('mhStart'), endDate: mhV('mhEnd'), deadline: mhV('mhDl'), mode: mhV('mhMode'),
+    venue: mhV('mhVenue').slice(0, 120), city: mhV('mhCity').slice(0, 60), state: mhV('mhState').slice(0, 60), eligibility: mhV('mhElig').slice(0, 200), teamSize: mhV('mhTeam').slice(0, 60), fee: mhV('mhFee').slice(0, 60), prize: mhV('mhPrize').slice(0, 120),
+    regUrl: mhV('mhReg'), website: mhV('mhWeb'), shortDesc: mhV('mhShort').slice(0, 300), about: mhV('mhAbout').slice(0, 5000),
+    themes: mhL('mhThemes', 12), problems: mhL('mhProb', 20), rules: mhL('mhRules', 30), perks: mhL('mhPerks', 30), dates: mhL('mhDates', 20),
+    contactEmail: mhV('mhMail').slice(0, 120), contactPhone: mhV('mhPhone').slice(0, 30), published: !!(document.getElementById('mhPub') || {}).checked};
+  if(!d.title) return err('Enter the hackathon title.');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.startDate)) return err('Choose a start date.');
+  if(d.endDate && d.endDate < d.startDate) return err('The end date cannot be before the start date.');
+  if((d.regUrl && !url.test(d.regUrl)) || (d.website && !url.test(d.website))) return err('Links must start with http:// or https://');
+  var db = mhDb(), u = firebase.auth().currentUser; if(!db || !u || !MHo.own) return err('Only the admin can save hackathons.');
+  var ts = firebase.firestore.FieldValue.serverTimestamp(), btn = document.querySelector('#mhForm button[type=submit]'); if(btn) btn.disabled = true;
+  var ref = db.collection('manualHackathons'), p = id ? ref.doc(id).update(Object.assign(d, {updatedAt: ts})) : ref.add(Object.assign(d, {source: 'manual', createdAt: ts, createdBy: u.uid, updatedAt: ts}));
+  p.then(function(){ toast(id ? 'Hackathon updated.' : 'Hackathon added.'); mhManage(); }, function(e){ if(btn) btn.disabled = false; err(e && e.code === 'permission-denied' ? 'Not allowed. Check the fields or your admin access.' : 'Could not save. Try again.'); });
+}
+function mhManage(){
+  var ids = Object.keys(MH.docs).sort(function(a, b){ return String(MH.docs[b].startDate || '').localeCompare(String(MH.docs[a].startDate || '')); });
+  var rows = ids.length ? ids.map(function(id){ var x = MH.docs[id], i = esc(id);
+    return '<div class="mt-req"><div class="mt-ph"><div><b>' + esc(x.title) + '</b><small>' + esc(x.startDate || '') + (x.city ? ' · ' + esc(x.city) : '') + '</small></div><span class="mt-s mt-s-' + (x.published ? 'accepted' : 'pending') + '">' + (x.published ? 'Published' : 'Draft') + '</span></div>' +
+      '<div class="cn-row"><button class="cn-btn pri" type="button" data-mh-edit="' + i + '">Edit</button><button class="cn-btn" type="button" data-mh-pub="' + i + '">' + (x.published ? 'Unpublish' : 'Publish') + '</button><button class="cn-btn mt-btn-danger" type="button" data-mh-del="' + i + '">Delete</button></div></div>'; }).join('') : empty('🏆', 'No hackathons added yet', 'Use Add hackathon to publish one for all students.');
+  mhOv('<div class="mt-mh"><h2>Manage hackathons</h2><p>' + ids.length + ' total</p><button type="button" class="mt-x" data-mh="close" aria-label="Close">' + ic('x') + '</button></div><div class="mt-mb"><div class="mt-list" id="mhList">' + rows + '</div></div><div class="mt-ft"><button type="button" class="cn-btn" data-mh="close">Close</button><button type="button" class="cn-btn pri" data-mh="add">+ Add hackathon</button></div>');
+}
+function mhList(){ if(document.getElementById('mhList')) mhManage(); }
+function mhInit(){
+  if(!ec || document.getElementById('mhBar')) return;
+  var st = document.createElement('style'); st.textContent = '.mh-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;border:1px dashed var(--cn-line,rgba(128,128,128,.4));border-radius:12px}.mh-bar b{margin-right:auto}.mh-ov{position:fixed;inset:0;z-index:2500;background:rgba(10,10,20,.55);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}.mh-box{width:100%;max-width:720px;margin:auto;max-height:none}.mh-box .mt-mb{display:grid;gap:12px;padding:0 16px}.mh-box select.cn-in{width:100%}.mh-box textarea.cn-in{width:100%;resize:vertical}'; document.head.appendChild(st);
+  ec.insertAdjacentHTML('afterbegin', '<div class="mh-bar" id="mhBar" style="display:none"><b>Admin · Hackathons</b><button type="button" class="cn-btn pri" data-mh="add">+ Add hackathon</button><button type="button" class="cn-btn" data-mh="manage">Manage</button></div>');
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-mh],[data-mh-edit],[data-mh-pub],[data-mh-del]'); if(!b || !MHo.own) return; var d = b.dataset;
+    if(d.mh === 'add') mhForm(''); else if(d.mh === 'manage' || d.mh === 'back') mhManage(); else if(d.mh === 'close') mhClose();
+    else if(d.mhEdit) mhForm(d.mhEdit);
+    else if(d.mhPub){ var x = MH.docs[d.mhPub]; if(x) mhDb().collection('manualHackathons').doc(d.mhPub).update({published: !x.published, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}).then(function(){ toast(x.published ? 'Unpublished.' : 'Published.'); }, function(){ toast('Could not update.', 'err'); }); }
+    else if(d.mhDel){ if(!d.sure){ b.dataset.sure = '1'; b.textContent = 'Confirm delete'; return; } mhDb().collection('manualHackathons').doc(d.mhDel).delete().then(function(){ toast('Hackathon deleted.'); }, function(){ toast('Could not delete.', 'err'); }); }
+  });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') mhClose(); });
+  mhTick(); setInterval(mhTick, 3000);
+}
 function initEvents(){
   ec.innerHTML = 
    '<div class="cn-seg" id="cnEview" role="group" aria-label="Show events" style="margin-bottom:12px"></div>' +
@@ -19293,7 +19409,7 @@ function initMyTeam(){
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && mtM && !mtM.classList.contains('hidden')) mtClose(); });
   drawMyTeam();
 }
-initModal(); initPosting(); initTeams(); initMyTeam(); initReqs(); initEvents(); tmTick(); setInterval(tmTick, 3000);
+initModal(); initPosting(); initTeams(); initMyTeam(); initReqs(); initEvents(); mhInit(); tmTick(); setInterval(tmTick, 3000);
 var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], boot[1]); st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests' || boot[1] === 'connections')) st.tsub = boot[1]; }
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
@@ -19532,14 +19648,51 @@ new MutationObserver(function(){ if(set.classList.contains('hidden')){ setBar.cl
 $('setBack').onclick=closeSettings;
 /* ---- Profile data ---- */
 var KEY='csec_profile_data';
-var DEF={name:'Your Name',headline:'Student at Your College',college:'Your College',course:'B.E. – Computer Science',year:'2nd Year',location:'India',bio:'',
- about:{intro:'',academic:'',goals:'',interests:'',looking:''},skills:[],interests:[],projects:[],
- education:[{college:'Your College',degree:'B.E.',dept:'Computer Science',year:'2nd Year',start:'2024',grad:'2028'}],exp:[],views:128,conns:42};
+var DEF={name:'',headline:'',college:'',course:'',year:'',location:'',bio:'',about:{intro:'',academic:'',goals:'',interests:'',looking:''},skills:[],interests:[],projects:[],education:[],exp:[],_t:0};
 var D;
-function load(){try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){D=null} if(!D) D=JSON.parse(JSON.stringify(DEF));
-  try{var u=JSON.parse(localStorage.getItem('classHubUserProfile')); if(u&&u.name&&!localStorage.getItem(KEY)){D.name=u.name}}catch(e){}
-  D.about=D.about||{}; ['skills','interests','projects','education','exp'].forEach(function(k){D[k]=D[k]||[]})}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){toastMsg('Could not save locally')}}
+function accName(){var n='';try{n=String((window.currentUser&&currentUser.name)||'').trim()}catch(e){} if(!n){try{n=String(JSON.parse(localStorage.getItem('csec_username'))||'').trim()}catch(e){}} return n.slice(0,40)}
+function load(){try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){D=null} if(!D||typeof D!=='object') D=JSON.parse(JSON.stringify(DEF));
+  /* drop the old placeholder values from earlier builds */
+  if(D.college==='Your College'||D.name==='Your Name'){ if(D.name==='Your Name') D.name=''; ['headline','college','course','year','location'].forEach(function(k){ if(/^(Student at Your College|Your College|B\.E\. – Computer Science|2nd Year|India)$/.test(D[k]||'')) D[k]=''; }); }
+  delete D.views; delete D.conns;
+  D.about=D.about||{}; ['skills','interests','projects','education','exp'].forEach(function(k){D[k]=Array.isArray(D[k])?D[k]:[]});
+  D.education=D.education.filter(function(e){return e&&e.college!=='Your College'});
+  if(!D.name) D.name=accName(); D._t=+D._t||0}
+function lsave(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){toastMsg('Could not save locally')}}
+function save(){D._t=Date.now();lsave();syncName();pfPush()}
+function syncName(){var n=String(D.name||'').trim().slice(0,40);if(!n)return;try{if(window.currentUser&&currentUser.name!==n){currentUser.name=n;if(typeof userName!=='undefined')userName=n;if(typeof saveUserProfile==='function')saveUserProfile();localStorage.setItem('csec_username',JSON.stringify(n))}}catch(e){}}
+/* ---- Firestore sync: publicProfiles/{uid} (owner writes only; every signed-in student reads) ---- */
+function fdb(){try{return firebase.apps.length?firebase.firestore():null}catch(e){return null}}
+function fuser(){try{var u=firebase.auth().currentUser;return u&&!u.isAnonymous?u:null}catch(e){return null}}
+function cl(v,n){return String(v==null?'':v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').trim().slice(0,n)}
+var pfTm=0,pfThumbSrc=null,pfThumb='';
+function pfPush(){clearTimeout(pfTm);pfTm=setTimeout(pfWrite,700)}
+function thumbOf(src,cb){if(!src)return cb('');if(src===pfThumbSrc)return cb(pfThumb);var im=new Image();im.onload=function(){var k=Math.min(1,160/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);var t='';try{t=c.toDataURL('image/jpeg',.7)}catch(e){} if(t.length>28000)t='';pfThumbSrc=src;pfThumb=t;cb(t)};im.onerror=function(){cb('')};im.src=src}
+function pfDoc(photo){var A=D.about||{};
+  return{name:cl(D.name,40),headline:cl(D.headline,100),college:cl(D.college,100),course:cl(D.course,100),yearLabel:cl(D.year,30),location:cl(D.location,80),bio:cl(D.bio,400),
+   about:{intro:cl(A.intro,600),academic:cl(A.academic,600),goals:cl(A.goals,600),interests:cl(A.interests,600),looking:cl(A.looking,600)},
+   skills:D.skills.slice(0,30).map(function(x){return{n:cl(x.n||x,40),h:!!x.h}}),
+   interests:D.interests.slice(0,30).map(function(x){return cl(x.n||x,40)}),
+   projects:D.projects.slice(0,20).map(function(p){return{title:cl(p.title,100),desc:cl(p.desc,500),tech:cl(p.tech,150),cat:cl(p.cat,30),link:cl(p.link,300),gh:cl(p.gh,300),date:cl(p.date,60)}}),
+   education:D.education.slice(0,10).map(function(e){return{college:cl(e.college,100),degree:cl(e.degree,100),dept:cl(e.dept,100),year:cl(e.year,30),start:cl(e.start,8),grad:cl(e.grad,8)}}),
+   exp:D.exp.slice(0,30).map(function(e){return{type:cl(e.type,30),title:cl(e.title,100),org:cl(e.org,100),date:cl(e.date,60),desc:cl(e.desc,500)}}),
+   photo:photo||'',pt:D._t||Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()}}
+function pfWrite(){var u=fuser(),db=fdb();if(!u||!db||!String(D.name||'').trim())return;
+  thumbOf(IMG.photo,function(t){db.collection('publicProfiles').doc(u.uid).set(pfDoc(t),{merge:true}).catch(function(e){console.warn('[Profile] save failed',e&&e.code);toastMsg('Saved on this device. Could not sync to your account yet.')})})}
+function fromDoc(x){var o=JSON.parse(JSON.stringify(DEF));
+  ['name','headline','college','course','location','bio'].forEach(function(k){o[k]=x[k]||''});o.year=x.yearLabel||'';
+  o.about=Object.assign({intro:'',academic:'',goals:'',interests:'',looking:''},x.about||{});
+  o.skills=(x.skills||[]).map(function(a){return{n:a.n||a,h:!!a.h}});o.interests=(x.interests||[]).slice();
+  var keep=D.projects||[];o.projects=(x.projects||[]).map(function(p,i){var q=Object.assign({},p);if(keep[i]&&keep[i].img&&keep[i].title===p.title)q.img=keep[i].img;return q});
+  o.education=(x.education||[]).slice();o.exp=(x.exp||[]).slice();o._t=+x.pt||0;return o}
+var pfUid='',pfUn=null;
+function pfTick(){var u=fuser(),id=u?u.uid:'';if(id===pfUid)return;if(pfUn){try{pfUn()}catch(e){}pfUn=null}pfUid=id;if(!id)return;var db=fdb();if(!db){pfUid='';return}
+  pfUn=db.collection('publicProfiles').doc(id).onSnapshot(function(sn){
+    if(sn.metadata.hasPendingWrites)return;var x=sn.exists?sn.data():null;
+    if(x&&x.pt&&x.pt>(D._t||0)){D=fromDoc(x);load2();lsave();if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')&&!document.querySelector('.pf-modal'))render()}
+    else if(!x||(D._t||0)>(x.pt||0)||(!x.pt&&String(D.name||'').trim())){if(String(D.name||'').trim()){if(!D._t)D._t=Date.now();pfPush()}}
+  },function(e){console.warn('[Profile] listener',e&&e.code)})}
+function load2(){D.about=D.about||{};['skills','interests','projects','education','exp'].forEach(function(k){D[k]=Array.isArray(D[k])?D[k]:[]});if(!D.name)D.name=accName()}
 function toastMsg(m){try{ if(typeof toast==='function') toast(m); }catch(e){}}
 /* images in IndexedDB */
 var idb;function db(){return idb||(idb=new Promise(function(res,rej){var r=indexedDB.open('csec_profile_img',1);r.onupgradeneeded=function(){r.result.createObjectStore('i')};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej()}}))}
@@ -19597,18 +19750,18 @@ function itemsSec(title,key,addLabel,fields,rf){
 function acts(key,i){return '<div class="pf-row"><button class="pf-btn sm" data-edit="'+key+':'+i+'">Edit</button><button class="pf-btn sm dng" data-del="'+key+':'+i+'">Delete</button></div>'}
 function pct(){var c=[['Profile photo',!!IMG.photo],['Cover image',!!IMG.cover],['About',!!(D.about.intro||D.about.goals||D.about.academic)],['Skills',D.skills.length>0],['Interests',D.interests.length>0],['Education',D.education.length>0],['Projects',D.projects.length>0]];
   return{c:c,p:Math.round(c.filter(function(x){return x[1]}).length/c.length*100)}}
+function connCount(){try{return window.cnConn&&window.cnConn.count?window.cnConn.count():0}catch(e){return 0}}
 function myPosts(){try{var a=window.cseConnect&&window.cseConnect.myPosts&&window.cseConnect.myPosts();return Array.isArray(a)?a:[]}catch(e){return[]}}
 function render(){
   var P=pct(),posts=myPosts();
   var h='<div class="pf-card pf-top"><div class="pf-cover"><button class="pf-btn sm pf-cbtn" data-img="cover">📷 '+(IMG.cover?'Change':'Upload')+' cover</button></div>'+
    '<div class="pf-head"><div class="pf-av"><span></span><button class="pf-btn pf-abtn" data-img="photo" title="Change photo">📷</button></div>'+
    '<button class="pf-btn pri pf-edit" data-basic>✏️ Edit Profile</button>'+
-   '<div class="pf-nm">'+esc(D.name)+'</div><div class="pf-hl">'+esc(D.headline)+'</div>'+
+   '<div class="pf-nm">'+esc(D.name||'Add your name')+'</div>'+(D.headline?'<div class="pf-hl">'+esc(D.headline)+'</div>':'')+
    '<div class="pf-meta">'+[D.college,D.course,D.year,D.location].filter(Boolean).map(esc).join(' · ')+'</div>'+
    (D.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(D.bio)+'</p>':'')+
    (IMG.photo||IMG.cover?'<div class="pf-row">'+(IMG.photo?'<button class="pf-btn sm dng" data-rmimg="photo">Remove photo</button>':'')+(IMG.cover?'<button class="pf-btn sm dng" data-rmimg="cover">Remove cover</button>':'')+'</div>':'')+
-   '<div class="pf-stats"><div class="pf-stat"><b>'+D.conns+'</b><span>Connections*</span></div><div class="pf-stat"><b>'+D.views+'</b><span>Profile views*</span></div><div class="pf-stat"><b>'+posts.length+'</b><span>Posts</span></div><div class="pf-stat"><b>'+D.skills.length+'</b><span>Skills</span></div></div>'+
-   '<div class="pf-demo">* Demo placeholder values – no server analytics in this frontend prototype.</div></div></div>';
+   '<div class="pf-stats"><div class="pf-stat"><b>'+connCount()+'</b><span>Connections</span></div><div class="pf-stat"><b>'+posts.length+'</b><span>Posts</span></div><div class="pf-stat"><b>'+D.skills.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+D.projects.length+'</b><span>Projects</span></div></div></div></div>';
   h+='<div class="pf-card"><h3>Profile completion<span class="pf-sp"></span><b style="color:var(--po)">'+P.p+'%</b></h3><div class="pf-prog"><i style="width:'+P.p+'%"></i></div><div class="pf-chk">'+P.c.map(function(x){return'<span class="'+(x[1]?'ok':'')+'">'+(x[1]?'✓':'○')+' '+x[0]+'</span>'}).join('')+'</div></div>';
   var A=D.about,ab=[['Introduction',A.intro],['Academic background',A.academic],['Career goals',A.goals],['Areas of interest',A.interests],['Looking for',A.looking]].filter(function(x){return x[1]});
   h+='<div class="pf-card"><h3>About<span class="pf-sp"></span><button class="pf-btn sm" data-about>Edit</button></h3>'+(ab.length?ab.map(function(x){return'<div style="margin-bottom:10px"><div class="pf-sm"><b>'+x[0]+'</b></div><div>'+esc(x[1])+'</div></div>'}).join(''):'<div class="pf-empty">Tell others about yourself.</div>')+'</div>';
@@ -19623,7 +19776,7 @@ var CFG={projects:PROJ,education:EDU,exp:EXP};
 $('pfBody').addEventListener('click',function(e){
   var t=e.target.closest('button,span[data-ed]');if(!t)return;var d=t.dataset;
   if(d.img){pick(d.img)}
-  else if(d.rmimg){IMG[d.rmimg]=null;idbSet(d.rmimg,null);render()}
+  else if(d.rmimg){IMG[d.rmimg]=null;idbSet(d.rmimg,null);render();if(d.rmimg==='photo'){D._t=Date.now();lsave();pfPush()}}
   else if(d.basic!==undefined) form('Edit Profile',BASIC,D,function(o){Object.assign(D,o)});
   else if(d.about!==undefined) form('Edit About',ABOUT,D.about,function(o){D.about=o});
   else if(d.add) form('Add',CFG[d.add],{},function(o){D[d.add].push(o)},'Add');
@@ -19641,10 +19794,10 @@ $('pfBody').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.
 var fi=$('pfFile');
 function pick(which){fi.value='';fi.onchange=function(){var f=fi.files[0];if(!f)return;
   readImg(f,which==='cover'?1400:500,function(u){var im=document.createElement('img');im.src=u;im.className='pf-prev';var w=document.createElement('div');w.appendChild(im);
-    modal('Preview '+(which==='cover'?'cover image':'profile photo'),w,function(){IMG[which]=u;idbSet(which,u);render()},'Apply')})};fi.click()}
+    modal('Preview '+(which==='cover'?'cover image':'profile photo'),w,function(){IMG[which]=u;idbSet(which,u);render();if(which==='photo'){D._t=Date.now();lsave();pfPush()}},'Apply')})};fi.click()}
 /* ---- Profile open/close ---- */
-function openProfile(){prof.classList.remove('pf-peer');prof.querySelector('.cl-ovbar b').textContent='Profile';closeSettings();state.sy=window.pageYOffset||0;load();render();prof.classList.remove('hidden');prof.scrollTop=0;lock()}
-function closeProfile(silent){if(prof.classList.contains('hidden'))return;prof.classList.add('hidden');lock();if(!silent){try{window.scrollTo(0,state.sy)}catch(e){}}}
+function openProfile(){peerStop();prof.classList.remove('pf-peer');prof.querySelector('.cl-ovbar b').textContent='Profile';closeSettings();state.sy=window.pageYOffset||0;load();render();prof.classList.remove('hidden');prof.scrollTop=0;lock()}
+function closeProfile(silent){peerStop();if(prof.classList.contains('hidden'))return;prof.classList.add('hidden');lock();if(!silent){try{window.scrollTo(0,state.sy)}catch(e){}}}
 $('pfBack').onclick=function(){closeProfile()};
 document.addEventListener('keydown',function(e){if(e.key!=='Escape'||document.querySelector('.pf-modal'))return;if(!prof.classList.contains('hidden'))closeProfile();else closeSettings()});
 /* intercept entry points (capture phase → no redirect to Campus, no setMode) */
@@ -19653,29 +19806,42 @@ document.addEventListener('click',function(e){
   e.preventDefault();e.stopImmediatePropagation();
   var m=$('mobileMenu');if(m)m.classList.remove('open');
   (a.getAttribute('href')==='#profile'||a.id==='profileQuickBtn')?openProfile():openSettings()},true);
+var peerUn=null;
+function safeUrl(u){u=String(u||'');return /^https?:\/\/[^\s"'<>]+$/i.test(u)?u:''}
+function safePhoto(u){u=String(u||'');return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(u)&&u.length<30000?u:''}
+function peerStop(){if(peerUn){try{peerUn()}catch(e){}peerUn=null}}
 function openPeer(p){
-  if(p.mine){ openProfile(); return; }
-  closeSettings(); state.sy=window.pageYOffset||0;
+  if(p.mine){ peerStop(); openProfile(); return; }
+  peerStop(); closeSettings(); state.sy=window.pageYOffset||0;
   var ck='csec_peer_conn',cn={};try{cn=JSON.parse(localStorage.getItem(ck))||{}}catch(e){}
-  var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null, rcOnly=!!window.cnConn&&!!p.uid;
+  var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null;
   function chips(a,c){return a.length?'<div class="pf-chips">'+a.map(function(x){return'<span class="pf-chip'+(c?' hi':'')+'" style="padding:6px 12px">'+esc(x)+'</span>'}).join('')+'</div>':'<div class="pf-empty">Not shared yet.</div>'}
-  var proj=p.project&&p.project!=='?'&&p.project!=='\u2014'?p.project:'';
-  $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"></div><div class="pf-head"><div class="pf-av"><span>'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</span></div>'+
-   '<button class="pf-btn pri pf-edit" id="pfConn"'+(rcOnly&&p.mine?' style="display:none"':'')+'>'+(rc?rc.label(p.uid):(sent?'\u2713 Request sent':'Connect'))+'</button>'+
-   '<div class="pf-nm">'+esc(p.name)+'</div><div class="pf-hl">'+esc([p.year,p.branch].filter(Boolean).join(' \u00b7 ')||'Campus Loop student')+'</div>'+
-   '<div class="pf-stats"><div class="pf-stat"><b>'+p.skills.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+p.interests.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+(proj?1:0)+'</b><span>Projects</span></div><div class="pf-stat"><b>'+(p.year||'\u2014')+'</b><span>Year</span></div></div>'+
-   '<div class="pf-demo">Only details this student has shared are shown. '+(rcOnly?'':'Connection requests are not sent anywhere yet (demo).')+'</div></div></div>'+
-   '<div class="pf-card"><h3>About</h3>'+(p.bio?'<div>'+esc(p.bio)+'</div>':'<div class="pf-empty">This student has not added a bio yet.</div>')+'</div>'+
-   '<div class="pf-card"><h3>Education</h3><div class="pf-it" style="margin-left:8px"><b>'+esc(p.branch||'Branch not shared')+'</b><div class="pf-sm">'+esc(p.year||'Year not shared')+'</div></div></div>'+
-   '<div class="pf-card"><h3>Skills</h3>'+chips(p.skills,1)+'</div><div class="pf-card"><h3>Interests</h3>'+chips(p.interests)+'</div>'+
-   '<div class="pf-card"><h3>Projects &amp; Works</h3>'+(proj?'<div class="pf-proj"><div class="th"></div><div class="bd"><b>'+esc(proj)+'</b><span class="pf-tag">Currently working on</span></div></div>':'<div class="pf-empty">No projects shared yet.</div>')+'</div>';
-  prof.querySelector('.cl-ovbar b').textContent=p.name; prof.classList.add('pf-peer');
+  function paint(x){
+    x=x||{};var nm=x.name||p.name, ph=safePhoto(x.photo), A=x.about||{};
+    var sk=(x.skills||[]).map(function(a){return a.n||a}), hi=(x.skills||[]).filter(function(a){return a.h}).map(function(a){return a.n}),
+        it=x.interests||[], pr=x.projects||[], ed=x.education||[], ex=x.exp||[];
+    var meta=[x.college,x.course,x.yearLabel||p.year,x.location].filter(Boolean).map(esc).join(' · ')||esc([p.year,p.branch].filter(Boolean).join(' · ')||'Campus Loop student');
+    var ab=[['Introduction',A.intro],['Academic background',A.academic],['Career goals',A.goals],['Areas of interest',A.interests],['Looking for',A.looking]].filter(function(r){return r[1]});
+    $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"></div><div class="pf-head"><div class="pf-av"'+(ph?' style="background-image:url('+ph+')"':'')+'><span>'+(ph?'':esc((nm||'?').trim().charAt(0).toUpperCase()))+'</span></div>'+
+     '<button class="pf-btn pri pf-edit" id="pfConn">'+(rc?rc.label(p.uid):(sent?'✓ Request sent':'Connect'))+'</button>'+
+     '<div class="pf-nm">'+esc(nm)+'</div>'+(x.headline?'<div class="pf-hl">'+esc(x.headline)+'</div>':'')+'<div class="pf-meta">'+meta+'</div>'+(x.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(x.bio)+'</p>':'')+
+     '<div class="pf-stats"><div class="pf-stat"><b>'+sk.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+it.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+pr.length+'</b><span>Projects</span></div><div class="pf-stat"><b>'+ex.length+'</b><span>Achievements</span></div></div></div></div>'+
+     '<div class="pf-card"><h3>About</h3>'+(ab.length?ab.map(function(r){return'<div style="margin-bottom:10px"><div class="pf-sm"><b>'+r[0]+'</b></div><div>'+esc(r[1])+'</div></div>'}).join(''):'<div class="pf-empty">This student has not added an About section yet.</div>')+'</div>'+
+     '<div class="pf-card"><h3>Skills</h3>'+chips(sk,0).replace(/class="pf-chip"/g,'class="pf-chip"')+(hi.length?'<div class="pf-sm" style="margin-top:8px">Highlighted: '+hi.map(esc).join(', ')+'</div>':'')+'</div>'+
+     '<div class="pf-card"><h3>Interests</h3>'+chips(it)+'</div>'+
+     '<div class="pf-card"><h3>Projects &amp; Works</h3>'+(pr.length?'<div class="pf-grid">'+pr.map(function(o){var l=safeUrl(o.link),g=safeUrl(o.gh);return'<div class="pf-proj"><div class="th"></div><div class="bd"><b>'+esc(o.title)+'</b>'+(o.cat?'<span class="pf-tag">'+esc(o.cat)+'</span>':'')+'<div class="pf-sm">'+esc(o.desc)+'</div>'+(o.tech?'<div class="pf-sm">🛠 '+esc(o.tech)+'</div>':'')+'<div class="pf-sm">'+esc(o.date)+(l?' · <a href="'+esc(l)+'" target="_blank" rel="noopener noreferrer">Link</a>':'')+(g?' · <a href="'+esc(g)+'" target="_blank" rel="noopener noreferrer">GitHub</a>':'')+'</div></div></div>'}).join('')+'</div>':'<div class="pf-empty">No projects shared yet.</div>')+'</div>'+
+     '<div class="pf-card"><h3>Education</h3>'+(ed.length?'<div class="pf-tl">'+ed.map(function(o){return'<div class="pf-it"><b>'+esc(o.college)+'</b><div>'+esc([o.degree,o.dept].filter(Boolean).join(' – '))+'</div><div class="pf-sm">'+esc([o.year,(o.start||'')+(o.grad?' – '+o.grad:'')].filter(Boolean).join(' · '))+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">'+esc([p.branch,p.year].filter(Boolean).join(' · ')||'Not shared yet.')+'</div>')+'</div>'+
+     '<div class="pf-card"><h3>Experience &amp; Achievements</h3>'+(ex.length?'<div class="pf-tl">'+ex.map(function(o){return'<div class="pf-it"><span class="pf-tag">'+esc(o.type)+'</span> <b>'+esc(o.title)+'</b><div class="pf-sm">'+esc([o.org,o.date].filter(Boolean).join(' · '))+'</div><div>'+esc(o.desc)+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">Nothing shared yet.</div>')+'</div>';
+    prof.querySelector('.cl-ovbar b').textContent=nm;
+    $('pfConn').onclick=function(){if(rc){rc.act(p.uid);return}sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'✓ Request sent':'Connect'};
+  }
+  paint(window.cnPeerDoc&&p.uid?window.cnPeerDoc(p.uid):null); prof.classList.add('pf-peer');
   if(rc)rc.watch(function(){var b=$('pfConn');if(b&&prof.classList.contains('pf-peer'))b.textContent=rc.label(p.uid)});
-  $('pfConn').onclick=function(){if(rc){rc.act(p.uid);return}sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'\u2713 Request sent':'Connect';toastMsg(sent?'Connection request sent (demo)':'Request withdrawn')};
+  var db=fdb(); if(db&&p.uid) peerUn=db.collection('publicProfiles').doc(p.uid).onSnapshot(function(sn){ if(prof.classList.contains('pf-peer')&&!prof.classList.contains('hidden')&&sn.exists){ var y=prof.scrollTop; paint(sn.data()); prof.scrollTop=y; } },function(){});
   prof.classList.remove('hidden');prof.scrollTop=0;lock();
 }
 window.clShell={openPeer:openPeer,openSettings:openSettings,closeSettings:closeSettings,openProfile:openProfile,closeProfile:closeProfile};
-load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover=r[0]||null;IMG.photo=r[1]||null});
+load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover=r[0]||null;IMG.photo=r[1]||null;pfTick()});setInterval(pfTick,3000);
 })();
 </script>
 <script id="coreHomeSchemeJs">
