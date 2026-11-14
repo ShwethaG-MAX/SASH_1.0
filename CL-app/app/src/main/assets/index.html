@@ -18782,13 +18782,15 @@ function mhApply(){
 function mhOwnerCheck(cb){
   var u = null; try{ u = firebase.auth().currentUser; }catch(e){}
   if(!u || u.isAnonymous){ MHo = {uid: '', own: false}; return cb(); }
-  if(MHo.uid === u.uid) return cb();
-  MHo = {uid: u.uid, own: false}; u.getIdTokenResult().then(function(r){ MHo.own = r.claims.owner === true; cb(); }, function(){ cb(); });
+  var adm = !!(window.cseRole && window.cseRole.role === 'admin');
+  if(MHo.uid === u.uid){ if(adm && !MHo.own){ MHo.own = true; } return cb(); }
+  MHo = {uid: u.uid, own: adm}; if(adm) cb();
+  u.getIdTokenResult(true).then(function(r){ MHo.own = r.claims.owner === true || adm; cb(); }, function(){ cb(); });
 }
 function mhTick(){
   var db = mhDb(); if(!db) return;
   mhOwnerCheck(function(){
-    var mode = MHo.own ? 'all' : 'pub';
+    var mode = MHo.own && MH.errMode !== 'all' ? 'all' : 'pub';
     if(MH.mode !== mode && MH.errMode !== mode){
       if(MH.un){ try{ MH.un(); }catch(e){} } MH.mode = mode; MH.docs = {};
       var q = mode === 'all' ? db.collection('manualHackathons') : db.collection('manualHackathons').where('published', '==', true);
