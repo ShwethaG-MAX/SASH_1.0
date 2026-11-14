@@ -18770,6 +18770,7 @@ function mhRec(id, x){
     dates: mhLines(x.dates).map(function(r){ var p = r.split('|'); return [p[0].trim(), p.slice(1).join('|').trim()]; }),
     reg: x.regUrl || '', url: x.website || '', contact: x.contactEmail || '', phone: x.contactPhone || '', added: tms(x.createdAt) || 1};
   if(x.venue) o.venue = x.venue; if(x.city) o.city = x.city; if(x.state) o.state = x.state;
+  if(/^https:\/\//.test(x.imageUrl || '')) o.img = x.imageUrl;
   lvDates(o); if(lvEnded(o)) return null; lvPic(o); return o;
 }
 function mhApply(){
@@ -18825,9 +18826,10 @@ function mhForm(id){
     mhArea('mhRules', 'Rules', mhLines(x.rules).join('\n'), 'one per line, max 30') + mhArea('mhPerks', 'Prizes &amp; perks', mhLines(x.perks).join('\n'), 'one per line, max 30') +
     mhArea('mhDates', 'Key dates', mhLines(x.dates).join('\n'), 'one per line as Label | Date, max 20') +
     '<div class="mhx-r">' + mhTxt('mhMail', 'Contact email', x.contactEmail, 'type="email" maxlength="120"') + mhTxt('mhPhone', 'Contact phone', x.contactPhone, 'maxlength="30"') + '</div>' +
+    '<div class="mhx-f"><label for="mhCover">Cover image <em>JPG, PNG or WebP, max 5 MB</em></label><input class="mhx-in" id="mhCover" type="file" accept="image/jpeg,image/png,image/webp"><img id="mhCoverPrev" alt="Cover preview" style="' + (x.imageUrl ? '' : 'display:none;') + 'width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:6px" ' + (x.imageUrl ? 'src="' + esc(x.imageUrl) + '"' : '') + '>' + (x.imageUrl ? '<label class="mhx-ck" style="margin-top:4px"><input type="checkbox" id="mhCoverRm"><span>Remove current cover image</span></label>' : '') + '</div>' +
     '<label class="mhx-ck"><input type="checkbox" id="mhPub"' + (x.published !== false ? ' checked' : '') + '><span>Published (visible to all students)</span></label><p class="mhx-err" id="mhErr" role="alert"></p></form>';
   var o = mhOv(id ? 'Edit hackathon' : 'Add hackathon', 'Visible to every student once published.', body, '<button type="button" class="mhx-b" data-mh="back">Cancel</button><button type="button" class="mhx-b pri" id="mhGo">' + (id ? 'Save changes' : 'Add hackathon') + '</button>');
-  o.querySelector('#mhForm').onsubmit = function(e){ e.preventDefault(); mhSave(id); }; o.querySelector('#mhGo').onclick = function(){ mhSave(id); }; var f = o.querySelector('#mhTitle'); if(f && window.innerWidth > 700) f.focus();
+  var cf = o.querySelector('#mhCover'); if(cf) cf.onchange = function(){ var f = cf.files && cf.files[0], pv = o.querySelector('#mhCoverPrev'); if(!pv) return; if(f && /^image\//.test(f.type)){ pv.src = URL.createObjectURL(f); pv.style.display = ''; } else { pv.style.display = (pv.getAttribute('src') ? '' : 'none'); } }; o.querySelector('#mhForm').onsubmit = function(e){ e.preventDefault(); mhSave(id); }; o.querySelector('#mhGo').onclick = function(){ mhSave(id); }; var f = o.querySelector('#mhTitle'); if(f && window.innerWidth > 700) f.focus();
 }
 function mhV(id){ var f = document.getElementById(id); return f ? f.value.trim() : ''; }
 function mhL(id, n){ return mhV(id).split('\n').map(function(l){ return l.trim().slice(0, 300); }).filter(Boolean).slice(0, n); }
@@ -18844,8 +18846,15 @@ function mhSave(id){
   if((d.regUrl && !url.test(d.regUrl)) || (d.website && !url.test(d.website))) return err('Links must start with http:// or https://');
   var db = mhDb(), u = firebase.auth().currentUser; if(!db || !u || !MHo.own) return err('Only the admin can save hackathons.');
   var ts = firebase.firestore.FieldValue.serverTimestamp(), btn = document.getElementById('mhGo'); if(btn) btn.disabled = true;
-  var ref = db.collection('manualHackathons'), p = id ? ref.doc(id).update(Object.assign(d, {updatedAt: ts})) : ref.add(Object.assign(d, {source: 'manual', createdAt: ts, createdBy: u.uid, updatedAt: ts}));
-  p.then(function(){ toast(id ? 'Hackathon updated.' : 'Hackathon added.'); mhManage(); }, function(e){ if(btn) btn.disabled = false; err(e && e.code === 'permission-denied' ? 'Not allowed. Check the fields or your admin access.' : 'Could not save. Try again.'); });
+  var ref = db.collection('manualHackathons');
+  var cfEl = document.getElementById('mhCover'), cfile = cfEl && cfEl.files && cfEl.files[0], rmEl = document.getElementById('mhCoverRm');
+  if(cfile && (!/^image\/(jpeg|png|webp)$/.test(cfile.type) || cfile.size > 5 * 1024 * 1024)){ if(btn) btn.disabled = false; return err('Cover image must be a JPG, PNG or WebP under 5 MB.'); }
+  var docRef = id ? ref.doc(id) : ref.doc();
+  var oldPath = id && MH.docs[id] ? MH.docs[id].imagePath || '' : '', cpath = cfile ? 'hackathonCovers/' + docRef.id + '/' + Date.now() + '_' + cfile.name.replace(/[^\w.\-]/g, '_') : '';
+  var upl = cfile ? firebase.storage().ref(cpath).put(cfile, {contentType: cfile.type}).then(function(t){ return t.ref.getDownloadURL(); }).then(function(url){ d.imageUrl = url; d.imagePath = cpath; }) : Promise.resolve(rmEl && rmEl.checked ? (d.imageUrl = '', d.imagePath = '') : 0);
+  if(cfile && btn) btn.textContent = 'Uploading…';
+  upl.then(function(){ return id ? docRef.update(Object.assign(d, {updatedAt: ts})) : docRef.set(Object.assign(d, {source: 'manual', createdAt: ts, createdBy: u.uid, updatedAt: ts})); })
+  .then(function(){ if(oldPath && oldPath !== d.imagePath && (cfile || (rmEl && rmEl.checked))){ try{ firebase.storage().ref(oldPath).delete().catch(function(){}); }catch(x){} } toast(id ? 'Hackathon updated.' : 'Hackathon added.'); mhManage(); }, function(e){ if(btn){ btn.disabled = false; btn.textContent = id ? 'Save changes' : 'Add hackathon'; } err(e && e.code === 'permission-denied' ? 'Not allowed. Check the fields or your admin access.' : cfile && e && /storage/.test(String(e.code)) ? 'Could not upload the cover image. Try again.' : 'Could not save. Try again.'); });
 }
 function mhManage(){
   var ids = Object.keys(MH.docs).sort(function(a, b){ return String(MH.docs[b].startDate || '').localeCompare(String(MH.docs[a].startDate || '')); });
