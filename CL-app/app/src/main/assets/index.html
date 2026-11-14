@@ -10971,7 +10971,7 @@ function chatBuildMedia(bub, m){
     else { b.textContent = '📷 Tap to view once'; b.addEventListener('click', ()=>chatOpenOnce(m, b)); }
     bub.appendChild(b);
   } else if(m.type === 'image'){
-    const img = document.createElement('img'); img.className = 'md-img'; img.alt = m.fileName || 'Photo';
+    const img = document.createElement('img'); img.className = 'md-img'; img.alt = m.fileName || 'Photo'; img.decoding = 'async';
     img.addEventListener('load', ()=>{ if(chatStick){ const l = document.getElementById('chatList'); l.scrollTop = l.scrollHeight; } });
     img.addEventListener('click', ()=>chatShowImg(m));
     const lu = chatLocalImg.get(m.path);   // own image: reuse the local copy, no download needed
@@ -17200,7 +17200,10 @@ function applyRestriction(){
   }
   ['chatInput', 'chatSendBtn', 'chatAttachBtn'].forEach(function(id){ var el = $(id); if(el){ el.disabled = !!x; } });
   var inp = $('chatInput'); if(inp && x) inp.placeholder = 'Sending is restricted';
-  else if(inp && typeof chatRoomUI === 'function') chatRoomUI();
+  else if(inp){   /* was: chatRoomUI() - which calls chatModRoomChanged() -> applyRestriction() -> chatRoomUI() ... endless loop until stack overflow (the freeze). Only the placeholder needs restoring. */
+    var cr = null; try{ cr = CHAT_ROOMS[CHAT_ROOM]; }catch(e){}
+    if(cr) inp.setAttribute('placeholder', 'Message ' + cr.name + '…');
+  }
   if(x && x.until) R.timer = setTimeout(applyRestriction, Math.min(2147000000, Math.max(1000, x.until - Date.now() + 500)));
 }
 window.chatModRoomChanged = function(){ applyRestriction(); };
@@ -19853,7 +19856,64 @@ function openPeer(p){
   prof.classList.remove('hidden');prof.scrollTop=0;lock();
 }
 window.clShell={openPeer:openPeer,openSettings:openSettings,closeSettings:closeSettings,openProfile:openProfile,closeProfile:closeProfile};
-load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover=r[0]||null;IMG.photo=r[1]||null;pfTick()});setInterval(pfTick,3000);
+load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover=r[0]||null;IMG.photo=r[1]||null;window.__pfImgOk=1;pfTick()});setInterval(pfTick,3000);
+/* ---- Connect: "Complete your profile" popup under the top-right profile icon ----
+   Shown whenever the student is in the Connect section and the Profile completion meter (pct()) is below 100%.
+   Hidden while Settings / Profile / login / tour are open. X hides it for this visit; it comes back the next time Connect is opened. */
+(function(){
+  var btn=$('profileQuickBtn'); if(!btn) return;
+  var st=document.createElement('style'); st.id='pfNudgeCss';
+  st.textContent='#pfNudge{position:fixed;z-index:2000;width:min(300px,calc(100vw - 16px));box-sizing:border-box;padding:14px 16px 14px;border-radius:16px;background:#fff;color:#1d1630;border:1px solid rgba(120,90,200,.28);box-shadow:0 18px 40px -12px rgba(30,10,70,.45),0 4px 12px rgba(30,10,70,.12);animation:pfnIn .26s cubic-bezier(.22,.8,.24,1) backwards}'+
+  '[data-theme="dark"] #pfNudge{background:#2a2140;color:#f3edff;border-color:rgba(190,160,255,.3)}'+
+  '#pfNudge.hidden{display:none}'+
+  '#pfNudge .pfn-arrow{position:absolute;top:-8px;width:14px;height:14px;background:inherit;border-left:1px solid rgba(120,90,200,.28);border-top:1px solid rgba(120,90,200,.28);transform:rotate(45deg);border-top-left-radius:4px}'+
+  '[data-theme="dark"] #pfNudge .pfn-arrow{border-color:rgba(190,160,255,.3)}'+
+  '#pfNudge b{display:block;font-size:.98rem;margin:0 26px 4px 0}'+
+  '#pfNudge p{margin:0 0 10px;font-size:.84rem;line-height:1.4;opacity:.85}'+
+  '#pfNudge .pfn-go{border:0;border-radius:999px;padding:9px 16px;min-height:38px;font:inherit;font-weight:700;font-size:.86rem;cursor:pointer;background:var(--accent,#7c3aed);color:#fff;-webkit-tap-highlight-color:transparent}'+
+  '#pfNudge .pfn-x{position:absolute;top:6px;right:6px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:inherit;opacity:.6;font-size:1rem;cursor:pointer;-webkit-tap-highlight-color:transparent}'+
+  '#profileQuickBtn.pfn-hl{box-shadow:0 0 0 3px rgba(150,110,235,.5)}'+
+  '@keyframes pfnIn{from{opacity:0;transform:translate3d(0,-6px,0)}to{opacity:1;transform:none}}'+
+  '@media (prefers-reduced-motion:reduce){#pfNudge{animation:none}}';
+  document.head.appendChild(st);
+  var pop=document.createElement('div'); pop.id='pfNudge'; pop.className='hidden'; pop.setAttribute('role','dialog'); pop.setAttribute('aria-label','Complete your profile');
+  pop.innerHTML='<span class="pfn-arrow" aria-hidden="true"></span><button type="button" class="pfn-x" aria-label="Dismiss">\u2715</button><b>Complete your profile</b><p></p><button type="button" class="pfn-go">Complete profile</button>';
+  document.body.appendChild(pop);
+  var txt=pop.querySelector('p'), dismissed=false, wasConnect=false, raf=0;
+  function inConnect(){ try{ return !!(window.cseSection && cseSection.current()==='connect'); }catch(e){ return false; } }
+  function blocked(){
+    if(document.hidden||window.__tourActive) return true;
+    if(body.classList.contains('cl-ov-open')) return true;                       // Settings or Profile is open
+    try{ if(window.cseGateOpen && cseGateOpen()) return true; }catch(e){}
+    return !!document.querySelector('.pf-modal,.at-modal-overlay:not(.hidden)');
+  }
+  function place(){
+    raf=0; if(pop.classList.contains('hidden')) return;
+    var r=btn.getBoundingClientRect(); if(!r.width||!r.height){ hide(); return; }
+    var vw=document.documentElement.clientWidth, w=pop.offsetWidth;
+    var left=Math.max(8,Math.min(r.right-w+10,vw-w-8));
+    pop.style.top=Math.round(r.bottom+12)+'px'; pop.style.left=Math.round(left)+'px';
+    pop.querySelector('.pfn-arrow').style.left=Math.round(Math.max(14,Math.min(w-28,r.left+r.width/2-left-7)))+'px';
+  }
+  function queuePlace(){ if(!raf) raf=requestAnimationFrame(place); }
+  function hide(){ if(!pop.classList.contains('hidden')) pop.classList.add('hidden'); btn.classList.remove('pfn-hl'); }
+  function sync(){
+    var conn=inConnect();
+    if(conn!==wasConnect){ wasConnect=conn; dismissed=false; }                    // entering Connect again = show again
+    var miss=[]; try{ miss=pct().c.filter(function(x){return !x[1]}).map(function(x){return x[0].toLowerCase()}); }catch(e){ miss=[]; }
+    if(!conn||dismissed||blocked()||!window.__pfImgOk||!miss.length){ hide(); return; }
+    var t='Add your '+miss.slice(0,3).join(', ')+(miss.length>3?' and '+(miss.length-3)+' more':'')+' so other students can find and connect with you.';
+    if(txt.textContent!==t) txt.textContent=t;
+    if(pop.classList.contains('hidden')){ pop.classList.remove('hidden'); btn.classList.add('pfn-hl'); }
+    place();
+  }
+  pop.querySelector('.pfn-x').addEventListener('click',function(){ dismissed=true; hide(); });
+  pop.querySelector('.pfn-go').addEventListener('click',function(){ hide(); openProfile(); });
+  window.addEventListener('resize',queuePlace,{passive:true});
+  window.addEventListener('scroll',queuePlace,{passive:true,capture:true});
+  document.addEventListener('visibilitychange',sync);
+  setInterval(sync,1000); sync();
+})();
 })();
 </script>
 <script id="coreHomeSchemeJs">
@@ -20226,6 +20286,10 @@ body[data-section="campus"] nav,body[data-section="campus"] nav.scrolled{backgro
 body[data-section="campus"] #secNav{background-image:linear-gradient(100deg,rgba(46,86,214,.10),rgba(56,176,240,.12));border-color:rgba(70,140,228,.30)}
 body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(46,86,214,.22),rgba(56,176,240,.26));box-shadow:0 0 0 1px rgba(56,150,230,.38),0 6px 16px -10px rgba(27,58,140,.5)}
 [data-theme="dark"] body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(60,100,225,.42),rgba(56,176,240,.30))}
+
+/* Connect (light theme only): the "Connect" buttons were white text on a near-white glass fill. Give them a solid purple fill so they are clearly visible. */
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) :is(#sectionConnect .cn-btn.pri:not(.mt-btn-danger):not(:disabled):not(.done),#pfConn:not(:disabled)){background:linear-gradient(135deg,#7F57DD 0%,#6A42C8 55%,#5A33B4 100%) !important;color:#fff !important;border:1px solid #5A33B4 !important;text-shadow:0 1px 1px rgba(30,8,70,.35) !important;box-shadow:0 1px 0 rgba(255,255,255,.28) inset,0 8px 18px -8px rgba(90,51,180,.6) !important;-webkit-backdrop-filter:none;backdrop-filter:none}
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) :is(#sectionConnect .cn-btn.pri:not(.mt-btn-danger):not(:disabled):not(.done),#pfConn:not(:disabled)):hover{filter:brightness(1.08)}
 </style>
 </body>
 </html>
