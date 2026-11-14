@@ -2899,12 +2899,21 @@ html:root #sectionConnect .mt-hero{box-shadow:0 14px 28px -22px rgba(96,64,184,.
 #sectionConnect .cn-head .eyebrow{color:#000080;font-weight:700}
 [data-theme="dark"] #sectionConnect .cn-head .eyebrow{display:inline-block;background:#000080;color:#fff;padding:3px 12px;border-radius:999px}
 /* Campus: navy blue accent (Campus section only; replaces the dark theme's olive green) */
+<<<<<<< Updated upstream
 body[data-section="campus"] #mainPanel,body[data-section="campus"] .mode-bar-wrap{--cyan:#2B4BA8;--violet:#1B2F73;--accent:#1B3A8C;--accent-dark:#0F2160;--accent-light:rgba(27,58,140,.16);--sage:#1B3A8C;--sage-light:rgba(27,58,140,.16);--sage-dark:#0F2160;--p2-navy:linear-gradient(145deg,#2D4FB3 0%,#1B3A8C 52%,#0A78B8 100%);--p2-edge:linear-gradient(135deg,rgba(255,255,255,.16),rgba(27,58,140,.3) 50%,rgba(56,170,235,.28));--gl-edge:rgba(208,202,242,.85);--gl-edge-h:rgba(40,160,230,.40);--gl-tint-warm:rgba(56,176,240,.10);--gl-tint-cool:rgba(27,58,140,.08);--gl-wash:radial-gradient(120% 90% at 100% 0%,rgba(56,176,240,.12),transparent 62%)}
 [data-theme="dark"] body[data-section="campus"] #mainPanel,[data-theme="dark"] body[data-section="campus"] .mode-bar-wrap{--cyan:#7C9BEA;--violet:#5C7BD6;--accent:#223F94;--accent-light:rgba(124,155,234,.16);--sage:#223F94;--sage-light:rgba(124,155,234,.16);--sage-dark:#16296B;--sage-end:#0B6FA8;--p2-navy:linear-gradient(145deg,#3556B8 0%,#223F94 52%,#0A78B8 100%);--gl-edge:rgba(160,176,240,.24);--gl-edge-h:rgba(100,190,250,.42);--gl-tint-warm:rgba(100,190,250,.10);--gl-tint-cool:rgba(124,155,234,.08);--gl-wash:radial-gradient(120% 90% at 100% 0%,rgba(100,190,250,.13),transparent 62%)}
 body[data-section="campus"] .mode-bar-wrap .mode-btn.active{box-shadow:0 4px 18px -4px rgba(27,58,140,.55)}
 /* dark theme paints active controls with dark text (made for olive): keep them white on violet / navy */
 [data-theme="dark"] :is(#sectionConnect,#cnModeWrap,body[data-section="campus"] #mainPanel,body[data-section="campus"] .mode-bar-wrap) :is(.btn-primary,.mode-btn.active,.pill.active,.pill.active[style],.tt-daychip.active,.chat-send,.me-cal-day.sel,.tt-now-tag,.tt-badge-lab,.at-badge-sub,.cal-badge,.cn-tab.active,.cn-btn.pri,.cn-fc[aria-pressed="true"]){color:#fff !important}
 [data-theme="dark"] :is(#sectionConnect,body[data-section="campus"] #mainPanel) :is(.pill.active,.cn-tab.active,.mode-btn.active){background:linear-gradient(135deg,var(--sage),var(--sage-end,var(--sage-dark)))}
+=======
+body[data-section="campus"] #mainPanel,body[data-section="campus"] .mode-bar-wrap{--cyan:#2B4BA8;--violet:#1B2F73;--accent:#1B3A8C;--accent-dark:#0F2160;--accent-light:rgba(27,58,140,.16);--sage:#1B3A8C;--sage-light:rgba(27,58,140,.16);--sage-dark:#0F2160;--p2-navy:linear-gradient(145deg,#2D4FB3 0%,#1B3A8C 50%,#0F2160 100%);--p2-edge:linear-gradient(135deg,rgba(255,255,255,.16),rgba(27,58,140,.3) 50%,rgba(27,58,140,.12))}
+[data-theme="dark"] body[data-section="campus"] #mainPanel,[data-theme="dark"] body[data-section="campus"] .mode-bar-wrap{--cyan:#7C9BEA;--violet:#5C7BD6;--accent:#223F94;--accent-light:rgba(124,155,234,.16);--sage:#223F94;--sage-light:rgba(124,155,234,.16);--sage-dark:#16296B}
+body[data-section="campus"] .mode-bar-wrap .mode-btn.active{box-shadow:0 4px 18px -4px rgba(27,58,140,.55)}
+/* dark theme paints active controls with dark text (made for olive): keep them white on violet / navy */
+[data-theme="dark"] :is(#sectionConnect,#cnModeWrap,body[data-section="campus"] #mainPanel,body[data-section="campus"] .mode-bar-wrap) :is(.btn-primary,.mode-btn.active,.pill.active,.pill.active[style],.tt-daychip.active,.chat-send,.me-cal-day.sel,.tt-now-tag,.tt-badge-lab,.at-badge-sub,.cal-badge,.cn-tab.active,.cn-btn.pri,.cn-fc[aria-pressed="true"]){color:#fff !important}
+[data-theme="dark"] :is(#sectionConnect,body[data-section="campus"] #mainPanel) :is(.pill.active,.cn-tab.active,.mode-btn.active){background:linear-gradient(135deg,var(--sage),var(--sage-dark))}
+>>>>>>> Stashed changes
 .cn-wide .cn-ban{height:210px}
 .cn-wide .cn-bm{right:54px}
 .cn-x{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:1.4rem;line-height:1;cursor:pointer}
@@ -3517,9 +3526,15 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
 /* Each section gets a soft wash of its own colour (Connect violet, Campus navy) so it feels distinct */
 body[data-section="connect"]::after,body[data-section="campus"]::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;animation:fadeIn .4s ease}
 body[data-section="connect"]::after{background:linear-gradient(180deg,rgba(150,125,215,.075),rgba(150,125,215,.02))}
+<<<<<<< Updated upstream
 body[data-section="campus"]::after{z-index:-9;background:radial-gradient(60% 50% at 10% 6%,rgba(46,86,214,.26),rgba(46,86,214,0) 70%),radial-gradient(55% 45% at 94% 14%,rgba(56,176,240,.14),rgba(56,176,240,0) 70%),radial-gradient(70% 55% at 82% 100%,rgba(150,205,250,.7),rgba(150,205,250,0) 70%)}
 [data-theme="dark"] body[data-section="connect"]::after{background:linear-gradient(180deg,rgba(130,100,210,.10),rgba(130,100,210,.03))}
 [data-theme="dark"] body[data-section="campus"]::after{background:radial-gradient(60% 55% at 10% 6%,rgba(46,86,214,.42),rgba(46,86,214,0) 70%),radial-gradient(55% 50% at 94% 22%,rgba(56,176,240,.24),rgba(56,176,240,0) 70%),radial-gradient(70% 60% at 78% 104%,rgba(56,176,240,.3),rgba(56,176,240,0) 72%),linear-gradient(155deg,#0A1224 0%,#0F1D3C 42%,#13294F 75%,#17325E 100%)}
+=======
+body[data-section="campus"]::after{background:linear-gradient(180deg,rgba(27,58,140,.10),rgba(27,58,140,.04))}
+[data-theme="dark"] body[data-section="connect"]::after{background:linear-gradient(180deg,rgba(130,100,210,.10),rgba(130,100,210,.03))}
+[data-theme="dark"] body[data-section="campus"]::after{background:linear-gradient(180deg,rgba(27,58,140,.22),rgba(27,58,140,.08))}
+>>>>>>> Stashed changes
 body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 @media (max-width:820px){body[data-section="home"]{padding-bottom:env(safe-area-inset-bottom,0px)}}
 
@@ -3891,6 +3906,7 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
 .cn-ev .cn-themes .cn-chip{font-size:.72rem}
 #cnEgrid .cn-ev{content-visibility:auto;contain-intrinsic-size:auto 520px}
 </style>
+<<<<<<< Updated upstream
 <style id="clSettingsLayerFix">
 /* Settings is a full-screen layer (z-index 9000). Every popup opened from it (admin login / dashboard, confirm dialogs,
    login screen, backup dialogs, toasts) used to sit underneath and only showed after Settings was closed.
@@ -3902,6 +3918,8 @@ body.cl-ov-open #cseDlgOv{z-index:9750 !important}
 body.cl-ov-open #cseBusy{z-index:9760 !important}
 body.cl-ov-open .toast-host{z-index:9800 !important}
 </style>
+=======
+>>>>>>> Stashed changes
 </head>
 <body>
 <div class="mode-graphics" id="modeGraphics" aria-hidden="true"></div>
@@ -4116,7 +4134,10 @@ body.cl-ov-open .toast-host{z-index:9800 !important}
         <div class="hm-dfoot"><button type="button" class="hm-dlink" data-hm-go="timetable">Open Timetable <span aria-hidden="true">→</span></button></div>
       </section>
 <section id="living-avatar" class="hm-dcard hm-shx" data-state="idle" aria-label="Sheynix, your study companion">
+<<<<<<< Updated upstream
 <div class="shx-look" id="shxLook" role="radiogroup" aria-label="Sheynix's look"><button type="button" role="radio" data-look="default" aria-checked="false" title="Sheynix: Default" aria-label="Default"></button><button type="button" role="radio" data-look="blaze" aria-checked="false" title="Sheynix: Blaze" aria-label="Blaze"></button><button type="button" role="radio" data-look="aqua" aria-checked="false" title="Sheynix: Aqua" aria-label="Aqua"></button></div>
+=======
+>>>>>>> Stashed changes
 
 <div class="av-stage"><div class="av-aura"></div><i class="av-rip"></i><i class="av-rip r2"></i><i class="av-ember" style="left:30%;--x:-14px"></i><i class="av-ember" style="left:62%;--x:18px;animation-delay:-1.6s"></i><i class="av-ember" style="left:78%;--x:8px;animation-delay:-3s"></i><i class="av-ember" style="left:45%;--x:-6px;animation-delay:-2.3s"></i><div class="av-shadow"></div><i class="av-spark" style="--a:-60deg"></i><i class="av-spark" style="--a:-25deg"></i><i class="av-spark" style="--a:15deg"></i><i class="av-spark" style="--a:50deg"></i>
 <div class="av-fig" id="av-fig" role="button" tabindex="0" aria-label="Poke your guide"><div class="av-dragon" id="av-dragon" aria-hidden="true"></div><div class="av-fury"><svg class="cd-svg" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sheynix, your fire guide"><defs><radialGradient id="bS1" cx="35%" cy="28%" r="78%"><stop offset="0" stop-color="#FF9A4D"/><stop offset=".45" stop-color="#E8451F"/><stop offset="1" stop-color="#8E1B0C"/></radialGradient>
@@ -17779,7 +17800,11 @@ var LV_GEO = {"P":[["Mysuru","m",12.2958,76.6394,"mysuru|mysore|vvce|vidyavardha
 var LV_PL = LV_GEO.P.map(function(p){ return {name:p[0], s:p[1], lat:p[2], lng:p[3], al:p[4].split('|')}; });
 var LV_IN = LV_GEO.I.split('|'), LV_AB = LV_GEO.A.split('|'), LV_MYS = {lat:12.2958, lng:76.6394};
 var LV_TIERS = [
+<<<<<<< Updated upstream
  ['mysuru', 'Mysuru', 'Hackathons held in Mysuru that you attend in person.'],
+=======
+ ['mysuru', 'Near Mysuru', 'Hackathons held in Mysuru that you attend in person.'],
+>>>>>>> Stashed changes
  ['nearby', 'Nearby Offline Hackathons', 'Mandya, Srirangapatna, Nanjangud, Hassan, Kodagu and other towns near Mysuru, nearest first.'],
  ['karnataka', 'Karnataka Hackathons', 'Bengaluru, Mangaluru, Udupi, Shivamogga, Davanagere, Tumakuru and the rest of Karnataka.'],
  ['india', 'Other Indian Offline Hackathons', 'In-person hackathons in other states.'],
@@ -17834,6 +17859,7 @@ function lvGeo(x){
     else g = {t:w.s, place:w.place, km:w.km, exact:w.exact}; }
   return x._geo = g;
 }
+<<<<<<< Updated upstream
 /* Location tags. Admin listings carry them as "loc:<tag>" entries in themes (stripped before display); a listing whose
    venue / city is Mysuru gets the Mysuru tag automatically. */
 function lvHasTag(x, t){ return !!(x.locTags && x.locTags.indexOf(t) > -1); }
@@ -17844,13 +17870,21 @@ function lvTierIx(t){ for(var k = 0; k < LV_TIERS.length; k++) if(LV_TIERS[k][0]
 function lvGeoLbl(x){ var g = lvGeo(x);
   if(g.t !== 'mysuru' && lvHasTag(x, 'mysuru')) return 'Mysuru';
   if(g.t === 'mysuru') return 'Mysuru'; if(g.t === 'nearby') return (g.place || 'Karnataka') + (g.km != null ? ' \u00b7 \u2248' + g.km + ' km' : '');
+=======
+function lvTierIx(t){ for(var k = 0; k < LV_TIERS.length; k++) if(LV_TIERS[k][0] === t) return k; return 5; }
+function lvGeoLbl(x){ var g = lvGeo(x);
+  if(g.t === 'mysuru') return 'Mysuru'; if(g.t === 'nearby') return (g.place || 'Near Mysuru') + (g.km != null ? ' \u00b7 \u2248' + g.km + ' km' : '');
+>>>>>>> Stashed changes
   if(g.t === 'karnataka') return (g.place || 'Karnataka'); if(g.t === 'india') return x.state || x.city || 'India'; if(g.t === 'international') return x.country || 'International';
   if(g.t === 'verify') return 'Location to be verified'; return ''; }
 /* Inside one section: registration open first, then (nearby) nearest first, then deadline, then start date. */
 function lvSecCmp(a, b){
   var ra = dlInfo(a).k, rb = dlInfo(b).k, rank = function(k){ return k === 'closed' ? 2 : k === 'none' ? 1 : 0; };
+<<<<<<< Updated upstream
   if((ra === 'closed') !== (rb === 'closed')) return ra === 'closed' ? 1 : -1;   // closed listings stay at the end
   var ma = lvMysRank(a), mb = lvMysRank(b); if(ma !== mb) return ma - mb;   // then Mysuru hackathons first
+=======
+>>>>>>> Stashed changes
   if(rank(ra) !== rank(rb)) return rank(ra) - rank(rb);
   if(ef.sort === 'recent') return (b.added || 0) - (a.added || 0) || a.off - b.off;
   if(ef.sort === 'prize') return lvPrize(b) - lvPrize(a) || a.off - b.off;
@@ -17859,6 +17893,7 @@ function lvSecCmp(a, b){
   if(ga.t === 'nearby' && gb.t === 'nearby'){ var da = ga.km == null ? 1e9 : ga.km, db = gb.km == null ? 1e9 : gb.km; if(da !== db) return da - db; }
   return ((a.dl == null ? a.off : a.dl) - (b.dl == null ? b.off : b.dl)) || a.off - b.off;
 }
+<<<<<<< Updated upstream
 /* Filters: All, Offline, Online, Hybrid, Mysuru, Karnataka, India, International. */
 var LV_AREAS = [['all', 'All'], ['offline', 'Offline'], ['online', 'Online'], ['hybrid', 'Hybrid'], ['mysuru', 'Mysuru'], ['ka', 'Karnataka'], ['in', 'India'], ['intl', 'International']];
 function lvArea(x, a){ var t = lvGeo(x).t;
@@ -17866,6 +17901,15 @@ function lvArea(x, a){ var t = lvGeo(x).t;
   if(a === 'mysuru') return lvIsMys(x); if(a === 'ka') return lvIsKa(x);
   if(a === 'in') return lvIsKa(x) || t === 'india'; if(a === 'intl') return t === 'international'; return true; }
 function lvAreaSecs(a){ return a === 'online' ? ['online'] : a === 'mysuru' ? ['karnataka'] : a === 'ka' ? ['mysuru', 'nearby', 'karnataka'] : a === 'in' ? ['mysuru', 'nearby', 'karnataka', 'india'] : a === 'intl' ? ['international'] : a === 'offline' ? ['mysuru', 'nearby', 'karnataka', 'india', 'verify', 'international'] : LV_TIERS.map(function(t){ return t[0]; }); }
+=======
+/* Filters: All, Offline, Online, Hybrid, Near Mysuru, Karnataka, India, International. */
+var LV_AREAS = [['all', 'All'], ['offline', 'Offline'], ['online', 'Online'], ['hybrid', 'Hybrid'], ['mysuru', 'Near Mysuru'], ['ka', 'Karnataka'], ['in', 'India'], ['intl', 'International']];
+function lvArea(x, a){ var t = lvGeo(x).t;
+  if(!a || a === 'all') return true; if(a === 'offline' || a === 'online' || a === 'hybrid') return x.mode === a;
+  if(a === 'mysuru') return t === 'mysuru' || t === 'nearby'; if(a === 'ka') return t === 'mysuru' || t === 'nearby' || t === 'karnataka';
+  if(a === 'in') return t === 'mysuru' || t === 'nearby' || t === 'karnataka' || t === 'india'; if(a === 'intl') return t === 'international'; return true; }
+function lvAreaSecs(a){ return a === 'online' ? ['online'] : a === 'mysuru' ? ['mysuru', 'nearby'] : a === 'ka' ? ['mysuru', 'nearby', 'karnataka'] : a === 'in' ? ['mysuru', 'nearby', 'karnataka', 'india'] : a === 'intl' ? ['international'] : a === 'offline' ? ['mysuru', 'nearby', 'karnataka', 'india', 'verify', 'international'] : LV_TIERS.map(function(t){ return t[0]; }); }
+>>>>>>> Stashed changes
 function lvDiscFor(t){ return t === 'mysuru' || t === 'nearby' ? LV_DISCOVER.local : t === 'karnataka' || t === 'india' ? LV_DISCOVER.india : t === 'online' ? LV_DISCOVER.online : t === 'international' ? LV_DISCOVER.world : []; }
 function lvDiscHtml(l){ return l.length ? '<div class="cn-disc">' + l.map(function(s){ return '<a href="' + esc(s[1]) + '" target="_blank" rel="noopener noreferrer">' + esc(s[0]) + ' \u2197</a>'; }).join('') + '</div>' : ''; }
 /* Source health for the live-events status line. */
@@ -18532,6 +18576,7 @@ function drawEvents(){
   var hb = $('#cnEhealth'); if(hb) hb.innerHTML = ef.health ? '<div class="cn-card cn-hlbox"><h3>' + ic('flag') + 'Event sources</h3>' + lvHealthHtml() + '</div>' : '';
   /* Sections in strict order: Mysuru, nearby, Karnataka, rest of India, online, to verify, international. */
   var groups = {}; LV_TIERS.forEach(function(t){ groups[t[0]] = []; });
+<<<<<<< Updated upstream
   l.forEach(function(o){ var gt = lvGeo(o.x).t; if(gt === 'mysuru' || gt === 'nearby' || lvIsKa(o.x)) gt = 'karnataka'; groups[gt].push(o); });   // Near Mysuru / Nearby sections removed: those listings show under Karnataka
   var show = lvAreaSecs(ef.area), html = '';
   LV_TIERS.forEach(function(t){
@@ -18545,6 +18590,20 @@ function drawEvents(){
       (g.length ? '<div class="cn-grid">' + vis.map(function(o){ return evCard(o.x, o.i); }).join('') + '</div>' + lvPager(id, pg, pages) :
         '<div class="cn-secempty"><b>' + (q ? 'No matches here' : ef.area === 'mysuru' ? 'No Mysuru hackathons listed right now' : 'Nothing listed here right now') + '</b>' +
         (lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
+=======
+  l.forEach(function(o){ groups[lvGeo(o.x).t].push(o); });
+  var show = lvAreaSecs(ef.area), html = '';
+  LV_TIERS.forEach(function(t){
+    var id = t[0], g = groups[id]; if(show.indexOf(id) < 0) return;
+    if(!g.length && (saved || q || ef.kind || ef.dom || ef.st || ef.area === 'hybrid' || ef.area === 'offline' && id === 'verify')) return;
+    g.sort(function(a, b){ return lvSecCmp(a.x, b.x); });
+    var pages = Math.max(1, Math.ceil(g.length / LV_SEC_N)), pg = Math.min(Math.max(1, (ef.pg && ef.pg[id]) || 1), pages), vis = g.slice((pg - 1) * LV_SEC_N, pg * LV_SEC_N);
+    html += '<section class="cn-evsec" data-sec="' + id + '" aria-labelledby="cnEs_' + id + '"><div class="cn-evsec-h"><div><h3 id="cnEs_' + id + '">' + esc(t[1]) + ' <span class="n">' + g.length + '</span></h3><p>' + esc(t[2]) + '</p></div>' +
+      (pages > 1 ? '<span class="cn-pgnote">Page ' + pg + ' of ' + pages + '</span>' : '') + '</div>' +
+      (g.length ? '<div class="cn-grid">' + vis.map(function(o){ return evCard(o.x, o.i); }).join('') + '</div>' + lvPager(id, pg, pages) :
+        '<div class="cn-secempty"><b>' + (q ? 'No matches here' : id === 'mysuru' ? 'No Mysuru hackathons listed right now' : id === 'nearby' ? 'No hackathons near Mysuru listed right now' : 'Nothing listed here right now') + '</b>' +
+        (lvDiscFor(id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
+>>>>>>> Stashed changes
   });
   $('#cnEgrid').innerHTML = html + (l.length && !saved ? '<div class="cn-evsec cn-discall"><div class="cn-evsec-h"><div><h3>Browse more hackathons</h3><p>Official listing pages, including sites without a live feed.</p></div></div>' + lvDiscHtml(LV_DISCOVER.local.concat(LV_DISCOVER.india, LV_DISCOVER.world.slice(0, 1).concat(LV_DISCOVER.online.slice(1, 2)))) + '</div>' : '');
   $('#cnEempty').innerHTML = l.length ? '' : saved && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
@@ -18782,32 +18841,55 @@ function initEvents(){
 }
 
 /* ---------- Router: Posting | Teams | Discover → Articles | Events ---------- */
+<<<<<<< Updated upstream
 var TABS = ['posting', 'teams', 'events', 'articles'], st = {tab:'posting', sub:'events', tsub:'people'}, artOn = false;
 function normTab(tab, sub){ return tab === 'discover' ? (sub === 'articles' ? 'articles' : 'events') : tab; }   // old #connect/discover/... links open the new Events / Articles tabs
 function active(){ return !!(window.cseSection && window.cseSection.current() === 'connect'); }
 function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
 var INTRO = {posting:['Posting','Share projects, achievements and updates with your campus community.'], teams:['Teams','Find people, build teams and manage your join requests in one place.'], events:['Events','Explore hackathons, competitions and tech events picked for students.'], articles:['Articles','Read articles and stories picked for students.']};
+=======
+var TABS = ['posting', 'teams', 'discover'], st = {tab:'posting', sub:'events', tsub:'people'}, artOn = false;
+function active(){ return !!(window.cseSection && window.cseSection.current() === 'connect'); }
+function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'discover' ? '/' + st.sub : st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
+var INTRO = {posting:['Posting','Share projects, achievements and updates with your campus community.'], teams:['Teams','Find people, build teams and manage your join requests in one place.'], discover:['Discover','Explore hackathons, events and articles picked for students.']};
+>>>>>>> Stashed changes
 function sync(){
   var it = INTRO[st.tab], ie = $('#cnIntro'); if(it && ie){ ie.querySelector('h2').textContent = it[0]; ie.querySelector('p').textContent = it[1]; }
   [].forEach.call(document.querySelectorAll('#cnModeWrap [data-cn]'), function(b){ var on = b.dataset.cn === st.tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
   [].forEach.call(root.querySelectorAll('[data-cnsub]'), function(b){ var on = b.dataset.cnsub === st.sub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   [].forEach.call(root.querySelectorAll('[data-cntsub]'), function(b){ var on = b.dataset.cntsub === st.tsub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
+<<<<<<< Updated upstream
   $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTreq').classList.toggle('hidden', st.tsub !== 'requests'); $('#cnTconn').classList.toggle('hidden', st.tsub !== 'connections'); if(st.tab === 'teams' && st.tsub === 'connections' && active()) connOpened(); document.body.setAttribute('data-cnbg', st.tab === 'teams' && st.tsub === 'requests' ? 'requests' : (st.tab === 'events' || st.tab === 'articles') ? 'discover' : st.tab); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
   var disc = st.tab === 'events' || st.tab === 'articles'; if(disc) st.sub = st.tab;
   $('#cnPosting').classList.toggle('hidden', st.tab !== 'posting'); $('#cnTeams').classList.toggle('hidden', st.tab !== 'teams'); $('#cnDiscover').classList.toggle('hidden', !disc);
   $('#cnSub').classList.add('hidden'); if(mtc){ mtc.classList.toggle('hidden', st.tab !== 'teams'); if(st.tab === 'teams'){ drawMyTeam(); drawTeams(); } }
   $('#cnArticles').classList.toggle('hidden', st.sub !== 'articles'); $('#cnEvents').classList.toggle('hidden', st.sub !== 'events');
   var want = active() && st.tab === 'articles';   // the existing Discover loads / listens only while on screen   // the existing Discover loads / listens only while on screen
+=======
+  $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTreq').classList.toggle('hidden', st.tsub !== 'requests'); $('#cnTconn').classList.toggle('hidden', st.tsub !== 'connections'); if(st.tab === 'teams' && st.tsub === 'connections' && active()) connOpened(); document.body.setAttribute('data-cnbg', st.tab === 'teams' && st.tsub === 'requests' ? 'requests' : st.tab); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
+  TABS.forEach(function(t){ $('#cn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== st.tab); });
+  $('#cnSub').classList.toggle('hidden', st.tab !== 'discover'); if(mtc){ mtc.classList.toggle('hidden', st.tab !== 'teams'); if(st.tab === 'teams'){ drawMyTeam(); drawTeams(); } }
+  $('#cnArticles').classList.toggle('hidden', st.sub !== 'articles'); $('#cnEvents').classList.toggle('hidden', st.sub !== 'events');
+  var want = active() && st.tab === 'discover' && st.sub === 'articles';   // the existing Discover loads / listens only while on screen   // the existing Discover loads / listens only while on screen
+>>>>>>> Stashed changes
   if(want && !artOn){ artOn = true; try{ window.discoverShow && window.discoverShow(); }catch(e){ console.warn('[Connect] Articles failed to open', e); } }
   else if(!want && artOn){ artOn = false; try{ window.discoverHide && window.discoverHide(); }catch(e){} }
   if(wantPeople()) loadPeople();
 }
 function go(tab, sub, o){
+<<<<<<< Updated upstream
   o = o || {}; tab = normTab(tab, sub); st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams' || sub === 'requests' || sub === 'connections') st.tsub = sub;
   if(!active() && window.cseSection) window.cseSection.go('connect', {noHash:true, noAnim:o.noAnim});
   sync(); if(!o.noHash) setHash();
 }
 function parse(h){ var p = h.split('/'); if(h === 'discover') return ['articles', null]; if(p[0] !== 'connect') return null; return [p[1], p[2]]; }
+=======
+  o = o || {}; st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams' || sub === 'requests' || sub === 'connections') st.tsub = sub;
+  if(!active() && window.cseSection) window.cseSection.go('connect', {noHash:true, noAnim:o.noAnim});
+  sync(); if(!o.noHash) setHash();
+}
+function parse(h){ var p = h.split('/'); if(h === 'discover') return ['discover', 'articles']; if(p[0] !== 'connect') return null; return [p[1], p[2]]; }
+>>>>>>> Stashed changes
 var cnBar = document.getElementById('cnModeWrap');
 if(cnBar){
   cnBar.addEventListener('click', function(e){ var t = e.target.closest('[data-cn]'); if(t) go(t.dataset.cn, null); });
@@ -18822,7 +18904,11 @@ root.addEventListener('keydown', function(e){
 });
 root.addEventListener('click', function(e){
   var s = e.target.closest('[data-cnsub]'), ts = e.target.closest('[data-cntsub]');
+<<<<<<< Updated upstream
   if(s) go(s.dataset.cnsub, null); else if(ts) go('teams', ts.dataset.cntsub);
+=======
+  if(s) go('discover', s.dataset.cnsub); else if(ts) go('teams', ts.dataset.cntsub);
+>>>>>>> Stashed changes
 });
 window.addEventListener('hashchange', function(){ var r = parse(location.hash.replace('#', '')); if(r) go(r[0], r[1], {noHash:true}); });
 window.addEventListener('cse:sectionchange', function(e){ if(e.detail && e.detail.section === 'connect' && e.detail.previous !== 'connect'){ sync(); setHash(); } else sync(); });
@@ -19253,7 +19339,11 @@ function initMyTeam(){
   drawMyTeam();
 }
 initModal(); initPosting(); initTeams(); initMyTeam(); initReqs(); initEvents();
+<<<<<<< Updated upstream
 var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], boot[1]); st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests' || boot[1] === 'connections')) st.tsub = boot[1]; }
+=======
+var boot = parse(window.__cnBoot || ''); if(boot){ st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests' || boot[1] === 'connections')) st.tsub = boot[1]; }
+>>>>>>> Stashed changes
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
@@ -19637,6 +19727,7 @@ window.clShell={openPeer:openPeer,openSettings:openSettings,closeSettings:closeS
 load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover=r[0]||null;IMG.photo=r[1]||null});
 })();
 </script>
+<<<<<<< Updated upstream
 <script id="coreHomeSchemeJs">
 /* Core screens (Settings, Profile, Login) always use the Home colour scheme, whichever section (Campus / Connect) they were opened from.
    While one is open, body[data-section] reads "home" (the screens are full-screen, so nothing else is visible); on close the real
@@ -19665,6 +19756,8 @@ load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover
   sync();
 })();
 </script>
+=======
+>>>>>>> Stashed changes
 <style id="plumGlassTheme">
 /* ============================================================
    PLUM · ORCHID GLASS THEME  (visual layer only — no markup/JS changed)
@@ -19684,7 +19777,11 @@ body[data-section="connect"]{
   --gl-sh-3:0 1px 0 rgba(255,255,255,1) inset,0 32px 70px -24px rgba(40,10,70,.55),0 10px 24px rgba(40,10,70,.14),0 0 46px -10px rgba(240,92,207,.35);
   --gl-blur:blur(18px) saturate(1.35);
   --gl-ease:cubic-bezier(.2,.7,.2,1);
+<<<<<<< Updated upstream
   --gl-btn:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,0) 48%),linear-gradient(135deg,#5873e0 0%,#8a5ddb 52%,#b455c8 100%);
+=======
+  --gl-btn:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,0) 48%),linear-gradient(135deg,#9a58d6,#c24fc0);
+>>>>>>> Stashed changes
   --gl-field:rgba(255,255,255,.64);
   --gl-bg:
     radial-gradient(60% 50% at 10% 6%,rgba(166,107,224,.26),rgba(166,107,224,0) 70%),
@@ -19697,14 +19794,24 @@ body[data-section="connect"]{
   --sage:#8a45c9; --sage-light:rgba(166,107,224,.14); --sage-dark:#5e2a94; --brown:#c06ad0; --brown-dark:#a24bb8; --danger:#b4264f;
   --p-glass:rgba(255,255,255,.55); --bar:rgba(255,255,255,.55); --pop:rgba(255,255,255,.92); --pop-t:var(--gl-ink);
   --scrim:rgba(22,9,31,.46); --bd-h:rgba(138,69,201,.5); --sh:var(--gl-sh-1); --glow:rgba(240,92,207,.35); --hi:#5e2a94;
+<<<<<<< Updated upstream
   --grad:linear-gradient(135deg,#5873e0 0%,#8a5ddb 52%,#b455c8 100%); --on-grad:#fff; --bub:linear-gradient(135deg,#5873e0 0%,#8a5ddb 52%,#b455c8 100%);
   --bg-grad:transparent; --hero:radial-gradient(ellipse at 50% 55%,rgba(120,140,245,.1),rgba(255,255,255,0) 70%);
   --now:linear-gradient(135deg,rgba(104,132,242,.16),rgba(166,107,224,.16));
+=======
+  --grad:linear-gradient(135deg,#9a58d6,#c24fc0); --on-grad:#fff; --bub:linear-gradient(135deg,#9a58d6,#c24fc0);
+  --bg-grad:transparent; --hero:radial-gradient(ellipse at 50% 55%,rgba(166,107,224,.16),rgba(255,255,255,0) 70%);
+  --now:linear-gradient(135deg,rgba(166,107,224,.22),rgba(240,92,207,.14));
+>>>>>>> Stashed changes
   --p-shadow-1:var(--gl-sh-1); --p-shadow-2:var(--gl-sh-2); --p-shadow-3:var(--gl-sh-3); --p-focus:0 0 0 3px rgba(240,92,207,.28);
   --p2-hi:inset 0 1px 0 rgba(255,255,255,.85); --p2-lo:inset 0 -1px 0 rgba(166,107,224,.12);
   --p2-surface:linear-gradient(145deg,rgba(255,255,255,.74),rgba(255,255,255,.44));
   --p2-surface-cool:var(--p2-surface); --p2-surface-warm:var(--p2-surface);
+<<<<<<< Updated upstream
   --p2-navy:var(--gl-btn); --p2-edge:linear-gradient(135deg,rgba(255,255,255,.9),rgba(110,135,245,.25) 50%,rgba(255,255,255,.5));
+=======
+  --p2-navy:var(--gl-btn); --p2-edge:linear-gradient(135deg,rgba(255,255,255,.9),rgba(240,92,207,.25) 50%,rgba(255,255,255,.5));
+>>>>>>> Stashed changes
   --p2-deep:var(--gl-sh-2); --p2-deeper:var(--gl-sh-3);
 }
 html[data-theme="dark"] body[data-section="connect"]{
@@ -19728,8 +19835,13 @@ html[data-theme="dark"] body[data-section="connect"]{
   --sage:#c9a0f2; --sage-light:rgba(201,160,242,.16); --sage-dark:#b184ea; --brown:#e089d8; --brown-dark:#c76bc0; --danger:#ff8fb0;
   --p-glass:rgba(30,12,46,.62); --bar:rgba(30,12,46,.62); --pop:rgba(38,16,58,.95);
   --scrim:rgba(8,2,16,.68); --bd-h:rgba(217,184,247,.55); --hi:#e6cdfa;
+<<<<<<< Updated upstream
   --hero:radial-gradient(ellipse at 50% 55%,rgba(120,146,255,.14),rgba(22,9,31,0) 70%);
   --now:linear-gradient(135deg,rgba(110,140,255,.28),rgba(166,107,224,.28));
+=======
+  --hero:radial-gradient(ellipse at 50% 55%,rgba(166,107,224,.22),rgba(22,9,31,0) 70%);
+  --now:linear-gradient(135deg,rgba(166,107,224,.4),rgba(240,92,207,.22));
+>>>>>>> Stashed changes
   --p-focus:0 0 0 3px rgba(240,92,207,.34);
   --p2-hi:inset 0 1px 0 rgba(255,255,255,.14); --p2-lo:inset 0 -1px 0 rgba(0,0,0,.35);
   --p2-surface:linear-gradient(145deg,rgba(78,42,118,.62),rgba(34,14,52,.5)); --p2-surface-cool:var(--p2-surface); --p2-surface-warm:var(--p2-surface);
@@ -19909,6 +20021,7 @@ body[data-section="connect"] #secNav .sec-ind,html[data-theme="dark"] body[data-
 /* PLUM GLASS · REFINEMENT LAYER (visual only: no markup, JS, layout, spacing or radius changes).
    Loaded after plumGlassTheme. Scoped to the Connect section. Quick tuning: --gl-gloss/--gl-pk/--gl-pu (reflection strength), --gl-blur. */
 body[data-section="connect"]{
+<<<<<<< Updated upstream
  --gl-gloss:.34;--gl-pk:.11;--gl-pu:.13;--gl-bl:96,128,240;--gl-blur:blur(30px) saturate(1.7) brightness(1.04);
  --gl-fill-a:rgba(255,255,255,.58);--gl-fill-b:rgba(255,255,255,.3);--gl-sheen:rgba(255,255,255,.5);--gl-edge:rgba(255,255,255,.88);
  --gl-mfill-a:rgba(255,255,255,.84);--gl-mfill-b:rgba(250,238,255,.66);--gl-btn-ink:#fff;
@@ -19931,10 +20044,35 @@ html[data-theme="dark"] body[data-section="connect"]{
  --gl-sh-3:0 1px 0 rgba(255,255,255,.46) inset,0 0 40px rgba(201,160,242,.16) inset,0 36px 80px -22px rgba(2,0,10,.94),0 10px 26px rgba(2,0,10,.55),0 0 56px -10px rgba(var(--gl-bl),.21);
  --gl-bg:radial-gradient(70% 50% at 6% 0%,rgba(96,128,240,.14),rgba(96,128,240,0) 70%),radial-gradient(60% 45% at 98% 10%,rgba(166,107,224,.1),rgba(166,107,224,0) 70%),linear-gradient(165deg,#1f1830,#251c3a 55%,#1e1c3c);
  --bg:#241c39;
+=======
+ --gl-gloss:.34;--gl-pk:.2;--gl-pu:.22;--gl-blur:blur(30px) saturate(1.7) brightness(1.04);
+ --gl-fill-a:rgba(255,255,255,.58);--gl-fill-b:rgba(255,255,255,.3);--gl-sheen:rgba(255,255,255,.5);--gl-edge:rgba(255,255,255,.88);
+ --gl-mfill-a:rgba(255,255,255,.84);--gl-mfill-b:rgba(250,238,255,.66);--gl-btn-ink:#fff;
+ --gl-sh-1:0 1px 0 rgba(255,255,255,.95) inset,0 -1px 0 rgba(166,107,224,.22) inset,0 0 24px rgba(255,255,255,.26) inset,0 -16px 26px -16px rgba(240,92,207,.2) inset,0 14px 32px -14px rgba(70,24,100,.4),0 2px 6px rgba(70,24,100,.1),0 0 30px -10px rgba(240,92,207,.35);
+ --gl-sh-2:0 1px 0 #fff inset,0 -1px 0 rgba(166,107,224,.24) inset,0 0 30px rgba(255,255,255,.32) inset,0 -18px 30px -16px rgba(240,92,207,.26) inset,0 24px 46px -16px rgba(70,24,100,.46),0 6px 14px rgba(70,24,100,.12),0 0 40px -8px rgba(240,92,207,.46);
+ --gl-sh-3:0 1px 0 #fff inset,0 -1px 0 rgba(166,107,224,.24) inset,0 0 36px rgba(255,255,255,.36) inset,0 36px 76px -24px rgba(40,10,70,.6),0 12px 28px rgba(40,10,70,.16),0 0 54px -10px rgba(240,92,207,.4);
+ --gl-bg:#fff;
+ --bg:#fff;
+}
+html[data-theme="dark"] body[data-section="connect"]{
+ --gl-gloss:.2;--gl-pk:.26;--gl-pu:.3;
+ --gl-fill-a:rgba(104,58,150,.5);--gl-fill-b:rgba(30,12,52,.36);--gl-sheen:rgba(255,226,250,.2);--gl-edge:rgba(255,226,250,.36);
+ --gl-mfill-a:rgba(80,44,124,.84);--gl-mfill-b:rgba(32,14,58,.8);
+ --gl-btn:linear-gradient(180deg,rgba(255,255,255,.46),rgba(255,255,255,0) 52%),linear-gradient(135deg,#c58bff,#ff6fd8);
+ --gl-btn-h:linear-gradient(180deg,rgba(255,255,255,.56),rgba(255,255,255,.04) 52%),linear-gradient(135deg,#d6a5ff,#ff8be4);
+ --gl-btn-a:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 52%),linear-gradient(135deg,#b074f2,#f45bcb);
+ --gl-btn-ink:#1a0628;
+ --gl-sh-1:0 1px 0 rgba(255,255,255,.36) inset,0 -1px 0 rgba(0,0,0,.42) inset,0 0 26px rgba(201,160,242,.12) inset,0 -18px 28px -18px rgba(240,92,207,.26) inset,0 16px 34px -14px rgba(6,0,16,.82),0 2px 8px rgba(6,0,16,.4),0 0 30px -10px rgba(240,92,207,.34);
+ --gl-sh-2:0 1px 0 rgba(255,255,255,.42) inset,0 -1px 0 rgba(0,0,0,.42) inset,0 0 30px rgba(201,160,242,.16) inset,0 -20px 30px -18px rgba(240,92,207,.3) inset,0 24px 48px -16px rgba(6,0,16,.88),0 5px 14px rgba(6,0,16,.45),0 0 40px -8px rgba(240,92,207,.46);
+ --gl-sh-3:0 1px 0 rgba(255,255,255,.46) inset,0 0 40px rgba(201,160,242,.16) inset,0 36px 80px -22px rgba(2,0,10,.94),0 10px 26px rgba(2,0,10,.55),0 0 56px -10px rgba(240,92,207,.42);
+ --gl-bg:#301934;
+ --bg:#301934;
+>>>>>>> Stashed changes
  --gl-ink-2:#ead9f8;
 }
 
 /* ---- Glass surfaces: blur + translucent fill + glossy arc + pink/purple reflections + thin white edge + inner shadows ---- */
+<<<<<<< Updated upstream
 body[data-section="connect"]:not(#_) :is(.hm-card,.hm-dcard,.hm-hist-card,.hm-stat,.hm-pending-item,.hm-poll-bar,.hm-ev,.subj-card,.res-card,.syll-card,.about-note,.tt-day-card,.tt-next,.tt-tl-card,.tt-tl-break,.tt-desktop,.cal-card,.doc-card,.at-form,.at-hist-card,.at-hist-row,.at-readonly,.at-slot,.ex-card,.ex-q,.chat-box,.me-task-card,.me-summary-card,.me-day-academic-item,.me-day-task-item,.me-day-note-item,.me-note-hist-item,.me-setup,.me-cal,.smx-card,.smx-folder,.ann-card,.notif-banner,.notif-item,.qz-pod,.qz-stat,.xp-chip,.tst-pal,.dv-card,.cn-card,.cn-st,.lg-card,.mt-create,.mt-me,.mt-st,.mt-req,.hk-fact,.hk-me,.hk-mate,.sv-row,.pf-proj,.pf-mbox,.tc-box,.rg-box,.od-stat,.cp-box,.mh-row,.stat,.ws-center,.comm-conn,.toast,.msg-menu,#themeMenu,.av-bubble,#av-chat,.lg-panel){background:radial-gradient(120% 60% at 14% -12%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 58%),linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 42%),radial-gradient(90% 80% at 0% 0%,rgba(240,92,207,var(--gl-pk)),rgba(240,92,207,0) 62%),radial-gradient(90% 90% at 100% 100%,rgba(var(--gl-bl),var(--gl-pu)),rgba(var(--gl-bl),0) 64%),linear-gradient(150deg,var(--gl-fill-a),var(--gl-fill-b)) !important;-webkit-backdrop-filter:var(--gl-blur) !important;backdrop-filter:var(--gl-blur) !important;border:1px solid var(--gl-edge) !important;box-shadow:var(--gl-sh-1) !important}
 body[data-section="connect"]:not(#_) :is(.hm-card,.hm-dcard,.cal-card,.at-form,.me-cal,.chat-box) :is(.hm-ev,.stat,.at-slot,.tt-tl-card,.me-day-task-item,.me-day-academic-item,.me-day-note-item,.at-hist-row,.hm-stat,.hm-pending-item){--gl-gloss:.1;--gl-pk:.08;--gl-pu:.1;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
 @media (hover:hover){body[data-section="connect"]:not(#_) :is(.lg-card,.subj-card,.res-card,.syll-card,.doc-card,.cn-card,.dv-card,.smx-card,.smx-folder,.hm-ev,.ann-card,.mt-me):hover{--gl-gloss:.46;--gl-pk:.17;--gl-pu:.19;box-shadow:var(--gl-sh-2) !important}}
@@ -19945,6 +20083,18 @@ body[data-section="connect"]:not(#_) :is(#secNav,.mode-bar){border:1px solid var
 
 /* ---- Popups, dialogs, overlays ---- */
 body[data-section="connect"]:not(#_) :is(.at-modal,.me-modal,.cn-modal,.pf-modal,#cseDlg,.cp-box,.rg-box,.tc-box,.tour-card-in){background:radial-gradient(120% 60% at 14% -12%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 58%),linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 42%),radial-gradient(90% 80% at 0% 0%,rgba(240,92,207,var(--gl-pk)),rgba(240,92,207,0) 62%),radial-gradient(90% 90% at 100% 100%,rgba(var(--gl-bl),var(--gl-pu)),rgba(var(--gl-bl),0) 64%),linear-gradient(150deg,var(--gl-mfill-a),var(--gl-mfill-b)) !important;border:1px solid var(--gl-edge) !important;box-shadow:var(--gl-sh-3) !important;-webkit-backdrop-filter:blur(42px) saturate(1.8) !important;backdrop-filter:blur(42px) saturate(1.8) !important}
+=======
+body[data-section="connect"]:not(#_) :is(.hm-card,.hm-dcard,.hm-hist-card,.hm-stat,.hm-pending-item,.hm-poll-bar,.hm-ev,.subj-card,.res-card,.syll-card,.about-note,.tt-day-card,.tt-next,.tt-tl-card,.tt-tl-break,.tt-desktop,.cal-card,.doc-card,.at-form,.at-hist-card,.at-hist-row,.at-readonly,.at-slot,.ex-card,.ex-q,.chat-box,.me-task-card,.me-summary-card,.me-day-academic-item,.me-day-task-item,.me-day-note-item,.me-note-hist-item,.me-setup,.me-cal,.smx-card,.smx-folder,.ann-card,.notif-banner,.notif-item,.qz-pod,.qz-stat,.xp-chip,.tst-pal,.dv-card,.cn-card,.cn-st,.lg-card,.mt-create,.mt-me,.mt-st,.mt-req,.hk-fact,.hk-me,.hk-mate,.sv-row,.pf-proj,.pf-mbox,.tc-box,.rg-box,.od-stat,.cp-box,.mh-row,.stat,.ws-center,.comm-conn,.toast,.msg-menu,#themeMenu,.av-bubble,#av-chat,.lg-panel){background:radial-gradient(120% 60% at 14% -12%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 58%),linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 42%),radial-gradient(90% 80% at 0% 0%,rgba(240,92,207,var(--gl-pk)),rgba(240,92,207,0) 62%),radial-gradient(90% 90% at 100% 100%,rgba(166,107,224,var(--gl-pu)),rgba(166,107,224,0) 64%),linear-gradient(150deg,var(--gl-fill-a),var(--gl-fill-b)) !important;-webkit-backdrop-filter:var(--gl-blur) !important;backdrop-filter:var(--gl-blur) !important;border:1px solid var(--gl-edge) !important;box-shadow:var(--gl-sh-1) !important}
+body[data-section="connect"]:not(#_) :is(.hm-card,.hm-dcard,.cal-card,.at-form,.me-cal,.chat-box) :is(.hm-ev,.stat,.at-slot,.tt-tl-card,.me-day-task-item,.me-day-academic-item,.me-day-note-item,.at-hist-row,.hm-stat,.hm-pending-item){--gl-gloss:.1;--gl-pk:.08;--gl-pu:.1;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+@media (hover:hover){body[data-section="connect"]:not(#_) :is(.lg-card,.subj-card,.res-card,.syll-card,.doc-card,.cn-card,.dv-card,.smx-card,.smx-folder,.hm-ev,.ann-card,.mt-me):hover{--gl-gloss:.46;--gl-pk:.3;--gl-pu:.34;box-shadow:var(--gl-sh-2) !important}}
+
+/* ---- Navigation bars ---- */
+body[data-section="connect"]:not(#_) :is(nav,nav.scrolled,#secNav,.mode-bar,.mobile-menu){background:radial-gradient(80% 140% at 12% -40%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 60%),radial-gradient(60% 120% at 92% 0%,rgba(240,92,207,var(--gl-pk)),rgba(240,92,207,0) 70%),linear-gradient(180deg,var(--gl-fill-a),var(--gl-fill-b)) !important;-webkit-backdrop-filter:blur(34px) saturate(1.8) !important;backdrop-filter:blur(34px) saturate(1.8) !important;border-bottom:1px solid var(--gl-edge) !important;box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 -12px 20px -14px rgba(240,92,207,.24) inset,0 14px 34px -18px rgba(20,4,40,.6) !important}
+body[data-section="connect"]:not(#_) :is(#secNav,.mode-bar){border:1px solid var(--gl-edge) !important}
+
+/* ---- Popups, dialogs, overlays ---- */
+body[data-section="connect"]:not(#_) :is(.at-modal,.me-modal,.cn-modal,.pf-modal,#cseDlg,.cp-box,.rg-box,.tc-box,.tour-card-in){background:radial-gradient(120% 60% at 14% -12%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 58%),linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 42%),radial-gradient(90% 80% at 0% 0%,rgba(240,92,207,var(--gl-pk)),rgba(240,92,207,0) 62%),radial-gradient(90% 90% at 100% 100%,rgba(166,107,224,var(--gl-pu)),rgba(166,107,224,0) 64%),linear-gradient(150deg,var(--gl-mfill-a),var(--gl-mfill-b)) !important;border:1px solid var(--gl-edge) !important;box-shadow:var(--gl-sh-3) !important;-webkit-backdrop-filter:blur(42px) saturate(1.8) !important;backdrop-filter:blur(42px) saturate(1.8) !important}
+>>>>>>> Stashed changes
 body[data-section="connect"]:not(#_) :is(.at-modal-overlay,.me-modal-overlay,.md-ov,.cp-ov,#acadOverlay,.qz-ovl,#cseDlgOv,.cm-ov,.rxp-ov){-webkit-backdrop-filter:blur(12px) saturate(1.2) !important;backdrop-filter:blur(12px) saturate(1.2) !important}
 
 /* ---- Buttons · dark mode: secondary = translucent glass with a visible outline ---- */
@@ -19978,6 +20128,7 @@ body[data-section="connect"] :is(button,.btn-primary,.hero-action-btn.btn-primar
 @media (max-width:760px){body[data-section="connect"]{--gl-blur:blur(20px) saturate(1.5)}}
 @media (prefers-reduced-transparency:reduce){body[data-section="connect"]:not(#_){--gl-blur:none;--gl-gloss:0;--gl-pk:0;--gl-pu:0}}
 @media (prefers-reduced-motion:reduce){body[data-section="connect"]:not(#_) :is(button,a,.btn,.cn-btn,.pill):hover,body[data-section="connect"]:not(#_) :is(button,a,.btn,.cn-btn,.pill):active{transform:none !important}}
+<<<<<<< Updated upstream
 /* ---- Page background (light mode): white with a very soft blue-violet tint ---- */
 html[data-theme="light"]:has(body[data-section="connect"]),html:not([data-theme="dark"]):has(body[data-section="connect"]){background:#fff}
 html:not([data-theme="dark"]) body[data-section="connect"]::before{background:var(--gl-bg) !important}
@@ -20007,6 +20158,59 @@ body[data-section="campus"] nav,body[data-section="campus"] nav.scrolled{backgro
 body[data-section="campus"] #secNav{background-image:linear-gradient(100deg,rgba(46,86,214,.10),rgba(56,176,240,.12));border-color:rgba(70,140,228,.30)}
 body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(46,86,214,.22),rgba(56,176,240,.26));box-shadow:0 0 0 1px rgba(56,150,230,.38),0 6px 16px -10px rgba(27,58,140,.5)}
 [data-theme="dark"] body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(60,100,225,.42),rgba(56,176,240,.30))}
+=======
+/* ---- Pure white page background (light mode) ---- */
+html[data-theme="light"]:has(body[data-section="connect"]),html:not([data-theme="dark"]):has(body[data-section="connect"]){background:#fff}
+html:not([data-theme="dark"]) body[data-section="connect"]::before{background:#fff !important}
+html:not([data-theme="dark"]) body[data-section="connect"]::after{background:none !important}
+/* ---- Pure black page background (dark mode) ---- */
+html[data-theme="dark"]:has(body[data-section="connect"]){background:#301934}
+html[data-theme="dark"] body[data-section="connect"]::before{background:var(--gl-bg) !important}
+html[data-theme="dark"] body[data-section="connect"]::after{background:none !important}
+</style>
+<style id="campusWhiteBg">
+/* Campus section · light mode: plain white page background (nothing else changed) */
+html:not([data-theme="dark"]):has(body[data-section="campus"]){background:#fff !important}
+html:not([data-theme="dark"]) body[data-section="campus"]:not(#_){background:#fff !important}
+html:not([data-theme="dark"]) body[data-section="campus"]::after{background:none !important}
+html:not([data-theme="dark"]) body[data-section="campus"] .bg-fx{display:none !important}
+</style>
+<style id="regBtnFix">
+/* Register / Confirm buttons: always clearly visible (visual only) */
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_) :is(.cn-btn.pri:not(.mt-btn-danger),.pf-btn.pri,.ep-b.pri,.rg-act .pri){background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,0) 50%),linear-gradient(135deg,#7a35c2,#b0389f) !important;color:#fff !important;border:1px solid rgba(255,255,255,.55) !important;text-shadow:0 1px 1px rgba(40,6,70,.4) !important;box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 0 0 1px rgba(122,53,194,.35),0 0 18px -4px rgba(176,56,159,.55),0 10px 22px -8px rgba(70,20,110,.55) !important}
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_) :is(.cn-btn.pri:not(.mt-btn-danger),.pf-btn.pri,.ep-b.pri,.rg-act .pri) :is(span,b,i,em,strong){color:inherit !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.ep-b.pri,.rg-act .pri){background:var(--gl-btn) !important;color:var(--gl-btn-ink) !important;border:1px solid rgba(255,240,252,.8) !important;text-shadow:0 1px 0 rgba(255,255,255,.3) !important;box-shadow:0 1px 0 rgba(255,255,255,.75) inset,0 0 0 1px rgba(255,205,244,.5),0 0 22px -2px rgba(255,111,216,.58),0 10px 24px -8px rgba(120,30,140,.72) !important}
+@media (hover:hover){html:not([data-theme="dark"]) body[data-section="connect"]:not(#_) :is(.cn-btn.pri:not(.mt-btn-danger),.pf-btn.pri,.ep-b.pri,.rg-act .pri):not(:disabled):hover{filter:brightness(1.1) saturate(1.1);transform:translateY(-2px)}}
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_) :is(.cn-btn.pri:not(.mt-btn-danger),.pf-btn.pri,.ep-b.pri,.rg-act .pri):not(:disabled):active{filter:brightness(.92);transform:translateY(1px) scale(.97)}
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_) :is(.cn-btn.pri:not(.mt-btn-danger),.pf-btn.pri,.ep-b.pri,.rg-act .pri):is(:disabled,[aria-disabled="true"]){background:rgba(120,90,150,.1) !important;border:1px dashed rgba(110,70,176,.35) !important;color:rgba(80,50,110,.5) !important;box-shadow:none !important;text-shadow:none !important;filter:saturate(.4);cursor:not-allowed;transform:none}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.ep-b.pri,.rg-act .pri):is(:disabled,[aria-disabled="true"]){background:rgba(160,130,190,.1) !important;border:1px dashed rgba(206,178,232,.3) !important;color:rgba(214,194,232,.5) !important;box-shadow:none !important;text-shadow:none !important;filter:saturate(.35);cursor:not-allowed;transform:none}
+</style>
+<style id="createTeamBtnFix">
+/* Create team button: clear primary look in light + dark (visual only) */
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_) .mt-create{background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,0) 50%),linear-gradient(135deg,#7a35c2,#b0389f) !important;color:#fff !important;border:1px solid rgba(255,255,255,.55) !important;text-shadow:0 1px 1px rgba(40,6,70,.4) !important;box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 0 0 1px rgba(122,53,194,.35),0 0 18px -4px rgba(176,56,159,.55),0 10px 22px -8px rgba(70,20,110,.55) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) .mt-create{background:var(--gl-btn) !important;color:var(--gl-btn-ink) !important;border:1px solid rgba(255,240,252,.8) !important;text-shadow:0 1px 0 rgba(255,255,255,.3) !important;box-shadow:0 1px 0 rgba(255,255,255,.75) inset,0 0 0 1px rgba(255,205,244,.5),0 0 22px -2px rgba(255,111,216,.58),0 10px 24px -8px rgba(120,30,140,.72) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+body[data-section="connect"]:not(#_) .mt-create :is(span,b,i,em,strong,svg){color:inherit !important}
+@media (hover:hover){body[data-section="connect"]:not(#_) .mt-create:not(:disabled):hover{filter:brightness(1.1) saturate(1.1);transform:translateY(-2px)}}
+body[data-section="connect"]:not(#_) .mt-create:not(:disabled):active{filter:brightness(.92);transform:translateY(1px) scale(.97)}
+body[data-section="connect"]:not(#_) .mt-create:is(:disabled,[aria-disabled="true"]){filter:saturate(.35);opacity:.6;cursor:not-allowed;transform:none}
+</style>
+<style id="createTeamWhite">
+/* Create team button: white with deep purple text */
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_) .mt-create{background:#fff !important;color:#4A0090 !important;border:1px solid rgba(74,0,144,.22) !important;text-shadow:none !important;box-shadow:0 1px 0 #fff inset,0 0 0 1px rgba(255,255,255,.5),0 10px 24px -10px rgba(30,0,70,.55) !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) .mt-create{background:#fff !important;color:#4A0090 !important;border:1px solid rgba(74,0,144,.22) !important;text-shadow:none !important;box-shadow:0 1px 0 #fff inset,0 0 0 1px rgba(255,255,255,.5),0 10px 24px -10px rgba(30,0,70,.55) !important}
+</style>
+<style id="createTeamWhite2">
+/* Create team (hero) button: solid white, deep purple text; extra specificity beats the glass-card rule */
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) .mt-create{background:#fff !important;color:#4A0090 !important;border:1px solid rgba(74,0,144,.28) !important;text-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;box-shadow:0 1px 0 #fff inset,0 0 0 1px rgba(255,255,255,.55),0 0 0 4px rgba(255,255,255,.16),0 12px 26px -10px rgba(30,0,70,.6) !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) .mt-create{background:#fff !important;color:#4A0090 !important;border:1px solid rgba(74,0,144,.28) !important;text-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;box-shadow:0 1px 0 #fff inset,0 0 0 1px rgba(255,255,255,.55),0 0 0 4px rgba(255,255,255,.16),0 12px 26px -10px rgba(30,0,70,.6) !important}
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) .mt-create :is(span,svg,b){color:#4A0090 !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) .mt-create :is(span,svg,b){color:#4A0090 !important}
+</style>
+<style id="teamHeroText">
+/* Team hero: heading + subtitle stay white on the purple banner (the plum heading colour rule made them dark) */
+body[data-section="connect"]:not(#_):not(#__) .mt-hero :is(h2,h2 *){color:#fff !important;text-shadow:0 1px 2px rgba(40,6,70,.35)}
+body[data-section="connect"]:not(#_):not(#__) .mt-hero p{color:rgba(255,255,255,.95) !important}
+>>>>>>> Stashed changes
 </style>
 </body>
 </html>

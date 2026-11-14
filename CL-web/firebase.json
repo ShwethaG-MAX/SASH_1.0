@@ -29,6 +29,11 @@
     { "source": "functions-syllabus", "codebase": "syllabus", "ignore": ["node_modules", ".git", "*.log", "test.js"] },
     { "source": "functions-test", "codebase": "test", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] },
     { "source": "functions-community", "codebase": "community", "ignore": ["node_modules", ".git", "*.log", "test.js", "test", "_merge"] },
-    { "source": "functions-discover", "codebase": "discover", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] }
+    { "source": "functions-discover", "codebase": "discover", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] },
+<<<<<<< Updated upstream
+    { "source": "functions-teams", "codebase": "teams", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] }
+=======
+    { "source": "functions-connections", "codebase": "connections", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] }
+>>>>>>> Stashed changes
   ]
 }

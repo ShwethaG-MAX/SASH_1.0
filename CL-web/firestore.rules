@@ -476,6 +476,59 @@ service cloud.firestore{
       allow delete: if isOwner();
     }
 
+<<<<<<< Updated upstream
+    // ===================== TEAM BUILDING (Connect > Teams) =====================
+    // Read-only for clients. EVERY write (create / edit / delete team, join requests, accept / reject, remove / leave, notifications) is made by the
+    // `teams` Cloud Functions codebase (Admin SDK, transactional), so capacity, membership and request status cannot be forged from the browser.
+    function isStudent(){ return request.auth!=null && request.auth.token.firebase.sign_in_provider!='anonymous'; }
+    function isTeamMember(teamId){ return request.auth!=null && request.auth.uid in get(/databases/$(db)/documents/teams/$(teamId)).data.memberUids; }
+    // Team cards are public to signed-in students (that is what Find Teams lists).
+    match /teams/{teamId}{
+      allow read: if isStudent() || isOwner();
+      allow write: if false;
+      // Member list (names, branch, year) is visible only to the team itself.
+      match /members/{uid}{
+        allow read: if isStudent() && isTeamMember(teamId) || isOwner();
+        allow write: if false;
+      }
+    }
+    // A join request is visible only to the student who sent it and the leader it was sent to.
+    match /teamRequests/{id}{
+      allow read: if request.auth!=null && (resource.data.from==request.auth.uid || resource.data.to==request.auth.uid);
+      allow write: if false;
+    }
+    // Per-student notification feed. Created only by functions; the owner may mark read or delete their own.
+    match /teamNotifs/{uid}/items/{id}{
+      allow read: if request.auth!=null && request.auth.uid==uid;
+      allow update: if request.auth!=null && request.auth.uid==uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']) && request.resource.data.read==true;
+      allow delete: if request.auth!=null && request.auth.uid==uid;
+      allow create: if false;
+    }
+=======
+    // ---- Student connections (Connect > Teams > Connections). EVERY write is done by the `connections` Cloud Functions (Admin SDK); clients can only READ their own docs. ----
+    // Request docs: id = {fromUid}_{toUid}. Only the sender or the receiver can read one, so a request is never visible to anyone else.
+    // Queries MUST filter by from==uid or to==uid (equality only, so no composite index is needed).
+    match /connectionRequests/{id}{
+      allow read: if request.auth!=null && (resource.data.from==request.auth.uid || resource.data.to==request.auth.uid);
+      allow write: if false;
+    }
+    // Accepted connections: id = the two uids sorted. Only the two members can read it (queries: where('users','array-contains',uid)).
+    match /connections/{id}{
+      allow read: if request.auth!=null && request.auth.uid in resource.data.users;
+      allow write: if false;
+    }
+    // In-app notifications for connection events. Created by the function; the owner can read, mark read and delete their own.
+    match /connNotifs/{uid}/items/{itemId}{
+      allow read, delete: if request.auth!=null && request.auth.uid==uid;
+      allow update: if request.auth!=null && request.auth.uid==uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']) && request.resource.data.read is bool;
+      allow create: if false;
+    }
+    // Server-only mirror of each student's connection ids (used for mutual connections / suggestions). No client access.
+    match /userConns/{uid}{ allow read, write: if false; }
+>>>>>>> Stashed changes
+
     // Remote version config: anyone may read (needed before auth/profile exist); only the owner edits it.
     match /appConfig/{id}{
       allow read: if true;
