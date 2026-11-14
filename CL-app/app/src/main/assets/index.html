@@ -32,12 +32,12 @@ try{
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <script id="themeManager">
-/* ThemeManager: the single source of truth for the website's APPEARANCE (default | blaze | aqua).
-   - Appearance is stored in localStorage "csec_appearance" (JSON string, same format as store.set()).
-   - Light/Dark MODE is a separate setting ("csec_theme") and is untouched by appearance changes.
-   - Runs in <head> so a returning user's appearance AND mode are on <html> before first paint.
+/* ThemeManager: Sheynix's LOOK (default | blaze | aqua). The website itself has ONE colour scheme; Blaze/Aqua only recolour Sheynix.
+   - The look is stored in localStorage "csec_appearance" (JSON string, same format as store.set()), so earlier picks carry over to Sheynix.
+   - Light/Dark MODE is a separate setting ("csec_theme") and is untouched by look changes.
+   - html[data-appearance] is always "default" (website colours); html[data-shx-look] carries Sheynix's look.
    - Legacy values ("csec_element_theme": "fire"/"water", or "fire"/"water" in the new key) migrate to blaze/aqua.
-   Exposes window.ThemeManager {list, labels, get, set, hasSavedChoice, getMode, subscribe}. */
+   Exposes window.ThemeManager {list, labels, get, set, hasSavedChoice, getMode, subscribe, transition, pending}. */
 (function(){
   var root=document.documentElement, KEY="csec_appearance", LEGACY="csec_element_theme", MODE_KEY="csec_theme";
   var LIST=["default","blaze","aqua"], LABELS={"default":"Default",blaze:"Blaze",aqua:"Aqua"};
@@ -46,7 +46,7 @@ try{
   function rd(k){ try{ var r=localStorage.getItem(k); if(r===null) return null; try{ return JSON.parse(r); }catch(e){ return r; } }catch(e){ return null; } }
   function wr(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } }
   function rm(k){ try{ localStorage.removeItem(k); }catch(e){} }
-  /* ---- resolve saved appearance (with migration + safe fallback) ---- */
+  /* ---- resolve saved look (with migration + safe fallback) ---- */
   var saved=false, state="default";
   (function(){
     var cur=rd(KEY), n=norm(cur);
@@ -59,18 +59,17 @@ try{
   /* ---- mode (light/dark): separate setting, same logic as before ---- */
   var mode="light"; try{ if(JSON.parse(localStorage.getItem(MODE_KEY))==="dark") mode="dark"; }catch(e){}
   root.setAttribute("data-theme",mode);
-  root.setAttribute("data-appearance",state);
-  var subs=[], token=0, reduce=false, want=state, vtBusy=false, vtGen=0;
+  root.setAttribute("data-appearance","default");   /* website colours: always the one Default scheme */
+  root.setAttribute("data-shx-look",state);
+  var subs=[], reduce=false, vtBusy=false, vtGen=0;
   try{ reduce=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){}
   function commit(n,prev,animated){
-    state=n; want=n; root.setAttribute("data-appearance",n);
+    state=n; root.setAttribute("data-shx-look",n);
     var d={appearance:n,previous:prev,animated:!!animated};
     subs.slice().forEach(function(f){ try{ f(d); }catch(e){ console.warn("ThemeManager subscriber",e); } });
     try{ document.dispatchEvent(new CustomEvent("appearancechange",{detail:d})); }catch(e){}
   }
-  var FX={"default":"radial-gradient(circle at 50% 60%,#3E6A9C,#102A45 70%)",blaze:"radial-gradient(circle at 50% 60%,#FFB300,#8B1E0E 70%)",aqua:"radial-gradient(circle at 50% 60%,#4FD8FF,#0A4F9A 70%)"};
-  /* ONE cross-fade at a time (shared with the light/dark toggle). While one is queued or running, a newer change is
-     applied directly (no new snapshot, no skipTransition jump), so rapid swipes/taps can never stack or flicker. */
+  /* ONE cross-fade at a time (used by the light/dark toggle). While one is running, a newer change is applied directly. */
   function runVT(fn){
     if(reduce||!document.startViewTransition) return false;
     if(vtBusy){ fn(); return true; }
@@ -82,30 +81,16 @@ try{
   }
   window.ThemeManager={
     list:LIST.slice(), labels:LABELS, transition:runVT,
-    pending:function(){ return want; },
+    pending:function(){ return state; },
     get:function(){ return state; },
     hasSavedChoice:function(){ return saved; },
     getMode:function(){ return root.getAttribute("data-theme")==="dark"?"dark":"light"; },
     subscribe:function(f){ subs.push(f); return function(){ var i=subs.indexOf(f); if(i>-1) subs.splice(i,1); }; },
     set:function(name,opts){
       var n=norm(name); if(!n) return false;
-      var prev=want, anim=!!(opts&&opts.animate)&&!reduce&&n!==prev, my=++token;
       wr(n); saved=true;                            /* persisted immediately: the latest choice always wins */
-      if(n===prev){ if(state===n) root.setAttribute("data-appearance",n); return true; }
-      want=n;
-      if(opts&&opts.quick){                         /* short GPU cross-fade; no overlay, no delay */
-        var run=function(){ if(want!==state) commit(want,state,true); };   /* always commits the LATEST request */
-        if(!runVT(run)){
-          if(!reduce){ root.classList.add("theme-anim"); run(); setTimeout(function(){ if(my===token) root.classList.remove("theme-anim"); },280); }
-          else run();
-        }
-        return true;
-      }
-      var fx=anim?document.getElementById("elemFx"):null;
-      if(!fx){ commit(n,state,false); return true; }
-      fx.style.background=FX[n]; fx.classList.remove("on"); void fx.offsetWidth; fx.classList.add("on");
-      setTimeout(function(){ if(my===token) commit(n,state,true); },300);
-      setTimeout(function(){ fx.classList.remove("on"); },850);
+      if(n===state){ root.setAttribute("data-shx-look",n); return true; }
+      commit(n,state,!!(opts&&(opts.animate||opts.quick))&&!reduce);   /* only Sheynix changes: no page-wide effect */
       return true;
     }
   };
@@ -1740,15 +1725,20 @@ html.chat-open .mode-graphics{display:none}   /* the full-screen chat covers it:
 #modeQuickBtn{touch-action:manipulation;-webkit-tap-highlight-color:transparent;flex:none}#modeQuickBtn:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}#modeQuickBtn .mq-sun{display:none}:root[data-theme="dark"] #modeQuickBtn .mq-sun{display:block}:root[data-theme="dark"] #modeQuickBtn .mq-moon{display:none}
 #themeQuickBtn{position:relative;touch-action:manipulation;-webkit-tap-highlight-color:transparent;flex:none}
 #themeQuickBtn:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-#themeQuickBtn::after{content:"";position:absolute;right:5px;bottom:5px;width:8px;height:8px;border-radius:50%;background:var(--cyan)}
-:root[data-appearance="blaze"] #themeQuickBtn::after{background:#FF7A00}:root[data-appearance="aqua"] #themeQuickBtn::after{background:#22C3F5}
+#themeQuickBtn::after{content:"";position:absolute;right:5px;bottom:5px;width:8px;height:8px;border-radius:50%;background:var(--sec-dot,var(--cyan));transition:background .3s ease}
+/* the dot shows the colour of the selected section (same colours as the Campus | Home | Connect switcher) */
+body[data-section="home"] #themeQuickBtn{--sec-dot:color-mix(in srgb,var(--accent) 62%,var(--brown-dark,#A9835C))}
+body[data-section="campus"] #themeQuickBtn{--sec-dot:#1B3A8C}
+[data-theme="dark"] body[data-section="campus"] #themeQuickBtn{--sec-dot:#4A68C6}
+body[data-section="connect"] #themeQuickBtn{--sec-dot:linear-gradient(135deg,#A78BFA,#8B65E8 50%,#7950D9)}
+
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.24s;animation-timing-function:ease-out}
 @media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 @media(max-width:380px){.nav-actions{gap:6px}#themeQuickBtn,#modeQuickBtn,.backup-btn{width:40px;height:40px}}
 /* Blaze/Aqua on touch devices: drop live blur of what is behind (costly on WebView); colours stay translucent */
-@media(pointer:coarse){:root[data-appearance="blaze"] :is(nav,.mode-bar,.hm-card,.card,.mobile-menu,.toast),:root[data-appearance="aqua"] :is(nav,.mode-bar,.hm-card,.card,.mobile-menu,.toast){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+
 /* decorative drop-shadow glows on the home avatar are the costliest filters: keep static on touch */
-@media(pointer:coarse){:root[data-appearance="blaze"] #living-avatar svg,:root[data-appearance="aqua"] #living-avatar svg{filter:none!important}}
+
 </style>
 <style id="annCss">
 .ann-list{margin:0 0 14px}.ann-card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:12px;padding:10px 12px;margin-bottom:8px}
@@ -1846,86 +1836,74 @@ html.chat-open .mode-graphics{display:none}   /* the full-screen chat covers it:
    Blaze/Aqua = every rule below is scoped to those two values (zero-specificity :where() wrapper keeps the original cascade). */
 
 :root{--fz:1}
-:root[data-appearance="blaze"][data-theme="dark"]{color-scheme:dark;
- --bg:#160B08;--bg2:#24100A;--card:rgba(38,17,11,.84);--card-h:rgba(54,25,15,.92);--line:rgba(255,122,0,.26);--text:#FFF7E6;--muted:#DCC3A8;
- --cyan:#FFB300;--violet:#F4511E;--accent:#FF7A00;--accent-dark:#F4511E;--accent-light:rgba(255,122,0,.16);--sage:#F4511E;--sage-light:rgba(255,122,0,.16);--sage-dark:#D62818;--brown:#FFB300;--brown-dark:#FF7A00;--white:#FFF7E6;--danger:#FF7B66;
- --bg-grad:radial-gradient(ellipse at 50% 120%,#3a1306 0,#160B08 55%,#100807 100%);--bar:rgba(30,13,8,.84);--bd-h:rgba(255,179,0,.5);--sh:0 12px 40px rgba(0,0,0,.32),0 0 30px rgba(255,80,0,.06);--glow:rgba(255,122,0,.45);--pop:rgba(35,15,10,.95);--pop-t:#FFF7E6;--now:linear-gradient(135deg,rgba(214,40,24,.35),rgba(255,122,0,.28));--scrim:rgba(16,8,7,.72);--hero:radial-gradient(ellipse at 50% 55%,rgba(255,110,0,.18),rgba(35,15,10,.82) 65%);--hi:#FFD54A;--g1:#D62818;--g2:#FF7A00;--g3:#FFB300;--go:.2}
-:root[data-appearance="blaze"][data-theme="light"]{color-scheme:light;
- --bg:#FFF7E6;--bg2:#FCE8CC;--card:#FFFDF7;--card-h:#FFF3DD;--line:rgba(190,60,20,.24);--text:#3A1208;--muted:#7A4A38;
- --cyan:#C2410C;--violet:#D62818;--accent:#D62818;--accent-dark:#8B1E0E;--accent-light:rgba(214,40,24,.1);--sage:#D62818;--sage-light:rgba(214,40,24,.1);--sage-dark:#8B1E0E;--brown:#F4A300;--brown-dark:#D97706;--white:#FFFFFF;--danger:#B42318;
- --bg-grad:radial-gradient(ellipse at 50% -10%,#FFE2B8 0,#FFF7E6 55%,#FFFDF7 100%);--bar:rgba(255,247,230,.9);--bd-h:rgba(214,40,24,.5);--sh:0 10px 30px rgba(139,30,14,.12);--glow:rgba(255,122,0,.35);--pop:#FFFFFF;--pop-t:#3A1208;--now:linear-gradient(135deg,rgba(214,40,24,.16),rgba(255,160,0,.22));--scrim:rgba(58,18,8,.55);--hero:radial-gradient(ellipse at 50% 55%,rgba(255,140,0,.28),rgba(255,247,230,.9) 68%);--hi:#B4230F;--g1:#F4511E;--g2:#FF9A3C;--g3:#FFC400;--go:.16}
-:root[data-appearance="aqua"][data-theme="light"]{color-scheme:light;
- --bg:#EAF6FF;--bg2:#D9EEFB;--card:#FFFFFF;--card-h:#F2FAFF;--line:#BCDCF1;--text:#0B2A4A;--muted:#48698A;
- --cyan:#0A8FD6;--violet:#1565C0;--accent:#0A8FD6;--accent-dark:#0B5FA8;--accent-light:rgba(10,143,214,.12);--sage:#0A8FD6;--sage-light:rgba(10,143,214,.12);--sage-dark:#0B5FA8;--brown:#4FC3F7;--brown-dark:#0288D1;--white:#FFFFFF;--danger:#C62828;
- --bg-grad:linear-gradient(180deg,#D4EEFF 0,#EAF6FF 45%,#F7FCFF 100%);--bar:rgba(244,251,255,.9);--bd-h:rgba(10,143,214,.55);--sh:0 10px 30px rgba(10,100,170,.13);--glow:rgba(34,195,245,.4);--pop:#FFFFFF;--pop-t:#0B2A4A;--now:linear-gradient(135deg,rgba(10,143,214,.16),rgba(34,195,245,.22));--scrim:rgba(8,30,58,.55);--hero:radial-gradient(ellipse at 50% 55%,rgba(34,195,245,.3),rgba(255,255,255,.88) 68%);--hi:#0B5FA8;--g1:#0A8FD6;--g2:#22C3F5;--g3:#9BE8FF;--go:.28}
-:root[data-appearance="aqua"][data-theme="dark"]{color-scheme:dark;
- --bg:#08162B;--bg2:#0C2140;--card:rgba(14,36,66,.84);--card-h:rgba(20,48,86,.92);--line:rgba(90,200,255,.28);--text:#EAF6FF;--muted:#A9C7E0;
- --cyan:#3DD0FF;--violet:#4C8DFF;--accent:#22C3F5;--accent-dark:#0A8FD6;--accent-light:rgba(34,195,245,.16);--sage:#22C3F5;--sage-light:rgba(34,195,245,.16);--sage-dark:#0A8FD6;--brown:#7FDBFF;--brown-dark:#22C3F5;--white:#EAF6FF;--danger:#FF8A80;
- --bg-grad:radial-gradient(ellipse at 50% 120%,#0B3A66 0,#08162B 55%,#050E1D 100%);--bar:rgba(9,26,50,.86);--bd-h:rgba(120,220,255,.55);--sh:0 12px 40px rgba(0,0,0,.35),0 0 30px rgba(34,195,245,.07);--glow:rgba(34,195,245,.45);--pop:rgba(12,33,64,.96);--pop-t:#EAF6FF;--now:linear-gradient(135deg,rgba(10,143,214,.38),rgba(34,195,245,.26));--scrim:rgba(4,12,26,.74);--hero:radial-gradient(ellipse at 50% 55%,rgba(34,195,245,.2),rgba(12,33,64,.85) 65%);--hi:#9BE8FF;--g1:#0A8FD6;--g2:#22C3F5;--g3:#9BE8FF;--go:.22}
-:root[data-appearance="blaze"]{--grad:linear-gradient(135deg,#D62818,#FF7A00 60%,#FFD54A);--on-grad:#2a0d05;--bub:linear-gradient(135deg,#D62818,#FF7A00)}
-:root[data-appearance="aqua"]{--grad:linear-gradient(135deg,#0A7BD6,#22C3F5 60%,#B9F2FF);--on-grad:#04223D;--bub:linear-gradient(135deg,#0A7BD6,#22C3F5)}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"])[data-theme] body{background:var(--bg);background-color:var(--bg);color:var(--text)}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"])[data-theme] #welcomeScreen{background:var(--bg-grad);background-color:var(--bg);color:var(--text)}
+
+
+
+
+
+
+
+
 /* same fixed gradient, but as its own static layer: a background-attachment:fixed body repaints on every scroll/slide frame in WebView */
-:root:is([data-appearance="blaze"],[data-appearance="aqua"])[data-theme] body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:var(--bg-grad);contain:strict}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .academic-bg,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .bg-fx{display:none!important}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .glow{position:absolute;border-radius:50%;opacity:var(--go);will-change:transform;animation:fgDrift 22s ease-in-out infinite alternate;transition:background .6s}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .g1{width:480px;height:480px;background:radial-gradient(circle closest-side,var(--g1),transparent);left:-140px;bottom:-160px}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .g2{width:420px;height:420px;background:radial-gradient(circle closest-side,var(--g2),transparent);right:-120px;bottom:-140px;animation-delay:-8s}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .g3{width:300px;height:300px;background:radial-gradient(circle closest-side,var(--g3),transparent);left:40%;top:-160px;opacity:.1;animation-delay:-4s}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg i{position:absolute;bottom:-14px;width:var(--s,4px);height:var(--s,4px);border-radius:50%;background:#FFB300;box-shadow:0 0 8px 2px rgba(255,122,0,.7);opacity:0;will-change:transform,opacity;animation:fgRise linear infinite}
-:root[data-appearance="aqua"] #fireBg i{width:calc(var(--s,4px)*2.2);height:calc(var(--s,4px)*2.2);background:rgba(255,255,255,.22);border:1px solid rgba(60,170,240,.7);box-shadow:inset 0 0 4px rgba(255,255,255,.7)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .ring{display:none;position:absolute;left:50%;top:62%;width:260px;height:260px;margin:-130px;border-radius:50%;border:2px solid rgba(34,195,245,.35);opacity:0;animation:fgRing 7s ease-out infinite}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .ring.r2{animation-delay:-3.5s;left:20%;top:30%}
-:root[data-appearance="aqua"] #fireBg .ring{display:block}
+
+
+
+
+
+
+
+
+
+
+
+
 @keyframes fgDrift{to{transform:translate3d(60px,-40px,0) scale(1.15)}}
 @keyframes fgRise{0%{transform:translate3d(0,0,0);opacity:0}
 12%{opacity:.7}
 100%{transform:translate3d(var(--dx,30px),-105vh,0) scale(.5);opacity:0}}
 @keyframes fgRing{0%{transform:scale(.2);opacity:.6}
 100%{transform:scale(2.4);opacity:0}}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .card,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .res-card,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .hm-card,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tt-table,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .mode-bar,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tour-card-in{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .card,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .res-card,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .hm-card{background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);border-radius:18px;transition:transform .2s,box-shadow .2s,border-color .2s}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .card:hover,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .res-card:hover{transform:translateY(-3px);border-color:var(--bd-h);box-shadow:var(--sh),0 0 26px var(--glow)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) nav.scrolled,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .mobile-menu{background:var(--bar)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .mode-bar{background:var(--bar);border:1px solid var(--line);box-shadow:var(--sh)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .mode-btn{color:var(--muted)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .mode-btn.active{background:var(--grad)!important;color:var(--on-grad)!important;box-shadow:0 0 18px var(--glow)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .btn-primary,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .pill.active{background:var(--grad)!important;color:var(--on-grad)!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 18px -4px var(--glow);transition:transform .15s,box-shadow .15s,filter .15s}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .btn-primary:hover{transform:translateY(-2px);filter:brightness(1.07);box-shadow:0 8px 26px -4px var(--glow)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .btn-primary:active{transform:scale(.96)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .btn:not(.btn-primary),:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .pill{background:var(--card);border:1px solid var(--bd-h);color:var(--text)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tt-cell.now{background:var(--now);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset,0 0 20px var(--glow)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tt-table td.now-col,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tt-table th.today,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tt-table tr.today-row{background:var(--accent-light)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tour-dim{background:var(--scrim)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tour-ring{border-color:var(--cyan);box-shadow:0 0 22px var(--glow)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .tour-card-in{background:linear-gradient(160deg,var(--card-h),var(--card));border-color:var(--bd-h)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* home hero + avatar theming */
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) #living-avatar{background:var(--hero);border-color:var(--line)}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) #living-avatar .av-hi{color:var(--hi)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-aura{background:radial-gradient(circle,var(--glow),transparent 68%)!important}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) .av-actions button,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-chip{background:var(--card);color:var(--text);border-color:var(--bd-h)}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) .av-actions .av-talk{background:var(--grad)!important;color:var(--on-grad)!important;border-color:transparent}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) #av-log .me{background:var(--bub);color:#fff}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) #av-chat{background:var(--card);border-color:var(--line)}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #av-in{background:var(--bg2);color:var(--text);border-color:var(--bd-h)}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) #av-send{background:var(--grad)!important}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-fury,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-shury{position:absolute;inset:0}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-fury svg,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-shury svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .fg-fury,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .fg-shury{display:block;width:100%;height:100%}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-fig.enter{animation:avEnter .7s cubic-bezier(.2,1.3,.4,1)}
+
+
+
+
+
+
+
+
+
+
+
+
+
 @keyframes avEnter{from{opacity:0;transform:scale(.55) translateY(20px)}}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-rip{display:none;position:absolute;left:50%;bottom:6px;width:150px;height:30px;margin-left:-75px;border-radius:50%;border:2px solid rgba(80,200,255,.6);opacity:0;animation:avRip 3.2s ease-out infinite}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-rip.r2{animation-delay:-1.6s}
-:root[data-appearance="aqua"] .av-rip{display:block}
+
+
+
 @keyframes avRip{0%{transform:scale(.3);opacity:.8}
 100%{transform:scale(1.5);opacity:0}}
-:root[data-appearance="aqua"] .av-ember{background:rgba(255,255,255,.3);border:1px solid #5FD8FF;box-shadow:none;width:7px;height:7px}
-:root[data-appearance="aqua"] .av-spark{background:#E8FFFF;box-shadow:0 0 8px #22C3F5}
-:root[data-appearance="aqua"] .cd-hglow{opacity:.6}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) .av-bubble{background:var(--pop);color:var(--pop-t);border:1px solid var(--bd-h)}
-:root:is([data-appearance="blaze"],[data-appearance="aqua"]) .av-bubble:before{border-bottom-color:var(--bd-h)}
+
+
+
+
+
 /* guide */
 @keyframes fmFloat{50%{transform:translate3d(0,-5px,0)}}
 /* settings element switch */
@@ -1957,8 +1935,8 @@ html.chat-open .mode-graphics{display:none}   /* the full-screen chat covers it:
 @keyframes elWipe{0%{opacity:0}
 35%{opacity:.92}
 100%{opacity:0}}
-@media(prefers-reduced-motion:reduce){:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .glow,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg i,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg .ring,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-rip,:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) .av-fig.enter,#elemFx.on{animation:none!important;transition:none!important}
-:where(:root:is([data-appearance="blaze"],[data-appearance="aqua"])) #fireBg i{display:none}}
+@media(prefers-reduced-motion:reduce){#elemFx.on{animation:none!important;transition:none!important}
+}
 
 
 /* ===== Default appearance = the original site: hide Blaze/Aqua-only decoration ===== */
@@ -1970,6 +1948,19 @@ html.chat-open .mode-graphics{display:none}   /* the full-screen chat covers it:
 .ap-cur{font-size:.85rem;color:var(--muted);margin-bottom:8px}
 </style>
 <style id="livingAvatarCss">
+/* Sheynix look picker: three tiny dots on the Sheynix card. Only Sheynix's colours change, never the website's. */
+#living-avatar{position:relative}
+#living-avatar .shx-look{position:absolute;top:50%;right:8px;transform:translateY(-60%);z-index:6;display:flex;flex-direction:column;gap:2px;padding:3px;border-radius:999px;background:color-mix(in srgb,var(--card) 80%,transparent);border:1px solid var(--line);box-shadow:0 2px 6px rgba(16,42,69,.08)}
+#living-avatar .shx-look button{position:relative;width:20px;height:20px;padding:0;margin:0;border:0;border-radius:50%;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:grid;place-items:center;box-shadow:none;min-height:0;min-width:0}
+#living-avatar .shx-look button::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--lk);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);transition:transform .15s ease}
+#living-avatar .shx-look button[data-look="default"]{--lk:linear-gradient(135deg,#B8CBF6,#96B4F0 55%,#9A86E8)}
+#living-avatar .shx-look button[data-look="blaze"]{--lk:linear-gradient(135deg,#FFB04A,#F28C52 55%,#D8352A)}
+#living-avatar .shx-look button[data-look="aqua"]{--lk:linear-gradient(135deg,#B6ECFA,#7DD6EA 55%,#3FA9E8)}
+#living-avatar .shx-look button[aria-checked="true"]{box-shadow:0 0 0 1.5px var(--text)}
+#living-avatar .shx-look button:hover::before{transform:scale(1.15)}
+#living-avatar .shx-look button:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+#living-avatar .av-fig.enter{animation:avEnter .7s cubic-bezier(.2,1.3,.4,1)}
+@media (prefers-reduced-motion:reduce){#living-avatar .av-fig.enter{animation:none}}
 #living-avatar{position:relative;text-align:center;padding:18px 14px 16px;border-radius:24px;background:radial-gradient(ellipse at 50% 55%,rgba(255,110,0,.16),rgba(35,15,10,.8) 65%);border:1px solid rgba(255,122,0,.25);box-shadow:0 14px 44px rgba(0,0,0,.4);overflow:hidden}
 #living-avatar .av-hi{font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:1.15rem;color:#FFD54A;letter-spacing:.3px}
 .av-stage{position:relative;width:190px;height:200px;margin:6px auto 0}
@@ -2908,12 +2899,12 @@ html:root #sectionConnect .mt-hero{box-shadow:0 14px 28px -22px rgba(96,64,184,.
 #sectionConnect .cn-head .eyebrow{color:#000080;font-weight:700}
 [data-theme="dark"] #sectionConnect .cn-head .eyebrow{display:inline-block;background:#000080;color:#fff;padding:3px 12px;border-radius:999px}
 /* Campus: navy blue accent (Campus section only; replaces the dark theme's olive green) */
-body[data-section="campus"] #mainPanel,body[data-section="campus"] .mode-bar-wrap{--cyan:#2B4BA8;--violet:#1B2F73;--accent:#1B3A8C;--accent-dark:#0F2160;--accent-light:rgba(27,58,140,.16);--sage:#1B3A8C;--sage-light:rgba(27,58,140,.16);--sage-dark:#0F2160;--p2-navy:linear-gradient(145deg,#2D4FB3 0%,#1B3A8C 50%,#0F2160 100%);--p2-edge:linear-gradient(135deg,rgba(255,255,255,.16),rgba(27,58,140,.3) 50%,rgba(27,58,140,.12))}
-[data-theme="dark"] body[data-section="campus"] #mainPanel,[data-theme="dark"] body[data-section="campus"] .mode-bar-wrap{--cyan:#7C9BEA;--violet:#5C7BD6;--accent:#223F94;--accent-light:rgba(124,155,234,.16);--sage:#223F94;--sage-light:rgba(124,155,234,.16);--sage-dark:#16296B}
+body[data-section="campus"] #mainPanel,body[data-section="campus"] .mode-bar-wrap{--cyan:#2B4BA8;--violet:#1B2F73;--accent:#1B3A8C;--accent-dark:#0F2160;--accent-light:rgba(27,58,140,.16);--sage:#1B3A8C;--sage-light:rgba(27,58,140,.16);--sage-dark:#0F2160;--p2-navy:linear-gradient(145deg,#2D4FB3 0%,#1B3A8C 52%,#0A78B8 100%);--p2-edge:linear-gradient(135deg,rgba(255,255,255,.16),rgba(27,58,140,.3) 50%,rgba(56,170,235,.28));--gl-edge:rgba(208,202,242,.85);--gl-edge-h:rgba(40,160,230,.40);--gl-tint-warm:rgba(56,176,240,.10);--gl-tint-cool:rgba(27,58,140,.08);--gl-wash:radial-gradient(120% 90% at 100% 0%,rgba(56,176,240,.12),transparent 62%)}
+[data-theme="dark"] body[data-section="campus"] #mainPanel,[data-theme="dark"] body[data-section="campus"] .mode-bar-wrap{--cyan:#7C9BEA;--violet:#5C7BD6;--accent:#223F94;--accent-light:rgba(124,155,234,.16);--sage:#223F94;--sage-light:rgba(124,155,234,.16);--sage-dark:#16296B;--sage-end:#0B6FA8;--p2-navy:linear-gradient(145deg,#3556B8 0%,#223F94 52%,#0A78B8 100%);--gl-edge:rgba(160,176,240,.24);--gl-edge-h:rgba(100,190,250,.42);--gl-tint-warm:rgba(100,190,250,.10);--gl-tint-cool:rgba(124,155,234,.08);--gl-wash:radial-gradient(120% 90% at 100% 0%,rgba(100,190,250,.13),transparent 62%)}
 body[data-section="campus"] .mode-bar-wrap .mode-btn.active{box-shadow:0 4px 18px -4px rgba(27,58,140,.55)}
 /* dark theme paints active controls with dark text (made for olive): keep them white on violet / navy */
 [data-theme="dark"] :is(#sectionConnect,#cnModeWrap,body[data-section="campus"] #mainPanel,body[data-section="campus"] .mode-bar-wrap) :is(.btn-primary,.mode-btn.active,.pill.active,.pill.active[style],.tt-daychip.active,.chat-send,.me-cal-day.sel,.tt-now-tag,.tt-badge-lab,.at-badge-sub,.cal-badge,.cn-tab.active,.cn-btn.pri,.cn-fc[aria-pressed="true"]){color:#fff !important}
-[data-theme="dark"] :is(#sectionConnect,body[data-section="campus"] #mainPanel) :is(.pill.active,.cn-tab.active,.mode-btn.active){background:linear-gradient(135deg,var(--sage),var(--sage-dark))}
+[data-theme="dark"] :is(#sectionConnect,body[data-section="campus"] #mainPanel) :is(.pill.active,.cn-tab.active,.mode-btn.active){background:linear-gradient(135deg,var(--sage),var(--sage-end,var(--sage-dark)))}
 .cn-wide .cn-ban{height:210px}
 .cn-wide .cn-bm{right:54px}
 .cn-x{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:1.4rem;line-height:1;cursor:pointer}
@@ -3066,6 +3057,9 @@ html:root #sectionConnect .mt-hero p{margin:3px 0 0;font-size:.85rem;line-height
 /* Requests */
 .rq-n{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:999px;font-size:.7rem;font-weight:800;background:#E8A2FB;color:#3B2470}
 .rq-n.hidden{display:none}
+#secBtnConnect .sec-ico{position:relative}
+#cnNavN{position:absolute;top:-7px;right:-10px;margin:0;pointer-events:none}
+.cn-sug{margin:0 0 14px}.cn-sug h3{font-size:.95rem;margin:0 0 6px}.cn-recent{margin-top:16px}.cn-recent small{opacity:.65;font-weight:400}
 #sectionConnect .rq-card{display:grid;gap:10px;align-content:start}
 #sectionConnect .rq-card.done{opacity:.82}
 #sectionConnect .rq-team{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--muted)}
@@ -3190,11 +3184,7 @@ html:root[data-theme="dark"] #sectionConnect .mt-hero{background:linear-gradient
   --gl-shadow-h:0 2px 4px rgba(0,0,0,.40),0 20px 40px -16px rgba(0,0,0,.70),0 36px 62px -36px rgba(0,0,0,.60);
 }
 /* Blaze / Aqua: reuse the shadow + glow the appearance system already defines */
-:root[data-appearance="blaze"],:root[data-appearance="aqua"]{
-  --gl-shadow:0 1px 2px rgba(0,0,0,.08),var(--sh);
-  --gl-shadow-s:0 1px 2px rgba(0,0,0,.08),var(--sh);
-  --gl-shadow-h:0 2px 4px rgba(0,0,0,.10),var(--sh),0 0 24px -8px var(--glow);
-}
+
 
 /* ---------- 2. Derived tokens (theme-aware through var(--card) / var(--accent) / var(--line)) ---------- */
 @supports (color:color-mix(in srgb,red,blue)){
@@ -3527,9 +3517,9 @@ nav{padding-top:calc(var(--top-inset) + 6px) !important}
 /* Each section gets a soft wash of its own colour (Connect violet, Campus navy) so it feels distinct */
 body[data-section="connect"]::after,body[data-section="campus"]::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;animation:fadeIn .4s ease}
 body[data-section="connect"]::after{background:linear-gradient(180deg,rgba(150,125,215,.075),rgba(150,125,215,.02))}
-body[data-section="campus"]::after{background:linear-gradient(180deg,rgba(27,58,140,.10),rgba(27,58,140,.04))}
+body[data-section="campus"]::after{z-index:-9;background:radial-gradient(60% 50% at 10% 6%,rgba(46,86,214,.26),rgba(46,86,214,0) 70%),radial-gradient(55% 45% at 94% 14%,rgba(56,176,240,.14),rgba(56,176,240,0) 70%),radial-gradient(70% 55% at 82% 100%,rgba(150,205,250,.7),rgba(150,205,250,0) 70%)}
 [data-theme="dark"] body[data-section="connect"]::after{background:linear-gradient(180deg,rgba(130,100,210,.10),rgba(130,100,210,.03))}
-[data-theme="dark"] body[data-section="campus"]::after{background:linear-gradient(180deg,rgba(27,58,140,.22),rgba(27,58,140,.08))}
+[data-theme="dark"] body[data-section="campus"]::after{background:radial-gradient(60% 55% at 10% 6%,rgba(46,86,214,.42),rgba(46,86,214,0) 70%),radial-gradient(55% 50% at 94% 22%,rgba(56,176,240,.24),rgba(56,176,240,0) 70%),radial-gradient(70% 60% at 78% 104%,rgba(56,176,240,.3),rgba(56,176,240,0) 72%),linear-gradient(155deg,#0A1224 0%,#0F1D3C 42%,#13294F 75%,#17325E 100%)}
 body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 @media (max-width:820px){body[data-section="home"]{padding-bottom:env(safe-area-inset-bottom,0px)}}
 
@@ -3901,6 +3891,17 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
 .cn-ev .cn-themes .cn-chip{font-size:.72rem}
 #cnEgrid .cn-ev{content-visibility:auto;contain-intrinsic-size:auto 520px}
 </style>
+<style id="clSettingsLayerFix">
+/* Settings is a full-screen layer (z-index 9000). Every popup opened from it (admin login / dashboard, confirm dialogs,
+   login screen, backup dialogs, toasts) used to sit underneath and only showed after Settings was closed.
+   While Settings (or Profile) is open, lift those popups above it. */
+body.cl-ov-open .at-modal-overlay,body.cl-ov-open .me-modal-overlay{z-index:9600 !important}
+body.cl-ov-open #loginGate{z-index:9650 !important}
+body.cl-ov-open #confirmModalOverlay{z-index:9700 !important}
+body.cl-ov-open #cseDlgOv{z-index:9750 !important}
+body.cl-ov-open #cseBusy{z-index:9760 !important}
+body.cl-ov-open .toast-host{z-index:9800 !important}
+</style>
 </head>
 <body>
 <div class="mode-graphics" id="modeGraphics" aria-hidden="true"></div>
@@ -4043,7 +4044,8 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
   <div class="mode-bar" role="tablist" aria-label="Connect modes">
     <button type="button" class="mode-btn active" role="tab" data-cn="posting" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span> <span class="mb-full">Posting</span><span class="mb-short">Posting</span></button>
     <button type="button" class="mode-btn" role="tab" data-cn="teams" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span> <span class="mb-full">Teams</span><span class="mb-short">Teams</span></button>
-    <button type="button" class="mode-btn" role="tab" data-cn="discover" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></svg></span> <span class="mb-full">Discover</span><span class="mb-short">Discover</span></button>
+    <button type="button" class="mode-btn" role="tab" data-cn="events" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> <span class="mb-full">Events</span><span class="mb-short">Events</span></button>
+    <button type="button" class="mode-btn" role="tab" data-cn="articles" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg></span> <span class="mb-full">Articles</span><span class="mb-short">Articles</span></button>
   </div>
 </div>
 
@@ -4059,6 +4061,7 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
     <div class="cn-subtabs hidden" id="cnTsub" role="tablist" aria-label="Teams sections">
       <button type="button" class="cn-tab active" role="tab" data-cntsub="people" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>People</button>
       <button type="button" class="cn-tab" role="tab" data-cntsub="teams" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Teams</button>
+      <button type="button" class="cn-tab" role="tab" data-cntsub="connections" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>Connections<span class="rq-n hidden" id="cnConN" aria-label="pending connection requests"></span></button>
       <button type="button" class="cn-tab" role="tab" data-cntsub="requests" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnRqN" aria-label="pending requests"></span></button>
     </div>
     <div class="cn-pane" id="cnPosting" role="tabpanel"></div>
@@ -4113,6 +4116,7 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
         <div class="hm-dfoot"><button type="button" class="hm-dlink" data-hm-go="timetable">Open Timetable <span aria-hidden="true">→</span></button></div>
       </section>
 <section id="living-avatar" class="hm-dcard hm-shx" data-state="idle" aria-label="Sheynix, your study companion">
+<div class="shx-look" id="shxLook" role="radiogroup" aria-label="Sheynix's look"><button type="button" role="radio" data-look="default" aria-checked="false" title="Sheynix: Default" aria-label="Default"></button><button type="button" role="radio" data-look="blaze" aria-checked="false" title="Sheynix: Blaze" aria-label="Blaze"></button><button type="button" role="radio" data-look="aqua" aria-checked="false" title="Sheynix: Aqua" aria-label="Aqua"></button></div>
 
 <div class="av-stage"><div class="av-aura"></div><i class="av-rip"></i><i class="av-rip r2"></i><i class="av-ember" style="left:30%;--x:-14px"></i><i class="av-ember" style="left:62%;--x:18px;animation-delay:-1.6s"></i><i class="av-ember" style="left:78%;--x:8px;animation-delay:-3s"></i><i class="av-ember" style="left:45%;--x:-6px;animation-delay:-2.3s"></i><div class="av-shadow"></div><i class="av-spark" style="--a:-60deg"></i><i class="av-spark" style="--a:-25deg"></i><i class="av-spark" style="--a:15deg"></i><i class="av-spark" style="--a:50deg"></i>
 <div class="av-fig" id="av-fig" role="button" tabindex="0" aria-label="Poke your guide"><div class="av-dragon" id="av-dragon" aria-hidden="true"></div><div class="av-fury"><svg class="cd-svg" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sheynix, your fire guide"><defs><radialGradient id="bS1" cx="35%" cy="28%" r="78%"><stop offset="0" stop-color="#FF9A4D"/><stop offset=".45" stop-color="#E8451F"/><stop offset="1" stop-color="#8E1B0C"/></radialGradient>
@@ -4403,12 +4407,6 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
         <div class="settings-section-title">🔖 Saved</div>
         <div class="settings-field-label">Events and hackathons you have saved</div>
         <div id="svBody" aria-live="polite"></div>
-      </div>
-      <div class="hm-card" id="appearanceCard" style="margin-top:16px">
-        <div class="settings-section-title">🎨 Appearance</div>
-        <div class="settings-field-label" id="apLabel">Colour theme <small style="font-weight:400;color:var(--muted)">(Light/Dark and all themes are also in the 🎨 button at the top)</small></div>
-        <div class="ap-seg" id="apSeg" role="radiogroup" aria-labelledby="apLabel"><button type="button" class="pill" role="radio" data-appearance-opt="default" aria-checked="false">✨ Default</button><button type="button" class="pill" role="radio" data-appearance-opt="blaze" aria-checked="false">🔥 Blaze</button><button type="button" class="pill" role="radio" data-appearance-opt="aqua" aria-checked="false">💧 Aqua</button></div>
-        <div class="ap-cur" id="apCur" aria-live="polite"></div>
       </div>
       <div class="hm-card hidden" id="notifSettingsCard" style="margin-top:16px">
         <div class="settings-section-title">🔔 Notifications</div>
@@ -5556,7 +5554,7 @@ const TOUR_STEPS = [
   /* Settings (reached only through the hamburger menu) */
   {type:'mode-navigation', icon:'⚙️', title:'Settings', mode:'settings', target:()=>tq('#burger'), text:'Open the menu (☰) and choose Settings to manage your website preferences and personal settings.'},
   {type:'feature', icon:'🎓', title:'Batch Setting', mode:'settings', me:true, target:()=>tq('#stNameCard'), text:'Choose your batch number here. Your timetable changes according to your selected batch.', noProfile:'You choose your batch when you create your profile.'},
-  {type:'feature', icon:'🌗', title:'Theme Switch', mode:'settings', target:()=>tq('#themeQuickBtn'), text:'Tap the \uD83C\uDFA8 button to pick your colour theme (Default, Blaze or Aqua) and Light or Dark mode, all in one place.'},
+  {type:'feature', icon:'🌗', title:'Theme Switch', mode:'settings', target:()=>tq('#themeQuickBtn'), text:'Tap the \uD83C\uDFA8 button to switch between Light and Dark mode.'},
   {type:'feature', icon:'👆', title:'Swipe Navigation', swipe:true, text:'On mobile, swipe left or right to quickly switch between the main sections.'},
   {type:'final', icon:'🎉', title:"You're ready!", text:'You now know your way around Campus Loop. Students, Class Representatives and Admins each get their own tools after signing in.'}
 ];
@@ -8359,7 +8357,7 @@ function initHome(){
     const api = window.cseConnect; if(!api) return;
     const b = e.target.closest('[data-hm-ev]');
     if(b){ if(typeof api.openEvent === 'function') api.openEvent(+b.dataset.hmEv); return; }
-    if(e.target.closest('#hmEventsAll')) api.go('discover', 'events');
+    if(e.target.closest('#hmEventsAll')) api.go('events', null);
   });
 }
 
@@ -9105,7 +9103,7 @@ function finishModeWork(mode, soft){
 // opts (used only by the swipe layer): {swipe:true, keepVisible:<outgoing mode>, deferWork:true}
 function setMode(mode, opts){
   opts = opts || {};
-  if(mode==='discover'){ if(window.cseConnect){ window.cseConnect.go('discover','articles'); return; } mode = 'home'; }   // Discover now lives in Connect → Discover → Articles
+  if(mode==='discover'){ if(window.cseConnect){ window.cseConnect.go('articles', null); return; } mode = 'home'; }   // Discover now lives in Connect → Discover → Articles
   if(SCH_ALIAS[mode]){ schTab = SCH_ALIAS[mode]; mode = 'schedule'; }   // legacy me/timetable/calendar → Schedule tab
   if(mode!=='quiz' && window.quizHide) window.quizHide();   // stop the live leaderboard listener when leaving Quiz
   if(smModalOpen) closeSMModal(true);   // navigation always wins: a modal can never outlive the mode change
@@ -13054,15 +13052,14 @@ if(document.readyState==='complete') arm(); else window.addEventListener('load',
 })();
 </script>
 
-<div id="fireBg" aria-hidden="true"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div><div class="ring"></div><div class="ring r2"></div></div>
 <script id="livingAvatarJs">
 /* Living avatar: reads existing app state only (no new data store, no backend). Navigation reuses setMode(). */
 (function(){try{
 var A=document.getElementById('living-avatar');if(!A)return;
 var bub=document.getElementById('av-bubble'),chat=document.getElementById('av-chat'),log=document.getElementById('av-log'),inp=document.getElementById('av-in');
 var ctx={},timers={};
-function EL(){return document.documentElement.getAttribute('data-appearance')==='aqua'?'water':'fire'}
-function E(t){var ap=document.documentElement.getAttribute('data-appearance');return String(t).replace(/🔥/g,ap==='aqua'?'💧':ap==='default'?'✨':'🔥')}
+function EL(){return document.documentElement.getAttribute('data-shx-look')==='aqua'?'water':'fire'}
+function E(t){var ap=document.documentElement.getAttribute('data-shx-look');return String(t).replace(/🔥/g,ap==='aqua'?'💧':ap==='default'?'✨':'🔥')}
 function G(fn,d){try{return fn()}catch(e){return d}}
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function subj(c){return c.batchLabs?'Lab session':(G(function(){return timetableSubjects[c.code].name},c.code))}
@@ -13147,7 +13144,7 @@ document.getElementById('av-form').addEventListener('submit',function(e){e.preve
 document.getElementById('av-talk').addEventListener('click',function(){if(window.openSheynix){window.openSheynix();return}var on=chat.classList.toggle('on');if(on){if(!log.children.length)add('bot','Hi'+(nm()?' '+nm():'')+'! Ask me about your classes, tasks, calendar or attendance. 🔥');setState('greeting',1000)}});
 A.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(b.dataset.go)})});
 var fig=document.getElementById('av-fig');
-function poke(){refreshAvatarContext();var L=document.documentElement.getAttribute('data-appearance')==='default'?['Hehe, that tickles! ✨','Ready to study together? ✨',nextTxt()]:EL()==='water'?['Splash! That tickles! 💧','Let\'s take a look at your day. 💧',nextTxt()]:['Hey, that tickles! 🔥','Ready to get things done? 🔥',nextTxt()];speak(L[Math.floor(Math.random()*L.length)],['happy','surprised','curious','excited'][Math.floor(Math.random()*4)])}
+function poke(){refreshAvatarContext();var L=document.documentElement.getAttribute('data-shx-look')==='default'?['Hehe, that tickles! ✨','Ready to study together? ✨',nextTxt()]:EL()==='water'?['Splash! That tickles! 💧','Let\'s take a look at your day. 💧',nextTxt()]:['Hey, that tickles! 🔥','Ready to get things done? 🔥',nextTxt()];speak(L[Math.floor(Math.random()*L.length)],['happy','surprised','curious','excited'][Math.floor(Math.random()*4)])}
 fig.addEventListener('click',poke);fig.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();poke()}});
 /* react to app changes: signature of existing state, checked after user actions (no polling) */
 function sig(){return[ctx.tasks.length,ctx.tasks.filter(function(x){return x.status==='completed'}).length,ctx.attendance.length,(ctx.user||{}).name,(ctx.user||{}).section,(ctx.user||{}).batch].join('|')}
@@ -13187,7 +13184,7 @@ var THEMES={
   pal:[[0x3FA9E8,0x4FC3F0,0x8FE3F8],[0x2E8FD8,0x56B6EE,0xB6ECFA],[0x4FC8E0,0x7ADAF0,0xD0F6FF],[0x5AA2F0,0x7EC8F6,0xE4FAFF]],
   spk:[0x2F9AD8,0x4FC0EE,0xBDEFFC],cr:[0xD8F6FF,0xEFFBFF,0xFFFFFF],hs:[0xE6F7FF,0xA8D0F0],rl:0x8FD8FF,rim:[.4,.8,1],
   plat:'rgba(90,200,255,.5)',shd:'rgba(10,50,100,.42)',mote:'rgba(215,247,255,1)',mm:'bubble',N:10}};
-function curAp(){var a=document.documentElement.getAttribute('data-appearance');return THEMES[a]?a:'default'}
+function curAp(){var a=document.documentElement.getAttribute('data-shx-look');return THEMES[a]?a:'default'}
 function homeVis(){return !document.hidden&&document.body&&document.body.dataset.mode==='home'&&!document.body.hasAttribute('data-fx')}
 function loadThree(){if(window.THREE)return Promise.resolve();if(loading)return loading;
  var u=['https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js','https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js'];
@@ -13446,42 +13443,40 @@ if(document.readyState==='complete')setTimeout(boot,600);else window.addEventLis
 window.dragonAvatar={react:react};
 })();
 </script>
-<div id="elemFx" aria-hidden="true"></div>
 <script id="appearanceJs">
-/* Appearance UI: binds Settings > Theme to ThemeManager. No theme state lives here. */
+/* Sheynix look picker (the three little dots on the Sheynix card). Binds to ThemeManager; only Sheynix changes, never the website colours. */
 (function(){
 var TM=window.ThemeManager; if(!TM) return;
-var seg=document.getElementById('apSeg'); if(!seg) return;
-var btns=[].slice.call(seg.querySelectorAll('[data-appearance-opt]'));
+var seg=document.getElementById('shxLook');
+var btns=seg?[].slice.call(seg.querySelectorAll('[data-look]')):[];
 var GUIDE={"default":'Sheynix',blaze:'Sheynix',aqua:'Sheynix'};
 function sync(){
-  var a=TM.get(), mode=TM.getMode()==='dark'?'Dark':'Light';
-  btns.forEach(function(b){var on=b.getAttribute('data-appearance-opt')===a;b.classList.toggle('active',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;});
-  var c=document.getElementById('apCur'); if(c) c.textContent='Current: '+TM.labels[a]+' \u2022 '+mode;
+  var a=TM.get();
+  btns.forEach(function(b){var on=b.getAttribute('data-look')===a;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;});
+  if(seg) seg.title='Sheynix look: '+TM.labels[a];
   var g=GUIDE[a];
   var t=document.getElementById('av-talk'); if(t&&g) t.textContent='Talk to '+g+' '+(a==='aqua'?'\uD83D\uDCA7':a==='default'?'\u2728':'\uD83D\uDD25');
-  var sb=document.getElementById('av-send'); if(sb){ if(!sb.dataset.o) sb.dataset.o=sb.textContent; sb.textContent=a==='default'?'\u2728':sb.dataset.o; }
+  var sb=document.getElementById('av-send'); if(sb){ if(!sb.dataset.o) sb.dataset.o=sb.textContent; sb.textContent=a==='default'?'\u2728':a==='aqua'?'\uD83D\uDCA7':sb.dataset.o; }
   var h=document.getElementById('av-in'); if(h&&g) h.setAttribute('aria-label','Ask '+g);
   if(window.refreshAvatarContext) try{window.refreshAvatarContext();}catch(e){}
 }
 btns.forEach(function(b,i){
-  b.addEventListener('click',function(){TM.set(b.getAttribute('data-appearance-opt'),{quick:true});});
+  b.addEventListener('click',function(e){e.stopPropagation();TM.set(b.getAttribute('data-look'),{quick:true});});
   b.addEventListener('keydown',function(e){
     var d=(e.key==='ArrowRight'||e.key==='ArrowDown')?1:(e.key==='ArrowLeft'||e.key==='ArrowUp')?-1:0; if(!d) return;
-    e.preventDefault(); var n=btns[(i+d+btns.length)%btns.length]; n.focus(); TM.set(n.getAttribute('data-appearance-opt'),{quick:true});
+    e.preventDefault(); var n=btns[(i+d+btns.length)%btns.length]; n.focus(); TM.set(n.getAttribute('data-look'),{quick:true});
   });
 });
 var q=document.getElementById('themeQuickBtn');
-function nextA(){var l=TM.list,i=l.indexOf(TM.pending?TM.pending():TM.get());return l[(i+1)%l.length];}
-function qSync(){ if(q){ q.title='Theme: '+TM.labels[TM.get()]+' \u2022 '+(TM.getMode()==='dark'?'Dark':'Light'); q.setAttribute('aria-label','Change theme'); } }
+function qSync(){ if(q){ q.title='Mode: '+(TM.getMode()==='dark'?'Dark':'Light'); q.setAttribute('aria-label','Change light or dark mode'); } }
 TM.subscribe(function(d){
-  qSync(); sync();
+  sync();
   if(d.animated){
-    var fig=document.getElementById('av-fig'); if(fig&&d.appearance!=='default'){fig.classList.remove('enter');void fig.offsetWidth;fig.classList.add('enter');}
+    var fig=document.getElementById('av-fig'); if(fig){fig.classList.remove('enter');void fig.offsetWidth;fig.classList.add('enter');}
     try{window.avatarSay&&window.avatarSay(d.appearance==='default'?"Hi, I'm Sheynix! Ready to study together? \u2728":d.appearance==='aqua'?"Hi, I'm Sheynix! Let's take a look at your day. \uD83D\uDCA7":"Sheynix here! Ready to get things done? \uD83D\uDD25",'excited');}catch(e){}
   }
 });
-new MutationObserver(sync).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+new MutationObserver(qSync).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 sync(); qSync();
 })();
 </script>
@@ -13505,18 +13500,17 @@ sync(); qSync();
 @media (prefers-reduced-motion:reduce){#themeMenu{transition:none}}
 </style>
 <script id="themeMenuJs">
-/* One 🎨 button holds every theme choice: colour theme (Default / Blaze / Aqua) x mode (Light / Dark). */
+/* The 🎨 button holds the Light / Dark mode choice. (Sheynix's own look is picked on the Sheynix card.) */
 (function(){
 var q=document.getElementById('themeQuickBtn'), TM=window.ThemeManager; if(!q||!TM) return;
 var m=document.createElement('div'); m.id='themeMenu'; m.setAttribute('role','dialog'); m.setAttribute('aria-label','Theme');
-var A=[['default','✨','Default'],['blaze','🔥','Blaze'],['aqua','💧','Aqua']], M=[['light','☀️','Light'],['dark','🌙','Dark']];
+var M=[['light','☀️','Light'],['dark','🌙','Dark']];
 function grp(t,cls,arr,attr){ return '<h4>'+t+'</h4><div class="tm-grp '+cls+'" role="radiogroup" aria-label="'+t+'">'+arr.map(function(x){ return '<button type="button" role="radio" '+attr+'="'+x[0]+'" aria-checked="false"><span aria-hidden="true">'+x[1]+'</span>'+x[2]+'</button>'; }).join('')+'</div>'; }
-m.innerHTML=grp('Theme','tm-g3',A,'data-tm-a')+grp('Mode','tm-g2',M,'data-tm-m');
+m.innerHTML=grp('Mode','tm-g2',M,'data-tm-m');
 document.body.appendChild(m);
 q.setAttribute('aria-haspopup','dialog'); q.setAttribute('aria-expanded','false');
 function paint(){
-  var a=TM.pending?TM.pending():TM.get(), d=(typeof applyTheme!=='undefined'&&applyTheme._want)||TM.getMode();
-  [].forEach.call(m.querySelectorAll('[data-tm-a]'),function(b){ b.setAttribute('aria-checked',String(b.dataset.tmA===a)); });
+  var d=(typeof applyTheme!=='undefined'&&applyTheme._want)||TM.getMode();
   [].forEach.call(m.querySelectorAll('[data-tm-m]'),function(b){ b.setAttribute('aria-checked',String(b.dataset.tmM===d)); });
 }
 function place(){ var r=q.getBoundingClientRect(), w=m.offsetWidth||260; m.style.top=(r.bottom+8)+'px'; m.style.left=Math.max(12,Math.min(innerWidth-w-12,r.right-w))+'px'; }
@@ -13525,8 +13519,7 @@ function close(f){ if(!m.classList.contains('on')) return; m.classList.remove('o
 q.addEventListener('click',function(e){ e.stopPropagation(); m.classList.contains('on')?close():open(); });
 m.addEventListener('click',function(e){
   var b=e.target.closest('button'); if(!b) return; e.stopPropagation();
-  if(b.dataset.tmA) TM.set(b.dataset.tmA,{quick:true});
-  else if(b.dataset.tmM){ var n=b.dataset.tmM; store.set(THEME_KEY,n); applyTheme(n,true); }
+  if(b.dataset.tmM){ var n=b.dataset.tmM; store.set(THEME_KEY,n); applyTheme(n,true); }
   setTimeout(paint,30); setTimeout(paint,350);
 });
 document.addEventListener('click',function(e){ if(!m.contains(e.target)&&e.target!==q&&!q.contains(e.target)) close(); });
@@ -14982,11 +14975,11 @@ function bubble(cls,txt,t){var d=document.createElement('div');d.className='m '+
 function welcome(){bubble('b',"Hey! I'm Sheynix. What can I help you with today?")}
 function render(){log.innerHTML='';welcome();hist.forEach(function(h){bubble(h.r==='user'?'u':'b',h.c,h.t)})}
 /* avatar in header follows current theme; no extra animation loops */
-var avKey='';function avatar(){var a=root.getAttribute('data-appearance')||'default',h=$('shxAv'),I=window.__shxFabImg,src=I&&(I[a]||I['default']);var key=src?a+'|img':a;if(key===avKey&&h.firstChild)return;avKey=key;h.innerHTML='';
+var avKey='';function avatar(){var a=root.getAttribute('data-shx-look')||'default',h=$('shxAv'),I=window.__shxFabImg,src=I&&(I[a]||I['default']);var key=src?a+'|img':a;if(key===avKey&&h.firstChild)return;avKey=key;h.innerHTML='';
  if(src){var im=new Image();im.alt='';im.setAttribute('aria-hidden','true');im.draggable=false;im.decoding='async';im.src=src;im.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%';h.appendChild(im);return}
  try{var s=document.querySelectorAll('#av-fig .cd-svg');var n=a==='blaze'?s[0]:a==='aqua'?s[1]:null;if(n){var c=n.cloneNode(true);c.removeAttribute('aria-label');c.setAttribute('aria-hidden','true');h.appendChild(c);return}}catch(e){}
  h.textContent=a==='aqua'?'💧':a==='blaze'?'🔥':'✨'}
-new MutationObserver(avatar).observe(root,{attributes:true,attributeFilter:['data-appearance']});
+new MutationObserver(avatar).observe(root,{attributes:true,attributeFilter:['data-shx-look']});
 /* consent */
 function consent(){return ls(K_C)==='1'}
 function priv(){$('shxPv').textContent=consent()?'Sharing ON: with each question I may send your name, section/batch, theme, and only the timetable, attendance, task or calendar details that question needs. Never notes, passwords or keys.':'Sharing OFF: Sheynix can only explain the website and cannot see your personal data.';$('shxTg').textContent=consent()?'Turn off':'Allow sharing'}
@@ -15046,7 +15039,7 @@ window.openSheynix=open;
     var gate=false; try{ gate=!!(window.cseGateOpen&&window.cseGateOpen()); }catch(e){}
     var ok=!!OK[mode]&&!gate&&!window.__tourActive;
     root.classList.toggle('shx-fab-ok',ok);
-    var a=root.getAttribute('data-appearance')||'default'; if(a!==shown){ shown=a; ic.src=IMG[a]||IMG['default']; }
+    var a=root.getAttribute('data-shx-look')||'default'; if(a!==shown){ shown=a; ic.src=IMG[a]||IMG['default']; }
     var vis=ok&&!root.classList.contains('chat-open')&&!root.classList.contains('shx-open')&&!shx.classList.contains('on');
     fab.tabIndex=vis?0:-1; fab.setAttribute('aria-hidden',vis?'false':'true');
   }
@@ -15059,7 +15052,7 @@ window.openSheynix=open;
   window.addEventListener('cse:login-done',sync);
   document.addEventListener('csec:tourclosed',sync);
   window.addEventListener('hashchange',function(){ setTimeout(sync,0); });
-  new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-appearance']});
+  new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-shx-look']});
   sync();
 })();
 </script>
@@ -17786,7 +17779,7 @@ var LV_GEO = {"P":[["Mysuru","m",12.2958,76.6394,"mysuru|mysore|vvce|vidyavardha
 var LV_PL = LV_GEO.P.map(function(p){ return {name:p[0], s:p[1], lat:p[2], lng:p[3], al:p[4].split('|')}; });
 var LV_IN = LV_GEO.I.split('|'), LV_AB = LV_GEO.A.split('|'), LV_MYS = {lat:12.2958, lng:76.6394};
 var LV_TIERS = [
- ['mysuru', 'Near Mysuru', 'Hackathons held in Mysuru that you attend in person.'],
+ ['mysuru', 'Mysuru', 'Hackathons held in Mysuru that you attend in person.'],
  ['nearby', 'Nearby Offline Hackathons', 'Mandya, Srirangapatna, Nanjangud, Hassan, Kodagu and other towns near Mysuru, nearest first.'],
  ['karnataka', 'Karnataka Hackathons', 'Bengaluru, Mangaluru, Udupi, Shivamogga, Davanagere, Tumakuru and the rest of Karnataka.'],
  ['india', 'Other Indian Offline Hackathons', 'In-person hackathons in other states.'],
@@ -17841,14 +17834,23 @@ function lvGeo(x){
     else g = {t:w.s, place:w.place, km:w.km, exact:w.exact}; }
   return x._geo = g;
 }
+/* Location tags. Admin listings carry them as "loc:<tag>" entries in themes (stripped before display); a listing whose
+   venue / city is Mysuru gets the Mysuru tag automatically. */
+function lvHasTag(x, t){ return !!(x.locTags && x.locTags.indexOf(t) > -1); }
+function lvIsMys(x){ return lvGeo(x).t === 'mysuru' || lvHasTag(x, 'mysuru'); }
+function lvIsKa(x){ var t = lvGeo(x).t; return t === 'mysuru' || t === 'nearby' || t === 'karnataka' || lvHasTag(x, 'karnataka') || lvIsMys(x); }
+function lvMysRank(x){ return lvIsMys(x) ? 0 : 1; }   // Mysuru first, then everything else
 function lvTierIx(t){ for(var k = 0; k < LV_TIERS.length; k++) if(LV_TIERS[k][0] === t) return k; return 5; }
 function lvGeoLbl(x){ var g = lvGeo(x);
-  if(g.t === 'mysuru') return 'Mysuru'; if(g.t === 'nearby') return (g.place || 'Near Mysuru') + (g.km != null ? ' \u00b7 \u2248' + g.km + ' km' : '');
+  if(g.t !== 'mysuru' && lvHasTag(x, 'mysuru')) return 'Mysuru';
+  if(g.t === 'mysuru') return 'Mysuru'; if(g.t === 'nearby') return (g.place || 'Karnataka') + (g.km != null ? ' \u00b7 \u2248' + g.km + ' km' : '');
   if(g.t === 'karnataka') return (g.place || 'Karnataka'); if(g.t === 'india') return x.state || x.city || 'India'; if(g.t === 'international') return x.country || 'International';
   if(g.t === 'verify') return 'Location to be verified'; return ''; }
 /* Inside one section: registration open first, then (nearby) nearest first, then deadline, then start date. */
 function lvSecCmp(a, b){
   var ra = dlInfo(a).k, rb = dlInfo(b).k, rank = function(k){ return k === 'closed' ? 2 : k === 'none' ? 1 : 0; };
+  if((ra === 'closed') !== (rb === 'closed')) return ra === 'closed' ? 1 : -1;   // closed listings stay at the end
+  var ma = lvMysRank(a), mb = lvMysRank(b); if(ma !== mb) return ma - mb;   // then Mysuru hackathons first
   if(rank(ra) !== rank(rb)) return rank(ra) - rank(rb);
   if(ef.sort === 'recent') return (b.added || 0) - (a.added || 0) || a.off - b.off;
   if(ef.sort === 'prize') return lvPrize(b) - lvPrize(a) || a.off - b.off;
@@ -17857,13 +17859,13 @@ function lvSecCmp(a, b){
   if(ga.t === 'nearby' && gb.t === 'nearby'){ var da = ga.km == null ? 1e9 : ga.km, db = gb.km == null ? 1e9 : gb.km; if(da !== db) return da - db; }
   return ((a.dl == null ? a.off : a.dl) - (b.dl == null ? b.off : b.dl)) || a.off - b.off;
 }
-/* Filters: All, Offline, Online, Hybrid, Near Mysuru, Karnataka, India, International. */
-var LV_AREAS = [['all', 'All'], ['offline', 'Offline'], ['online', 'Online'], ['hybrid', 'Hybrid'], ['mysuru', 'Near Mysuru'], ['ka', 'Karnataka'], ['in', 'India'], ['intl', 'International']];
+/* Filters: All, Offline, Online, Hybrid, Mysuru, Karnataka, India, International. */
+var LV_AREAS = [['all', 'All'], ['offline', 'Offline'], ['online', 'Online'], ['hybrid', 'Hybrid'], ['mysuru', 'Mysuru'], ['ka', 'Karnataka'], ['in', 'India'], ['intl', 'International']];
 function lvArea(x, a){ var t = lvGeo(x).t;
   if(!a || a === 'all') return true; if(a === 'offline' || a === 'online' || a === 'hybrid') return x.mode === a;
-  if(a === 'mysuru') return t === 'mysuru' || t === 'nearby'; if(a === 'ka') return t === 'mysuru' || t === 'nearby' || t === 'karnataka';
-  if(a === 'in') return t === 'mysuru' || t === 'nearby' || t === 'karnataka' || t === 'india'; if(a === 'intl') return t === 'international'; return true; }
-function lvAreaSecs(a){ return a === 'online' ? ['online'] : a === 'mysuru' ? ['mysuru', 'nearby'] : a === 'ka' ? ['mysuru', 'nearby', 'karnataka'] : a === 'in' ? ['mysuru', 'nearby', 'karnataka', 'india'] : a === 'intl' ? ['international'] : a === 'offline' ? ['mysuru', 'nearby', 'karnataka', 'india', 'verify', 'international'] : LV_TIERS.map(function(t){ return t[0]; }); }
+  if(a === 'mysuru') return lvIsMys(x); if(a === 'ka') return lvIsKa(x);
+  if(a === 'in') return lvIsKa(x) || t === 'india'; if(a === 'intl') return t === 'international'; return true; }
+function lvAreaSecs(a){ return a === 'online' ? ['online'] : a === 'mysuru' ? ['karnataka'] : a === 'ka' ? ['mysuru', 'nearby', 'karnataka'] : a === 'in' ? ['mysuru', 'nearby', 'karnataka', 'india'] : a === 'intl' ? ['international'] : a === 'offline' ? ['mysuru', 'nearby', 'karnataka', 'india', 'verify', 'international'] : LV_TIERS.map(function(t){ return t[0]; }); }
 function lvDiscFor(t){ return t === 'mysuru' || t === 'nearby' ? LV_DISCOVER.local : t === 'karnataka' || t === 'india' ? LV_DISCOVER.india : t === 'online' ? LV_DISCOVER.online : t === 'international' ? LV_DISCOVER.world : []; }
 function lvDiscHtml(l){ return l.length ? '<div class="cn-disc">' + l.map(function(s){ return '<a href="' + esc(s[1]) + '" target="_blank" rel="noopener noreferrer">' + esc(s[0]) + ' \u2197</a>'; }).join('') + '</div>' : ''; }
 /* Source health for the live-events status line. */
@@ -18180,20 +18182,151 @@ function loadPeople(){
   }).catch(function(e){ console.warn('[Connect] could not load students (is the publicProfiles rule published?)', e && e.code); PS = 'err'; })
   .then(function(){ PBusy = false; drawPeople(); });
 }
-setInterval(function(){ publishMe(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
+setInterval(function(){ publishMe(); connTick(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
 
+
+/* ---------- Connections (real): Firebase Auth + Firestore listeners + `connections` Cloud Functions (asia-south1). Reuses the app's existing Firebase app. ---------- */
+var CS = {uid:'', out:{}, inc:{}, conn:{}, outL:[], incL:[], connL:[], notifs:[], ok:{}, busy:{}, ask:''}, cTab = 'received', cUn = [], fnC = null;
+var MU = {}, MUf = 0, MUp = {}, SUG = null, SUGt = 0, SUGn = -1, SUGw = 0, MUn = -1, MUt = Date.now();
+function cFns(){ return new Promise(function(res, rej){ if(firebase.functions) return res(); var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js'; s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); }; document.head.appendChild(s); }); }
+function cCall(name, data){ return cFns().then(function(){ if(!fnC) fnC = firebase.app().functions('asia-south1'); return fnC.httpsCallable(name, {timeout:30000})(data || {}); }).then(function(r){ return r.data; }); }
+function cErr(e){ var m = String(e && e.message || ''); return (!m || /^[A-Z_ ]+$/.test(m) || /network/i.test(m)) ? 'Could not reach Campus Loop. Check your connection and try again.' : m; }
+function tms(t){ return t && t.toMillis ? t.toMillis() : 0; }
+function cState(u){ return CS.conn[u] ? 'conn' : CS.inc[u] ? 'inc' : CS.out[u] === 'pending' ? 'out' : ''; }
+function pinfo(u){ for(var i = 0; i < PF.length; i++) if(PF[i][7] === u) return [yl(PF[i][2]), PF[i][1]].filter(Boolean).join(' · '); return ''; }
+function mutTxt(u){ var m = MU[u]; return m && m.length ? ' · ' + m.length + ' mutual' : ''; }
+function connStop(){ cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS = {uid:'', out:{}, inc:{}, conn:{}, outL:[], incL:[], connL:[], notifs:[], ok:{}, busy:{}, ask:''}; MU = {}; SUG = null; SUGn = -1; paintConn(); }
+function connStart(uid){
+  var db = fb(); if(!db) return; CS.uid = uid;
+  function lis(key, q, fn){ cUn.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; paintConn(); }, function(e){ console.warn('[Connections] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); CS.err = 1; paintConn(); })); }
+  lis('inc', db.collection('connectionRequests').where('to', '==', uid), function(s){
+    CS.inc = {}; CS.incL = []; s.docs.forEach(function(d){ var x = d.data(); if(x.status === 'pending'){ CS.inc[x.from] = 1; CS.incL.push({u:x.from, name:x.fromName, at:tms(x.createdAt)}); } });
+    CS.incL.sort(function(a, b){ return b.at - a.at; }); });
+  lis('out', db.collection('connectionRequests').where('from', '==', uid), function(s){
+    CS.out = {}; CS.outL = []; s.docs.forEach(function(d){ var x = d.data(); if(x.status === 'accepted') return; CS.out[x.to] = x.status; CS.outL.push({u:x.to, name:x.toName, st:x.status, at:tms(x.updatedAt)}); });
+    CS.outL.sort(function(a, b){ return b.at - a.at; }); });
+  lis('conn', db.collection('connections').where('users', 'array-contains', uid), function(s){
+    CS.conn = {}; CS.connL = []; s.docs.forEach(function(d){ var x = d.data(), o = (x.users || []).filter(function(i){ return i !== uid; })[0]; if(o){ CS.conn[o] = 1; CS.connL.push({u:o, name:(x.names && x.names[o]) || 'Student', at:tms(x.createdAt)}); } });
+    CS.connL.sort(function(a, b){ return a.name.localeCompare(b.name); }); });
+  lis('n', db.collection('connNotifs').doc(uid).collection('items').orderBy('createdAt', 'desc').limit(30), function(s){
+    var first = !CS.ok.n; CS.notifs = s.docs.map(function(d){ var x = d.data(); x.id = d.id; return x; });
+    if(!first) s.docChanges().forEach(function(c){ if(c.type !== 'added' || c.doc.metadata.hasPendingWrites) return; var n = c.doc.data();
+      toast(n.type === 'request' ? n.fromName + ' sent you a connection request' : n.type === 'accepted' ? n.fromName + ' accepted your connection request' : n.fromName + ' declined your connection request'); }); });
+}
+function connTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id && id === CS.uid && CS.ok.conn && (wantPeople() || connVisible()) && Date.now() - SUGt > 60000) loadSug(); if(id === CS.uid) return; connStop(); if(id) connStart(id); }
+function unreadN(){ return CS.notifs.filter(function(n){ return !n.read && n.type !== 'request'; }).length; }
+function connVisible(){ return active() && st.tab === 'teams' && st.tsub === 'connections'; }
+function setBadge(el, n){ if(!el) return; el.textContent = n ? (n > 99 ? '99+' : String(n)) : ''; el.classList.toggle('hidden', !n); }
+function paintConn(){
+  if(CS.ok.conn && (MUn !== CS.connL.length || Date.now() - MUt > 3e5)){ MUn = CS.connL.length; MUt = Date.now(); MU = {}; MUf = 0; }   /* mutuals are re-read when my connections change (and every 5 min) */
+  var inN = CS.incL.length, ico = document.querySelector('#secBtnConnect .sec-ico'), nb = $('#cnNavN', document);
+  if(ico && !nb){ nb = document.createElement('span'); nb.id = 'cnNavN'; nb.className = 'rq-n hidden'; nb.setAttribute('aria-label', 'new connection activity'); ico.appendChild(nb); }
+  setBadge(nb, inN + unreadN()); setBadge($('#cnConN'), inN);
+  if($('#cnConBody')) drawConn();
+  if($('#cnPgrid')){ drawPeople(); drawSug(); }
+  if(connVisible()) markRead();
+  if(cnWatch){ try{ cnWatch(); }catch(e){} }
+  if(CS.ok.conn && SUGn !== CS.connL.length && (wantPeople() || connVisible())) loadSug();
+}
+function markRead(){ var un = CS.notifs.filter(function(n){ return !n.read; }), db = fb(); if(!un.length || !db || !CS.uid) return; var b = db.batch();
+  un.forEach(function(n){ b.update(db.collection('connNotifs').doc(CS.uid).collection('items').doc(n.id), {read:true}); }); b.commit().catch(function(e){ console.warn('[Connections] mark read', e && e.code); }); }
+function loadMutuals(uids){
+  var me = CS.uid, want = []; uids.forEach(function(u){ if(u && u !== me && !MU[u] && !MUp[u] && want.indexOf(u) < 0) want.push(u); }); want = want.slice(0, 50);
+  if(!want.length || !me || Date.now() - MUf < 30000) return; want.forEach(function(u){ MUp[u] = 1; });
+  cCall('connMutuals', {uids:want}).then(function(r){ want.forEach(function(u){ MU[u] = (r.mutuals && r.mutuals[u]) || []; delete MUp[u]; }); paintConn(); })
+   .catch(function(e){ MUf = Date.now(); want.forEach(function(u){ delete MUp[u]; }); console.warn('[Connections] mutuals', e && e.code); });
+}
+function connHook(){ if(PS !== 'ok' || !CS.uid) return; loadMutuals(peopleRows().slice(0, 50).map(function(x){ return x.p[7]; })); }
+function loadSug(){
+  if(!CS.uid) return; var w = 4000 - (Date.now() - SUGt); if(w > 0){ if(!SUGw) SUGw = setTimeout(function(){ SUGw = 0; loadSug(); }, w + 50); return; }   /* throttled: retry once, so a change is never missed */
+  SUGt = Date.now(); SUGn = CS.connL.length;
+  cCall('connSuggest', {limit:8}).then(function(r){ SUG = r.suggestions || []; paintConn(); }).catch(function(e){ console.warn('[Connections] suggestions', e && e.code); });
+}
+function sugHtml(){
+  if(!SUG) return ''; var rows = SUG.filter(function(s){ return !cState(s.uid); }).slice(0, 5); if(!rows.length) return '';
+  return '<section class="cn-sug" aria-label="People you may know"><h3>People you may know</h3><div class="cn-ulist">' + rows.map(function(s, i){
+    return '<article class="cn-urow">' + av(s.name, i) + '<div class="cn-umain"><span class="cn-uname">' + esc(s.name) + '</span><small>' + [yl(+s.year), esc(s.branch)].filter(Boolean).join(' · ') + (s.mutual ? ' · ' + s.mutual + ' mutual connection' + (s.mutual > 1 ? 's' : '') : '') + '</small></div>' +
+     '<button class="cn-btn pri" type="button" data-sgc="' + esc(s.uid) + '"' + (CS.busy[s.uid] ? ' disabled' : '') + '>Connect</button></article>'; }).join('') + '</div></section>';
+}
+function drawSug(){ var h = (P.q || P.skills.length) ? '' : sugHtml(), a = $('#cnPsug'), b = $('#cnConSug'); if(a) a.innerHTML = h; if(b) b.innerHTML = sugHtml(); }
+function doConnect(u){
+  var uu = fbUser(); if(!uu || uu.isAnonymous) return toast('Sign in with your student account to connect', 'err');
+  if(!u || CS.busy[u]) return; var s = cState(u); if(s === 'conn') return; if(s === 'inc'){ closeM(); return go('teams', 'connections'); }
+  CS.busy[u] = 1; paintConn();
+  (s === 'out' ? cCall('connCancel', {to:u}).then(function(){ delete CS.out[u]; CS.outL = CS.outL.filter(function(x){ return x.u !== u; }); toast('Request withdrawn'); })
+    : cCall('connSend', {to:u}).then(function(){ CS.out[u] = 'pending'; toast('Connection request sent'); }))
+   .catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); reshow(); });
+}
+function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.busy[u]) return; CS.busy[u] = 1; CS.ask = ''; paintConn();
+  cCall(fn, data).then(function(){ toast(ok); }).catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); }); }
+function crow(name, sub, acts, i){ return '<article class="cn-urow">' + av(name, i) + '<div class="cn-umain"><span class="cn-uname">' + esc(name) + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
+function drawConn(){
+  var body = $('#cnConBody'); if(!body) return; var D = {received:CS.incL.length, sent:CS.outL.length, mine:CS.connL.length};
+  [].forEach.call(root.querySelectorAll('[data-ccon]'), function(b){ var k = b.dataset.ccon, on = k === cTab, n = $('.rq-n', b); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); setBadge(n, k === 'received' ? D.received : 0); });
+  var uids = CS.incL.concat(CS.outL, CS.connL).map(function(x){ return x.u; }); loadMutuals(uids);
+  var h = '', dis = function(u){ return CS.busy[u] ? ' disabled' : ''; };
+  if(CS.err && !CS.ok.inc) h = empty('⚠️', 'Could not load connections', 'Check your connection and reopen this tab.');
+  else if(!CS.uid) h = empty('🔒', 'Sign in to connect', 'Connections are available to signed-in students. Guests cannot send or receive requests.');
+  else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i); }).join('') + '</div>'
+    : empty('📥', 'No received requests', 'When a student sends you a connection request it appears here.');
+  else if(cTab === 'sent') h = CS.outL.length ? '<div class="cn-ulist">' + CS.outL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), r.st === 'rejected' ? 'Not accepted' : 'Pending', ago(r.at)].filter(Boolean).join(' · '), r.st === 'rejected' ? '<button class="cn-btn pri" type="button" data-cagain="' + u + '"' + dis(r.u) + '>Send again</button>' : '<button class="cn-btn" type="button" data-ccan="' + u + '"' + dis(r.u) + '>Cancel request</button>', i); }).join('') + '</div>'
+    : empty('📤', 'No sent requests', 'Requests you send from Find people show up here until they are answered.');
+  else h = CS.connL.length ? '<div class="cn-ulist">' + CS.connL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), 'Connected ' + ago(r.at) + mutTxt(r.u)].filter(Boolean).join(' · '), CS.ask === r.u ? '<button class="cn-btn mt-btn-danger pri" type="button" data-crmok="' + u + '"' + dis(r.u) + '>Confirm remove</button><button class="cn-btn" type="button" data-crmno="1">Keep</button>' : '<button class="cn-btn" type="button" data-crm="' + u + '">Remove</button>', i); }).join('') + '</div>'
+    : empty('🤝', 'No connections yet', 'Accepted requests become connections. Find students in Find people and tap Connect.');
+  body.innerHTML = h;
+  var act = $('#cnConAct'); if(act) act.innerHTML = CS.notifs.length ? '<section class="cn-recent"><h3 class="cn-sub">Recent activity</h3><ul style="list-style:none;margin:0;padding:0">' + CS.notifs.slice(0, 8).map(function(n){
+    return '<li style="padding:6px 0;border-top:1px solid var(--line);' + (n.read ? '' : 'font-weight:700') + '">' + esc(n.fromName) + (n.type === 'request' ? ' sent you a connection request' : n.type === 'accepted' ? ' accepted your request' : ' declined your request') + ' <small>' + ago(tms(n.createdAt)) + '</small></li>'; }).join('') + '</ul></section>' : '';
+  drawSug();
+}
+function initConn(){
+  var box = $('#cnTconn'); if(!box) return;
+  box.innerHTML = '<h2 class="cn-sr-h">Connections</h2><div class="cn-subtabs" role="tablist" aria-label="Connection sections">' +
+   '<button type="button" class="cn-tab active" role="tab" data-ccon="received" aria-selected="true">Received<span class="rq-n hidden" aria-label="pending requests"></span></button>' +
+   '<button type="button" class="cn-tab" role="tab" data-ccon="sent" aria-selected="false">Sent<span class="rq-n hidden"></span></button>' +
+   '<button type="button" class="cn-tab" role="tab" data-ccon="mine" aria-selected="false">My Connections<span class="rq-n hidden"></span></button></div>' +
+   '<div id="cnConBody"></div><div id="cnConSug"></div><div id="cnConAct"></div>';
+  drawConn();
+  root.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return; var d = b.dataset;
+    if(d.ccon){ cTab = d.ccon; CS.ask = ''; return drawConn(); }
+    if(d.cacc) return cAct('connRespond', {from:d.cacc, accept:true}, 'Connected');
+    if(d.crej) return cAct('connRespond', {from:d.crej, accept:false}, 'Request rejected');
+    if(d.ccan) return cAct('connCancel', {to:d.ccan}, 'Request cancelled');
+    if(d.cagain) return cAct('connSend', {to:d.cagain}, 'Connection request sent');
+    if(d.crm){ CS.ask = d.crm; return drawConn(); }
+    if(d.crmno){ CS.ask = ''; return drawConn(); }
+    if(d.crmok) return cAct('connRemove', {uid:d.crmok}, 'Connection removed');
+    if(d.sgc) return doConnect(d.sgc);
+  });
+}
+function connOpened(){ drawConn(); markRead(); loadSug(); }
+/* Small bridge so the separate peer-profile overlay uses the same real connection state. */
+var cnWatch = null;
+window.cnConn = {
+  label:function(u){ var q = cState(u); return q === 'conn' ? '\u2713 Connected' : q === 'out' ? '\u2713 Request sent' : q === 'inc' ? 'Accept request' : 'Connect'; },
+  act:function(u){ if(cState(u) === 'conn') return; if(cState(u) === 'inc') return cAct('connRespond', {from:u, accept:true}, 'Connected'); doConnect(u); },
+  watch:function(f){ cnWatch = f; }
+};
 
 function pkey(k){ return PF[k] && PF[k][7] ? PF[k][7] : k; }
-function connBtn(k, attr){ var d = sent[pkey(k)]; return '<button class="cn-btn' + (d ? ' done' : ' pri') + '" type="button" ' + attr + '="' + k + '">' + (d ? '\u2713 Request sent' : 'Connect') + '</button>'; }
+function connBtn(k, attr){ var u = pkey(k), q = cState(u);
+  if(q === 'conn') return '<button class="cn-btn done" type="button" disabled>✓ Connected</button>';
+  if(q === 'out') return '<button class="cn-btn done" type="button" ' + attr + '="' + k + '" title="Tap to cancel this request"' + (CS.busy[u] ? ' disabled' : '') + '>✓ Request sent</button>';
+  if(q === 'inc') return '<button class="cn-btn pri" type="button" ' + attr + '="' + k + '">Respond</button>';
+  return '<button class="cn-btn pri" type="button" ' + attr + '="' + k + '"' + (CS.busy[u] ? ' disabled' : '') + '>Connect</button>'; }
 function pct(x){ return P.skills.length ? Math.round(100 * x.hit.length / P.skills.length) : Math.min(100, Math.round(x.p[3].length * 20)); }
 function personCard(x){
   var p = x.p, k = x.k, v = pct(x), w = P.skills, mine = !!p[7] && p[7] === myUid();
-  var meta = [yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
+  var meta = [yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
   return '<article class="cn-urow">' + av(p[0], k) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
    (p[3].length ? '<div class="cn-ring sm" style="--p:' + v + '" data-v="' + v + '%" role="img" title="' + (w.length ? 'Share of the selected skills they have' : 'Skills listed (out of 5)') + '" aria-label="' + v + ' percent skills"></div>' : '') + (mine ? '' : connBtn(k, 'data-k')) + '</article>';
 }
 var pSkSig = null;
-function drawPeople(){
+function drawPeople(){ drawPeople0(); connHook(); }
+function drawPeople0(){
   if(!$('#cnPgrid')) return;
   var sk = skillList(), skl = $('#cnPskl'), chs = $('#cnPchips'), sig = sk.join('|');
   P.skills = P.skills.filter(function(s){ return sk.indexOf(s) > -1; });
@@ -18219,14 +18352,14 @@ function personModal(k){
    (p[3].length ? '<div><div class="cn-sub">Skills</div><div class="cn-chips">' + p[3].map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
    (p[4].length ? '<div><div class="cn-sub">Interests</div><div class="cn-chips">' + p[4].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
    (p[6] && p[6] !== '?' && p[6] !== '\u2014' ? '<div class="cn-meta"><div>' + ic('users') + '<span><b>Working on:</b> ' + esc(p[6]) + '</span></div></div>' : '') +
-   '<div class="cn-row">' + (mine ? '' : connBtn(k, 'data-mconn')) + '<button class="cn-btn" type="button" data-close="1">Close</button></div>' + (mine ? '' : '<span class="cn-demo">Connection requests are not sent anywhere yet.</span>') + '</div>', 'p', k);
+   '<div class="cn-row">' + (mine ? '' : connBtn(k, 'data-mconn')) + '<button class="cn-btn" type="button" data-close="1">Close</button></div>' + '</div>', 'p', k);
 }
-function togglePerson(k){ var u = pkey(k); sent[u] = !sent[u]; drawPeople(); reshow(); toast(sent[u] ? 'Connection request sent (demo)' : 'Request withdrawn'); }
+function togglePerson(k){ var u = pkey(k); if(typeof u === 'string') doConnect(u); }
 function initPeople(){
   var box = $('#cnTpeople');
   box.innerHTML = '<h2 class="cn-sr-h">Find people</h2>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
-   '<div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips"></div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
+   '<div id="cnPsug"></div><div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips"></div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
   $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
   box.addEventListener('click', function(e){
@@ -18265,7 +18398,7 @@ function initTeamsTab(){
     if(b.dataset.reset){ T = {q:'', chips:[]}; $('#cnTq').value = ''; syncChips($('#cnTchips'), T.chips, 'data-tc'); return drawTeams(); }
   });
 }
-function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div><div class="cn-pane hidden" id="cnTreq"></div>'; initPeople(); initTeamsTab(); }
+function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div><div class="cn-pane hidden" id="cnTreq"></div><div class="cn-pane hidden" id="cnTconn"></div>'; initPeople(); initConn(); initTeamsTab(); }
 /* Teams → Requests: one view over the SAME join requests stored on each team in "csec_myteams" (no second store).
    Incoming = requests to teams I lead (Accept / Reject reuse decide()); outgoing = my own requests (Withdraw / Dismiss reuse onAct()). */
 var rqAsk = '';
@@ -18399,18 +18532,19 @@ function drawEvents(){
   var hb = $('#cnEhealth'); if(hb) hb.innerHTML = ef.health ? '<div class="cn-card cn-hlbox"><h3>' + ic('flag') + 'Event sources</h3>' + lvHealthHtml() + '</div>' : '';
   /* Sections in strict order: Mysuru, nearby, Karnataka, rest of India, online, to verify, international. */
   var groups = {}; LV_TIERS.forEach(function(t){ groups[t[0]] = []; });
-  l.forEach(function(o){ groups[lvGeo(o.x).t].push(o); });
+  l.forEach(function(o){ var gt = lvGeo(o.x).t; if(gt === 'mysuru' || gt === 'nearby' || lvIsKa(o.x)) gt = 'karnataka'; groups[gt].push(o); });   // Near Mysuru / Nearby sections removed: those listings show under Karnataka
   var show = lvAreaSecs(ef.area), html = '';
   LV_TIERS.forEach(function(t){
-    var id = t[0], g = groups[id]; if(show.indexOf(id) < 0) return;
+    var id = t[0], g = groups[id]; if(id === 'mysuru' || id === 'nearby') return; if(show.indexOf(id) < 0) return;
     if(!g.length && (saved || q || ef.kind || ef.dom || ef.st || ef.area === 'hybrid' || ef.area === 'offline' && id === 'verify')) return;
     g.sort(function(a, b){ return lvSecCmp(a.x, b.x); });
+    var secT = id === 'karnataka' && ef.area === 'mysuru' ? ['Mysuru Hackathons', 'Hackathons held in Mysuru that you attend in person.'] : [t[1], t[2]];
     var pages = Math.max(1, Math.ceil(g.length / LV_SEC_N)), pg = Math.min(Math.max(1, (ef.pg && ef.pg[id]) || 1), pages), vis = g.slice((pg - 1) * LV_SEC_N, pg * LV_SEC_N);
-    html += '<section class="cn-evsec" data-sec="' + id + '" aria-labelledby="cnEs_' + id + '"><div class="cn-evsec-h"><div><h3 id="cnEs_' + id + '">' + esc(t[1]) + ' <span class="n">' + g.length + '</span></h3><p>' + esc(t[2]) + '</p></div>' +
+    html += '<section class="cn-evsec" data-sec="' + id + '" aria-labelledby="cnEs_' + id + '"><div class="cn-evsec-h"><div><h3 id="cnEs_' + id + '">' + esc(secT[0]) + ' <span class="n">' + g.length + '</span></h3><p>' + esc(secT[1]) + '</p></div>' +
       (pages > 1 ? '<span class="cn-pgnote">Page ' + pg + ' of ' + pages + '</span>' : '') + '</div>' +
       (g.length ? '<div class="cn-grid">' + vis.map(function(o){ return evCard(o.x, o.i); }).join('') + '</div>' + lvPager(id, pg, pages) :
-        '<div class="cn-secempty"><b>' + (q ? 'No matches here' : id === 'mysuru' ? 'No Mysuru hackathons listed right now' : id === 'nearby' ? 'No hackathons near Mysuru listed right now' : 'Nothing listed here right now') + '</b>' +
-        (lvDiscFor(id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
+        '<div class="cn-secempty"><b>' + (q ? 'No matches here' : ef.area === 'mysuru' ? 'No Mysuru hackathons listed right now' : 'Nothing listed here right now') + '</b>' +
+        (lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
   });
   $('#cnEgrid').innerHTML = html + (l.length && !saved ? '<div class="cn-evsec cn-discall"><div class="cn-evsec-h"><div><h3>Browse more hackathons</h3><p>Official listing pages, including sites without a live feed.</p></div></div>' + lvDiscHtml(LV_DISCOVER.local.concat(LV_DISCOVER.india, LV_DISCOVER.world.slice(0, 1).concat(LV_DISCOVER.online.slice(1, 2)))) + '</div>' : '');
   $('#cnEempty').innerHTML = l.length ? '' : saved && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
@@ -18575,7 +18709,7 @@ function evId(x){ return x.id || (x.id = String(x.t).toLowerCase().replace(/[^a-
 function loadSaved(){ try{ var a = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); EV.forEach(function(x, i){ if(a.indexOf(evId(x)) > -1) bm[i] = true; }); }catch(e){} renderSavedCard(); }
 function persistSaved(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(EV.filter(function(x, i){ return bm[i]; }).map(evId))); }catch(e){} renderSavedCard(); }
 function toggleSave(i){ bm[i] = !bm[i]; persistSaved(); drawEvents(); reshow(); toast(bm[i] ? 'Saved' : 'Removed from saved'); }
-function shareEv(i){ var x = EV[i], u = location.href.split('#')[0] + '#connect/discover/events', f = function(){ toast('Link copied'); };
+function shareEv(i){ var x = EV[i], u = location.href.split('#')[0] + '#connect/events', f = function(){ toast('Link copied'); };
   if(navigator.share){ navigator.share({title:x.t, text:x.d, url:u}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(u).then(f, function(){ toast('Sharing not available'); }); } else toast('Sharing not available'); }
 /* ---- More details block + Solo/Team registration chooser (frontend only; csec_event_regs) ---- */
 var RG_KEY = 'csec_event_regs';
@@ -18648,30 +18782,32 @@ function initEvents(){
 }
 
 /* ---------- Router: Posting | Teams | Discover → Articles | Events ---------- */
-var TABS = ['posting', 'teams', 'discover'], st = {tab:'posting', sub:'events', tsub:'people'}, artOn = false;
+var TABS = ['posting', 'teams', 'events', 'articles'], st = {tab:'posting', sub:'events', tsub:'people'}, artOn = false;
+function normTab(tab, sub){ return tab === 'discover' ? (sub === 'articles' ? 'articles' : 'events') : tab; }   // old #connect/discover/... links open the new Events / Articles tabs
 function active(){ return !!(window.cseSection && window.cseSection.current() === 'connect'); }
-function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'discover' ? '/' + st.sub : st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
-var INTRO = {posting:['Posting','Share projects, achievements and updates with your campus community.'], teams:['Teams','Find people, build teams and manage your join requests in one place.'], discover:['Discover','Explore hackathons, events and articles picked for students.']};
+function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
+var INTRO = {posting:['Posting','Share projects, achievements and updates with your campus community.'], teams:['Teams','Find people, build teams and manage your join requests in one place.'], events:['Events','Explore hackathons, competitions and tech events picked for students.'], articles:['Articles','Read articles and stories picked for students.']};
 function sync(){
   var it = INTRO[st.tab], ie = $('#cnIntro'); if(it && ie){ ie.querySelector('h2').textContent = it[0]; ie.querySelector('p').textContent = it[1]; }
   [].forEach.call(document.querySelectorAll('#cnModeWrap [data-cn]'), function(b){ var on = b.dataset.cn === st.tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
   [].forEach.call(root.querySelectorAll('[data-cnsub]'), function(b){ var on = b.dataset.cnsub === st.sub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   [].forEach.call(root.querySelectorAll('[data-cntsub]'), function(b){ var on = b.dataset.cntsub === st.tsub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
-  $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTreq').classList.toggle('hidden', st.tsub !== 'requests'); document.body.setAttribute('data-cnbg', st.tab === 'teams' && st.tsub === 'requests' ? 'requests' : st.tab); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
-  TABS.forEach(function(t){ $('#cn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== st.tab); });
-  $('#cnSub').classList.toggle('hidden', st.tab !== 'discover'); if(mtc){ mtc.classList.toggle('hidden', st.tab !== 'teams'); if(st.tab === 'teams'){ drawMyTeam(); drawTeams(); } }
+  $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTreq').classList.toggle('hidden', st.tsub !== 'requests'); $('#cnTconn').classList.toggle('hidden', st.tsub !== 'connections'); if(st.tab === 'teams' && st.tsub === 'connections' && active()) connOpened(); document.body.setAttribute('data-cnbg', st.tab === 'teams' && st.tsub === 'requests' ? 'requests' : (st.tab === 'events' || st.tab === 'articles') ? 'discover' : st.tab); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
+  var disc = st.tab === 'events' || st.tab === 'articles'; if(disc) st.sub = st.tab;
+  $('#cnPosting').classList.toggle('hidden', st.tab !== 'posting'); $('#cnTeams').classList.toggle('hidden', st.tab !== 'teams'); $('#cnDiscover').classList.toggle('hidden', !disc);
+  $('#cnSub').classList.add('hidden'); if(mtc){ mtc.classList.toggle('hidden', st.tab !== 'teams'); if(st.tab === 'teams'){ drawMyTeam(); drawTeams(); } }
   $('#cnArticles').classList.toggle('hidden', st.sub !== 'articles'); $('#cnEvents').classList.toggle('hidden', st.sub !== 'events');
-  var want = active() && st.tab === 'discover' && st.sub === 'articles';   // the existing Discover loads / listens only while on screen   // the existing Discover loads / listens only while on screen
+  var want = active() && st.tab === 'articles';   // the existing Discover loads / listens only while on screen   // the existing Discover loads / listens only while on screen
   if(want && !artOn){ artOn = true; try{ window.discoverShow && window.discoverShow(); }catch(e){ console.warn('[Connect] Articles failed to open', e); } }
   else if(!want && artOn){ artOn = false; try{ window.discoverHide && window.discoverHide(); }catch(e){} }
   if(wantPeople()) loadPeople();
 }
 function go(tab, sub, o){
-  o = o || {}; st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams' || sub === 'requests') st.tsub = sub;
+  o = o || {}; tab = normTab(tab, sub); st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams' || sub === 'requests' || sub === 'connections') st.tsub = sub;
   if(!active() && window.cseSection) window.cseSection.go('connect', {noHash:true, noAnim:o.noAnim});
   sync(); if(!o.noHash) setHash();
 }
-function parse(h){ var p = h.split('/'); if(h === 'discover') return ['discover', 'articles']; if(p[0] !== 'connect') return null; return [p[1], p[2]]; }
+function parse(h){ var p = h.split('/'); if(h === 'discover') return ['articles', null]; if(p[0] !== 'connect') return null; return [p[1], p[2]]; }
 var cnBar = document.getElementById('cnModeWrap');
 if(cnBar){
   cnBar.addEventListener('click', function(e){ var t = e.target.closest('[data-cn]'); if(t) go(t.dataset.cn, null); });
@@ -18686,7 +18822,7 @@ root.addEventListener('keydown', function(e){
 });
 root.addEventListener('click', function(e){
   var s = e.target.closest('[data-cnsub]'), ts = e.target.closest('[data-cntsub]');
-  if(s) go('discover', s.dataset.cnsub); else if(ts) go('teams', ts.dataset.cntsub);
+  if(s) go(s.dataset.cnsub, null); else if(ts) go('teams', ts.dataset.cntsub);
 });
 window.addEventListener('hashchange', function(){ var r = parse(location.hash.replace('#', '')); if(r) go(r[0], r[1], {noHash:true}); });
 window.addEventListener('cse:sectionchange', function(e){ if(e.detail && e.detail.section === 'connect' && e.detail.previous !== 'connect'){ sync(); setHash(); } else sync(); });
@@ -19117,7 +19253,7 @@ function initMyTeam(){
   drawMyTeam();
 }
 initModal(); initPosting(); initTeams(); initMyTeam(); initReqs(); initEvents();
-var boot = parse(window.__cnBoot || ''); if(boot){ st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests')) st.tsub = boot[1]; }
+var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], boot[1]); st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests' || boot[1] === 'connections')) st.tsub = boot[1]; }
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
@@ -19131,10 +19267,10 @@ function upcomingEvents(n){
     .slice(0, n == null ? EV.length : n)
     .map(function(o){ var x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0}; });
 }
-function openEvent(i){ go('discover', 'events'); if(EV[i]) eventModal(i); }
+function openEvent(i){ go('events', null); if(EV[i]) eventModal(i); }
 function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
 /* ---------- Settings → Saved: list of saved events / hackathons ---------- */
-function showSaved(){ ef.view = 'saved'; go('discover', 'events'); drawEvents(); }
+function showSaved(){ ef.view = 'saved'; go('events', null); drawEvents(); }
 function renderSavedCard(){
   var box = document.getElementById('svBody'); if(!box) return;
   var l = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return bm[o.i]; });
@@ -19146,11 +19282,12 @@ function renderSavedCard(){
       '<button type="button" class="sv-rm" data-svr="' + o.i + '" aria-label="Remove ' + esc(x.t) + ' from saved">✕</button></div>';
   }).join('') + '</div><button type="button" class="btn btn-ghost" data-svall="1" style="margin-top:10px">Open in Events</button>';
 }
+function leaveSettings(){ try{ if(window.clShell && clShell.closeSettings) clShell.closeSettings(); }catch(e){} }
 (function(){ var b = document.getElementById('svBody'); if(!b) return;
   b.addEventListener('click', function(e){ var t = e.target.closest('button'); if(!t) return;
-    if(t.dataset.svo != null) return openEvent(+t.dataset.svo);
+    if(t.dataset.svo != null){ leaveSettings(); return openEvent(+t.dataset.svo); }
     if(t.dataset.svr != null){ var i = +t.dataset.svr; bm[i] = false; persistSaved(); return drawEvents(); }
-    if(t.dataset.svall) showSaved(); });
+    if(t.dataset.svall){ leaveSettings(); showSaved(); } });
 })();
 window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
 lvStart();
@@ -19479,25 +19616,397 @@ function openPeer(p){
   if(p.mine){ openProfile(); return; }
   closeSettings(); state.sy=window.pageYOffset||0;
   var ck='csec_peer_conn',cn={};try{cn=JSON.parse(localStorage.getItem(ck))||{}}catch(e){}
-  var key=p.uid||p.name, sent=!!cn[key];
+  var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null, rcOnly=!!window.cnConn&&!!p.uid;
   function chips(a,c){return a.length?'<div class="pf-chips">'+a.map(function(x){return'<span class="pf-chip'+(c?' hi':'')+'" style="padding:6px 12px">'+esc(x)+'</span>'}).join('')+'</div>':'<div class="pf-empty">Not shared yet.</div>'}
   var proj=p.project&&p.project!=='?'&&p.project!=='\u2014'?p.project:'';
   $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"></div><div class="pf-head"><div class="pf-av"><span>'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</span></div>'+
-   '<button class="pf-btn pri pf-edit" id="pfConn">'+(sent?'\u2713 Request sent':'Connect')+'</button>'+
+   '<button class="pf-btn pri pf-edit" id="pfConn"'+(rcOnly&&p.mine?' style="display:none"':'')+'>'+(rc?rc.label(p.uid):(sent?'\u2713 Request sent':'Connect'))+'</button>'+
    '<div class="pf-nm">'+esc(p.name)+'</div><div class="pf-hl">'+esc([p.year,p.branch].filter(Boolean).join(' \u00b7 ')||'Campus Loop student')+'</div>'+
    '<div class="pf-stats"><div class="pf-stat"><b>'+p.skills.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+p.interests.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+(proj?1:0)+'</b><span>Projects</span></div><div class="pf-stat"><b>'+(p.year||'\u2014')+'</b><span>Year</span></div></div>'+
-   '<div class="pf-demo">Only details this student has shared are shown. Connection requests are not sent anywhere yet (demo).</div></div></div>'+
+   '<div class="pf-demo">Only details this student has shared are shown. '+(rcOnly?'':'Connection requests are not sent anywhere yet (demo).')+'</div></div></div>'+
    '<div class="pf-card"><h3>About</h3>'+(p.bio?'<div>'+esc(p.bio)+'</div>':'<div class="pf-empty">This student has not added a bio yet.</div>')+'</div>'+
    '<div class="pf-card"><h3>Education</h3><div class="pf-it" style="margin-left:8px"><b>'+esc(p.branch||'Branch not shared')+'</b><div class="pf-sm">'+esc(p.year||'Year not shared')+'</div></div></div>'+
    '<div class="pf-card"><h3>Skills</h3>'+chips(p.skills,1)+'</div><div class="pf-card"><h3>Interests</h3>'+chips(p.interests)+'</div>'+
    '<div class="pf-card"><h3>Projects &amp; Works</h3>'+(proj?'<div class="pf-proj"><div class="th"></div><div class="bd"><b>'+esc(proj)+'</b><span class="pf-tag">Currently working on</span></div></div>':'<div class="pf-empty">No projects shared yet.</div>')+'</div>';
   prof.querySelector('.cl-ovbar b').textContent=p.name; prof.classList.add('pf-peer');
-  $('pfConn').onclick=function(){sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'\u2713 Request sent':'Connect';toastMsg(sent?'Connection request sent (demo)':'Request withdrawn')};
+  if(rc)rc.watch(function(){var b=$('pfConn');if(b&&prof.classList.contains('pf-peer'))b.textContent=rc.label(p.uid)});
+  $('pfConn').onclick=function(){if(rc){rc.act(p.uid);return}sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'\u2713 Request sent':'Connect';toastMsg(sent?'Connection request sent (demo)':'Request withdrawn')};
   prof.classList.remove('hidden');prof.scrollTop=0;lock();
 }
 window.clShell={openPeer:openPeer,openSettings:openSettings,closeSettings:closeSettings,openProfile:openProfile,closeProfile:closeProfile};
 load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover=r[0]||null;IMG.photo=r[1]||null});
 })();
 </script>
+<script id="coreHomeSchemeJs">
+/* Core screens (Settings, Profile, Login) always use the Home colour scheme, whichever section (Campus / Connect) they were opened from.
+   While one is open, body[data-section] reads "home" (the screens are full-screen, so nothing else is visible); on close the real
+   section (cseSection.current()) is restored. Event pages and other overlays are not touched. */
+(function(){
+  'use strict';
+  var body=document.body, ids=['settingsMode','clProfile','loginGate','ownerLoginOverlay'], prev=null;
+  function el(i){ return document.getElementById(i); }
+  function coreOpen(){
+    for(var i=0;i<ids.length;i++){ var e=el(ids[i]); if(e && !e.classList.contains('hidden') && (ids[i]!=='settingsMode' || e.classList.contains('cl-ov'))) return true; }
+    return false;
+  }
+  function real(){ try{ if(window.cseSection) return window.cseSection.current(); }catch(e){} return prev||'campus'; }
+  function sync(){
+    var s=body.getAttribute('data-section');
+    if(coreOpen()){
+      if(s && s!=='home'){ prev=s; body.setAttribute('data-core-home',''); body.setAttribute('data-section','home'); }
+    } else if(prev!==null){
+      var r=real(); prev=null; body.removeAttribute('data-core-home');
+      if(s!==r) body.setAttribute('data-section',r);
+    }
+  }
+  var mo=new MutationObserver(sync);
+  ids.forEach(function(i){ var e=el(i); if(e) mo.observe(e,{attributes:true,attributeFilter:['class']}); });
+  mo.observe(body,{attributes:true,attributeFilter:['data-section']});
+  sync();
+})();
+</script>
+<style id="plumGlassTheme">
+/* ============================================================
+   PLUM · ORCHID GLASS THEME  (visual layer only — no markup/JS changed)
+   Palette: Deep Plum #16091F · Soft Purple #A66BE0 · Vibrant Pink #F05CCF
+            Pastel Pink #EEC2EF · White #FFFFFF
+   ============================================================ */
+body[data-section="connect"]{
+  color-scheme:light;
+  --pl-plum:#16091F; --pl-purple:#A66BE0; --pl-pink:#F05CCF; --pl-pastel:#EEC2EF; --pl-white:#FFFFFF;
+  --gl-ink:#24102f; --gl-ink-2:#68487c; --gl-acc:#8a45c9; --gl-acc-d:#5e2a94; --gl-acc-l:#A66BE0;
+  --gl-edge:rgba(255,255,255,.78); --gl-edge-lo:rgba(166,107,224,.2);
+  --gl-fill-a:rgba(255,255,255,.72); --gl-fill-b:rgba(255,255,255,.42);
+  --gl-sheen:rgba(255,255,255,.6);
+  --gl-glow:0 0 26px -8px rgba(240,92,207,.32);
+  --gl-sh-1:0 1px 0 rgba(255,255,255,.95) inset,0 -1px 0 rgba(166,107,224,.14) inset,0 10px 26px -12px rgba(70,24,100,.34),0 2px 6px rgba(70,24,100,.08),var(--gl-glow);
+  --gl-sh-2:0 1px 0 rgba(255,255,255,1) inset,0 -1px 0 rgba(166,107,224,.16) inset,0 20px 40px -16px rgba(70,24,100,.42),0 5px 12px rgba(70,24,100,.1),0 0 34px -8px rgba(240,92,207,.42);
+  --gl-sh-3:0 1px 0 rgba(255,255,255,1) inset,0 32px 70px -24px rgba(40,10,70,.55),0 10px 24px rgba(40,10,70,.14),0 0 46px -10px rgba(240,92,207,.35);
+  --gl-blur:blur(18px) saturate(1.35);
+  --gl-ease:cubic-bezier(.2,.7,.2,1);
+  --gl-btn:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,0) 48%),linear-gradient(135deg,#5873e0 0%,#8a5ddb 52%,#b455c8 100%);
+  --gl-field:rgba(255,255,255,.64);
+  --gl-bg:
+    radial-gradient(60% 50% at 10% 6%,rgba(166,107,224,.26),rgba(166,107,224,0) 70%),
+    radial-gradient(55% 45% at 94% 14%,rgba(240,92,207,.14),rgba(240,92,207,0) 70%),
+    radial-gradient(70% 55% at 82% 100%,rgba(238,194,239,.7),rgba(238,194,239,0) 70%),
+    linear-gradient(150deg,#fdfaff 0%,#f6ebfb 48%,#fff4fc 100%);
+  --bg:#F3E6FB; --bg2:rgba(255,255,255,.46); --card:rgba(255,255,255,.6); --card-h:rgba(255,255,255,.78); --white:#fff;
+  --line:rgba(166,107,224,.26); --text:var(--gl-ink); --muted:var(--gl-ink-2);
+  --cyan:#8a45c9; --violet:#5e2a94; --accent:#8a45c9; --accent-dark:#5e2a94; --accent-light:rgba(166,107,224,.14);
+  --sage:#8a45c9; --sage-light:rgba(166,107,224,.14); --sage-dark:#5e2a94; --brown:#c06ad0; --brown-dark:#a24bb8; --danger:#b4264f;
+  --p-glass:rgba(255,255,255,.55); --bar:rgba(255,255,255,.55); --pop:rgba(255,255,255,.92); --pop-t:var(--gl-ink);
+  --scrim:rgba(22,9,31,.46); --bd-h:rgba(138,69,201,.5); --sh:var(--gl-sh-1); --glow:rgba(240,92,207,.35); --hi:#5e2a94;
+  --grad:linear-gradient(135deg,#5873e0 0%,#8a5ddb 52%,#b455c8 100%); --on-grad:#fff; --bub:linear-gradient(135deg,#5873e0 0%,#8a5ddb 52%,#b455c8 100%);
+  --bg-grad:transparent; --hero:radial-gradient(ellipse at 50% 55%,rgba(120,140,245,.1),rgba(255,255,255,0) 70%);
+  --now:linear-gradient(135deg,rgba(104,132,242,.16),rgba(166,107,224,.16));
+  --p-shadow-1:var(--gl-sh-1); --p-shadow-2:var(--gl-sh-2); --p-shadow-3:var(--gl-sh-3); --p-focus:0 0 0 3px rgba(240,92,207,.28);
+  --p2-hi:inset 0 1px 0 rgba(255,255,255,.85); --p2-lo:inset 0 -1px 0 rgba(166,107,224,.12);
+  --p2-surface:linear-gradient(145deg,rgba(255,255,255,.74),rgba(255,255,255,.44));
+  --p2-surface-cool:var(--p2-surface); --p2-surface-warm:var(--p2-surface);
+  --p2-navy:var(--gl-btn); --p2-edge:linear-gradient(135deg,rgba(255,255,255,.9),rgba(110,135,245,.25) 50%,rgba(255,255,255,.5));
+  --p2-deep:var(--gl-sh-2); --p2-deeper:var(--gl-sh-3);
+}
+html[data-theme="dark"] body[data-section="connect"]{
+  color-scheme:dark;
+  --gl-ink:#f8eefc; --gl-ink-2:#cdb4de; --gl-acc:#c9a0f2; --gl-acc-d:#b184ea; --gl-acc-l:#d9b8f7;
+  --gl-edge:rgba(238,194,239,.3); --gl-edge-lo:rgba(0,0,0,.4);
+  --gl-fill-a:rgba(78,38,110,.6); --gl-fill-b:rgba(34,14,52,.5); --gl-sheen:rgba(238,194,239,.17);
+  --gl-glow:0 0 28px -8px rgba(240,92,207,.3);
+  --gl-sh-1:0 1px 0 rgba(255,255,255,.17) inset,0 -1px 0 rgba(0,0,0,.32) inset,0 12px 30px -12px rgba(6,0,16,.75),0 2px 6px rgba(6,0,16,.35),var(--gl-glow);
+  --gl-sh-2:0 1px 0 rgba(255,255,255,.22) inset,0 -1px 0 rgba(0,0,0,.32) inset,0 22px 44px -16px rgba(6,0,16,.85),0 4px 12px rgba(6,0,16,.4),0 0 36px -8px rgba(240,92,207,.42);
+  --gl-sh-3:0 1px 0 rgba(255,255,255,.24) inset,0 32px 72px -22px rgba(2,0,10,.92),0 8px 22px rgba(2,0,10,.5),0 0 50px -10px rgba(240,92,207,.36);
+  --gl-field:rgba(22,9,31,.55);
+  --gl-bg:
+    radial-gradient(60% 55% at 10% 6%,rgba(166,107,224,.42),rgba(166,107,224,0) 70%),
+    radial-gradient(55% 50% at 94% 22%,rgba(240,92,207,.24),rgba(240,92,207,0) 70%),
+    radial-gradient(70% 60% at 78% 104%,rgba(240,92,207,.3),rgba(240,92,207,0) 72%),
+    linear-gradient(155deg,#16091F 0%,#25103a 42%,#3a1650 75%,#4d1b5c 100%);
+  --bg:#1b0b28; --bg2:rgba(50,24,76,.5); --card:rgba(56,28,88,.55); --card-h:rgba(78,42,118,.66);
+  --line:rgba(217,184,247,.24); --text:var(--gl-ink); --muted:var(--gl-ink-2);
+  --cyan:#a66be0; --violet:#7a38b8; --accent:#c9a0f2; --accent-dark:#b184ea; --accent-light:rgba(201,160,242,.16);
+  --sage:#c9a0f2; --sage-light:rgba(201,160,242,.16); --sage-dark:#b184ea; --brown:#e089d8; --brown-dark:#c76bc0; --danger:#ff8fb0;
+  --p-glass:rgba(30,12,46,.62); --bar:rgba(30,12,46,.62); --pop:rgba(38,16,58,.95);
+  --scrim:rgba(8,2,16,.68); --bd-h:rgba(217,184,247,.55); --hi:#e6cdfa;
+  --hero:radial-gradient(ellipse at 50% 55%,rgba(120,146,255,.14),rgba(22,9,31,0) 70%);
+  --now:linear-gradient(135deg,rgba(110,140,255,.28),rgba(166,107,224,.28));
+  --p-focus:0 0 0 3px rgba(240,92,207,.34);
+  --p2-hi:inset 0 1px 0 rgba(255,255,255,.14); --p2-lo:inset 0 -1px 0 rgba(0,0,0,.35);
+  --p2-surface:linear-gradient(145deg,rgba(78,42,118,.62),rgba(34,14,52,.5)); --p2-surface-cool:var(--p2-surface); --p2-surface-warm:var(--p2-surface);
+}
+
+/* ---------- Backdrop: plum → purple → pink gradient with soft atmospheric glow ---------- */
+body[data-section="connect"]{background:transparent !important;color:var(--text)}
+body[data-section="connect"]::before{content:"";position:fixed;inset:0;z-index:-9;pointer-events:none;background:var(--gl-bg) !important;transform:translateZ(0);contain:none}
+body[data-section="connect"] .bg-fx,body[data-section="connect"] .academic-bg,body[data-section="connect"] #fireBg,body[data-section="connect"] .mode-graphics,body[data-section="connect"] .cn-deco{display:none !important}
+
+/* ---------- Typography ---------- */
+body[data-section="connect"] body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.005em}
+body[data-section="connect"] :is(h1,h2,h3,h4){color:var(--gl-ink);letter-spacing:-.012em}
+body[data-section="connect"] .hero-simple h1{text-shadow:0 1px 0 rgba(255,255,255,.5)}
+html[data-theme="dark"] body[data-section="connect"] .hero-simple h1{text-shadow:none}
+body[data-section="connect"] a{text-decoration-color:rgba(122,71,196,.4)}
+body[data-section="connect"] ::selection{background:rgba(122,71,196,.28)}
+
+/* ---------- Glass surfaces (cards) ---------- */
+body[data-section="connect"] :is(
+  .hm-card,.hm-dcard,.hm-hist-card,.hm-stat,.hm-pending-item,.hm-poll-bar,.hm-ev,
+  .subj-card,.res-card,.syll-card,.about-note,.tt-day-card,.tt-next,.tt-tl-card,.tt-tl-break,.tt-desktop,.cal-card,.doc-card,
+  .at-form,.at-hist-card,.at-hist-row,.at-readonly,.at-slot,.ex-card,.ex-q,.chat-box,
+  .me-task-card,.me-summary-card,.me-day-academic-item,.me-day-task-item,.me-day-note-item,.me-note-hist-item,.me-setup,.me-cal,
+  .smx-card,.smx-folder,.ann-card,.notif-banner,.notif-item,.qz-pod,.qz-stat,.xp-chip,.tst-pal,
+  .dv-card,.cn-card,.cn-st,.lg-card,.mt-create,.mt-me,.mt-st,.mt-req,.hk-fact,.hk-me,.hk-mate,.sv-row,
+  .pf-proj,.pf-mbox,.tc-box,.rg-box,.od-stat,.cp-box,.mh-row,.stat,.ws-center,.comm-conn,.toast,.msg-menu,#themeMenu,.av-bubble,#av-chat,
+  .lg-panel
+){
+  background:linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 42%),linear-gradient(150deg,var(--gl-fill-a),var(--gl-fill-b)) !important;
+  border:1px solid var(--gl-edge) !important;
+  box-shadow:var(--gl-sh-1) !important;
+  -webkit-backdrop-filter:var(--gl-blur) !important; backdrop-filter:var(--gl-blur) !important;
+  color:var(--text);
+  border-radius:18px;
+  transition:transform .35s var(--gl-ease),box-shadow .35s var(--gl-ease),background-color .3s,border-color .3s;
+}
+body[data-section="connect"] :is(.hm-ev,.stat,.tt-tl-break,.at-hist-row,.mh-row,.me-day-academic-item,.me-day-task-item,.me-day-note-item,.sv-row,.hm-pending-item,.notif-item,.xp-chip){border-radius:14px}
+body[data-section="connect"] :is(.hm-card,.hm-dcard,.hm-shx,.lg-panel,.chat-box,.tt-desktop,.me-cal,.cal-card){border-radius:22px}
+body[data-section="connect"] .lg-panel{box-shadow:var(--gl-sh-2) !important;padding:28px}
+/* nested glass reads as a lighter inset rather than a second pane */
+body[data-section="connect"] :is(.hm-card,.hm-dcard,.cal-card,.at-form,.me-cal,.chat-box) :is(.hm-ev,.stat,.at-slot,.tt-tl-card,.me-day-task-item,.me-day-academic-item,.me-day-note-item,.at-hist-row,.hm-stat,.hm-pending-item){
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;box-shadow:var(--gl-sh-1) !important}
+/* subtle, gentle 3D lift on interactive cards only */
+@media (hover:hover){
+  body[data-section="connect"] :is(.lg-card,.subj-card,.res-card,.syll-card,.doc-card,.cn-card,.dv-card,.smx-card,.smx-folder,.hm-ev,.hm-classes,.hm-events,.ann-card,.mt-me):hover{
+    transform:translateY(-3px);box-shadow:var(--gl-sh-2) !important;border-color:rgba(255,255,255,.95) !important}
+  html[data-theme="dark"] body[data-section="connect"] :is(.lg-card,.subj-card,.res-card,.syll-card,.doc-card,.cn-card,.dv-card,.smx-card,.smx-folder,.hm-ev,.ann-card,.mt-me):hover{border-color:rgba(214,195,250,.5) !important}
+}
+body[data-section="connect"] :is(.lg-card,.subj-card,.res-card,.syll-card,.doc-card,.cn-card,.dv-card,.smx-card,.smx-folder):active{transform:translateY(-1px) scale(.995)}
+
+/* ---------- Navigation ---------- */
+body[data-section="connect"] nav,body[data-section="connect"] nav.scrolled{
+  background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.4)) !important;
+  -webkit-backdrop-filter:var(--gl-blur) !important;backdrop-filter:var(--gl-blur) !important;
+  box-shadow:0 1px 0 var(--gl-edge),0 10px 30px -18px rgba(52,22,102,.5) !important;
+  border-bottom:1px solid rgba(255,255,255,.6)}
+html[data-theme="dark"] body[data-section="connect"] nav,html[data-theme="dark"] body[data-section="connect"] nav.scrolled{
+  background:linear-gradient(180deg,rgba(46,24,86,.7),rgba(30,14,60,.55)) !important;border-bottom-color:rgba(214,195,250,.18)}
+body[data-section="connect"] nav .brand,body[data-section="connect"] nav .brand .bw{color:var(--gl-ink)}
+body[data-section="connect"] nav .brand{text-shadow:none}
+body[data-section="connect"] .mobile-menu{background:var(--pop) !important;-webkit-backdrop-filter:var(--gl-blur);backdrop-filter:var(--gl-blur);border:1px solid var(--gl-edge);border-radius:0 0 18px 18px;box-shadow:var(--gl-sh-2)}
+body[data-section="connect"] .nav-links a{color:var(--gl-ink-2)}
+body[data-section="connect"] .nav-links a:hover,body[data-section="connect"] .nav-links a.active{color:var(--gl-ink);border-color:var(--gl-acc-l)}
+body[data-section="connect"] #secNav,body[data-section="connect"] .mode-bar{
+  background:linear-gradient(150deg,var(--gl-fill-a),var(--gl-fill-b)) !important;border:1px solid var(--gl-edge) !important;
+  box-shadow:var(--gl-sh-1) !important;-webkit-backdrop-filter:var(--gl-blur);backdrop-filter:var(--gl-blur)}
+body[data-section="connect"] #secNav .sec-ind{background:linear-gradient(160deg,rgba(255,255,255,.9),rgba(255,255,255,.55)) !important;border:1px solid rgba(255,255,255,.9);box-shadow:var(--gl-sh-1)}
+html[data-theme="dark"] body[data-section="connect"] #secNav .sec-ind{background:linear-gradient(160deg,rgba(122,71,196,.6),rgba(74,32,144,.55)) !important;border-color:rgba(214,195,250,.35)}
+body[data-section="connect"] .mode-btn{color:var(--gl-ink-2)}
+
+/* ---------- Buttons ---------- */
+body[data-section="connect"] :is(.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary){
+  background:var(--gl-btn) !important;color:#fff !important;border:1px solid rgba(255,255,255,.28) !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.18) inset,0 10px 22px -10px rgba(52,22,102,.7) !important;
+  text-shadow:0 1px 1px rgba(30,8,70,.3);
+  transition:transform .25s var(--gl-ease),box-shadow .25s var(--gl-ease),filter .25s}
+@media (hover:hover){
+  body[data-section="connect"] :is(.btn-primary,.av-talk,#av-send):hover{transform:translateY(-2px);filter:brightness(1.06);
+    box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 -1px 0 rgba(0,0,0,.18) inset,0 16px 28px -12px rgba(52,22,102,.8) !important}
+}
+body[data-section="connect"] :is(.btn-primary,.av-talk,#av-send):active{transform:translateY(0) scale(.98)}
+body[data-section="connect"] :is(.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actions button,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open){
+  background:linear-gradient(160deg,rgba(255,255,255,.7),rgba(255,255,255,.4)) !important;
+  border:1px solid var(--gl-edge) !important;color:var(--gl-ink);
+  box-shadow:var(--gl-sh-1) !important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  transition:transform .25s var(--gl-ease),box-shadow .25s var(--gl-ease),background-color .25s}
+html[data-theme="dark"] body[data-section="connect"] :is(.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actions button,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open){
+  background:linear-gradient(160deg,rgba(122,80,196,.42),rgba(48,24,92,.4)) !important}
+@media (hover:hover){
+  body[data-section="connect"] :is(.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.tt-daychip,.cn-btn,.dv-ibtn,.av-chip):hover{transform:translateY(-2px);box-shadow:var(--gl-sh-2) !important;border-color:rgba(255,255,255,.95) !important}
+}
+body[data-section="connect"] :is(.pill.active,.comm-tab.active,.cn-tab.active,.qz-chip.on,.qz-chip.active,.sm-filter.active,.tt-daychip.active,.tt-daychip.on,.mt-pill.on,.mt-pill.active){
+  background:var(--gl-btn) !important;color:#fff !important;border-color:rgba(255,255,255,.3) !important}
+body[data-section="connect"] .logout-btn{color:#8e2440}
+html[data-theme="dark"] body[data-section="connect"] .logout-btn{color:#ffb0c0}
+body[data-section="connect"] :is(button,a,input,select,textarea,[role=button]):focus-visible{outline:2px solid var(--gl-acc-l);outline-offset:2px;box-shadow:var(--p-focus)}
+
+/* ---------- Form fields ---------- */
+body[data-section="connect"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=hidden]),
+body[data-section="connect"] textarea,body[data-section="connect"] select,body[data-section="connect"] .hm-name-input,body[data-section="connect"] .pf-in{
+  background:var(--gl-field) !important;color:var(--text) !important;
+  border:1px solid rgba(110,70,176,.26) !important;border-radius:12px;
+  box-shadow:0 1px 2px rgba(52,22,102,.08) inset,0 1px 0 rgba(255,255,255,.7);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:border-color .2s,box-shadow .2s,background-color .2s}
+html[data-theme="dark"] body[data-section="connect"] :is(input,textarea,select,.hm-name-input,.pf-in){border-color:rgba(196,170,240,.28) !important;box-shadow:0 1px 3px rgba(0,0,0,.35) inset}
+body[data-section="connect"] :is(input,textarea,select):focus{border-color:var(--gl-acc-l) !important;box-shadow:var(--p-focus),0 1px 2px rgba(52,22,102,.08) inset !important;outline:none}
+body[data-section="connect"] ::placeholder{color:var(--gl-ink-2);opacity:.7}
+body[data-section="connect"] input[type=checkbox],body[data-section="connect"] input[type=radio],body[data-section="connect"] input[type=range]{accent-color:#6a35b0}
+body[data-section="connect"] select option{background:#fff;color:#2a1847}
+html[data-theme="dark"] body[data-section="connect"] select option{background:#24123f;color:#f0e9fc}
+
+/* ---------- Modals / overlays ---------- */
+body[data-section="connect"] :is(.at-modal-overlay,.me-modal-overlay,.md-ov,.cp-ov,#acadOverlay,.qz-ovl,#cseDlgOv,.cm-ov,.rxp-ov){
+  background:var(--scrim) !important;-webkit-backdrop-filter:blur(7px) saturate(1.1);backdrop-filter:blur(7px) saturate(1.1)}
+body[data-section="connect"] :is(.at-modal,.me-modal,.cn-modal,.pf-modal,#cseDlg,.cp-box,.rg-box,.tc-box){
+  background:linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 40%),linear-gradient(150deg,rgba(255,255,255,.88),rgba(255,255,255,.7)) !important;
+  border:1px solid rgba(255,255,255,.85) !important;border-radius:24px;box-shadow:var(--gl-sh-3) !important;
+  -webkit-backdrop-filter:blur(26px) saturate(1.3) !important;backdrop-filter:blur(26px) saturate(1.3) !important;color:var(--text)}
+html[data-theme="dark"] body[data-section="connect"] :is(.at-modal,.me-modal,.cn-modal,.pf-modal,#cseDlg,.cp-box,.rg-box,.tc-box){
+  background:linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 40%),linear-gradient(150deg,rgba(62,36,108,.92),rgba(34,16,68,.88)) !important;border-color:rgba(214,195,250,.3) !important}
+
+/* ---------- Details ---------- */
+body[data-section="connect"] hr,body[data-section="connect"] .hm-card hr{border-color:var(--line)}
+body[data-section="connect"] :is(.eyebrow){color:var(--gl-acc)}
+body[data-section="connect"] .brand span{color:var(--gl-acc-l)}
+body[data-section="connect"] footer,body[data-section="connect"] .foot-bottom{color:var(--gl-ink-2);border-color:var(--line)}
+body[data-section="connect"] ::-webkit-scrollbar{width:10px;height:10px}
+body[data-section="connect"] ::-webkit-scrollbar-thumb{background:rgba(122,71,196,.35);border-radius:10px;border:2px solid transparent;background-clip:padding-box}
+body[data-section="connect"] ::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- Responsive ---------- */
+@media (max-width:760px){
+  body[data-section="connect"] :is(.hm-card,.hm-dcard,.lg-panel){border-radius:18px}
+  body[data-section="connect"] .lg-panel{padding:20px}
+  body[data-section="connect"]{--gl-blur:blur(14px) saturate(1.25)}
+}
+@media (prefers-reduced-motion:reduce){
+  body[data-section="connect"] *{transition-duration:.01ms !important}
+  body[data-section="connect"] :is(.lg-card,.subj-card,.res-card,.btn-primary):hover{transform:none}
+}
+@media (prefers-reduced-transparency:reduce){
+  body[data-section="connect"]{--gl-fill-a:rgba(255,255,255,.96);--gl-fill-b:rgba(255,255,255,.92)}
+  html[data-theme="dark"] body[data-section="connect"]{--gl-fill-a:rgba(52,30,92,.97);--gl-fill-b:rgba(40,20,78,.97)}
+}
+
+/* ---------- Smooth popup / modal motion ---------- */
+@keyframes glPop{from{opacity:0;transform:translateY(16px) scale(.965)}to{opacity:1;transform:none}}
+@keyframes glFade{from{opacity:0}to{opacity:1}}
+body[data-section="connect"] :is(.at-modal,.me-modal,.cn-modal,.pf-modal,#cseDlg,.cp-box,.rg-box,.tc-box,.msg-menu,#themeMenu,.toast){animation:glPop .34s var(--gl-ease) backwards}
+body[data-section="connect"] :is(.at-modal-overlay,.me-modal-overlay,.md-ov,.cp-ov,#acadOverlay,.qz-ovl,#cseDlgOv,.cm-ov,.rxp-ov){animation:glFade .25s ease backwards}
+body[data-section="connect"] .lg-panel:not(.hidden){animation:glPop .4s var(--gl-ease) backwards}
+body[data-section="connect"] :is(.hm-card,.hm-dcard){animation:glPop .5s var(--gl-ease) backwards}
+@media (prefers-reduced-motion:reduce){body[data-section="connect"] *{animation-duration:.01ms !important}}
+
+/* ---------- Final polish ---------- */
+body[data-section="connect"] nav .brand *{text-shadow:none !important}
+body[data-section="connect"] :is(footer,.foot,.foot-bottom,#footer){background:transparent !important;box-shadow:none !important}
+body[data-section="connect"] .xp-chip :is(span,b,i,em){color:var(--gl-ink) !important}
+body[data-section="connect"] :is(.mode-btn.active,.sec-btn.active,.sec-btn[aria-selected="true"]){color:#fff !important;text-shadow:0 1px 1px rgba(30,8,70,.3)}
+body[data-section="connect"] .mode-btn.active{background:var(--gl-btn) !important;border:1px solid rgba(255,255,255,.28);box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 10px 22px -10px rgba(94,42,148,.75) !important}
+body[data-section="connect"] :is(.sec-nav,.sec-btn){--sc:#a66be0}
+body[data-section="connect"] :is(.sec-nav[data-active="campus"],.sec-btn[data-sec="campus"]){--sc:#8a45c9}
+body[data-section="connect"] :is(.sec-nav[data-active="connect"],.sec-btn[data-sec="connect"]){--sc:#d04fbd}
+body[data-section="connect"] :is(.sec-nav[data-active="home"],.sec-btn[data-sec="home"]){--sc:#a66be0}
+body[data-section="connect"] .tour-dim{background:rgba(22,9,31,.62)}
+body[data-section="connect"] .tour-card-in{
+  background:linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 40%),linear-gradient(150deg,rgba(255,255,255,.93),rgba(250,236,252,.88)) !important;
+  border:1px solid rgba(255,255,255,.9) !important;border-radius:24px;box-shadow:var(--gl-sh-3) !important;
+  -webkit-backdrop-filter:blur(26px) saturate(1.3);backdrop-filter:blur(26px) saturate(1.3);color:var(--text)}
+html[data-theme="dark"] body[data-section="connect"] .tour-card-in{background:linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 40%),linear-gradient(150deg,rgba(66,34,100,.95),rgba(34,14,52,.93)) !important;border-color:rgba(238,194,239,.3) !important}
+body[data-section="connect"] #secNav .sec-ind,html[data-theme="dark"] body[data-section="connect"] #secNav .sec-ind{background:var(--gl-btn) !important;border:1px solid rgba(255,255,255,.3);box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 8px 18px -8px rgba(94,42,148,.7)}
+
+</style>
+<style id="plumGlassRefine">
+/* PLUM GLASS · REFINEMENT LAYER (visual only: no markup, JS, layout, spacing or radius changes).
+   Loaded after plumGlassTheme. Scoped to the Connect section. Quick tuning: --gl-gloss/--gl-pk/--gl-pu (reflection strength), --gl-blur. */
+body[data-section="connect"]{
+ --gl-gloss:.34;--gl-pk:.11;--gl-pu:.13;--gl-bl:96,128,240;--gl-blur:blur(30px) saturate(1.7) brightness(1.04);
+ --gl-fill-a:rgba(255,255,255,.58);--gl-fill-b:rgba(255,255,255,.3);--gl-sheen:rgba(255,255,255,.5);--gl-edge:rgba(255,255,255,.88);
+ --gl-mfill-a:rgba(255,255,255,.84);--gl-mfill-b:rgba(250,238,255,.66);--gl-btn-ink:#fff;
+ --gl-sh-1:0 1px 0 rgba(255,255,255,.95) inset,0 -1px 0 rgba(166,107,224,.22) inset,0 0 24px rgba(255,255,255,.26) inset,0 -16px 26px -16px rgba(var(--gl-bl),.10) inset,0 14px 32px -14px rgba(70,24,100,.4),0 2px 6px rgba(70,24,100,.1),0 0 30px -10px rgba(var(--gl-bl),.17);
+ --gl-sh-2:0 1px 0 #fff inset,0 -1px 0 rgba(166,107,224,.24) inset,0 0 30px rgba(255,255,255,.32) inset,0 -18px 30px -16px rgba(var(--gl-bl),.13) inset,0 24px 46px -16px rgba(70,24,100,.46),0 6px 14px rgba(70,24,100,.12),0 0 40px -8px rgba(var(--gl-bl),.23);
+ --gl-sh-3:0 1px 0 #fff inset,0 -1px 0 rgba(166,107,224,.24) inset,0 0 36px rgba(255,255,255,.36) inset,0 36px 76px -24px rgba(40,10,70,.6),0 12px 28px rgba(40,10,70,.16),0 0 54px -10px rgba(var(--gl-bl),.20);
+ --gl-bg:radial-gradient(70% 50% at 6% 0%,rgba(96,128,240,.08),rgba(96,128,240,0) 70%),radial-gradient(60% 45% at 98% 10%,rgba(166,107,224,.06),rgba(166,107,224,0) 70%),radial-gradient(70% 50% at 70% 100%,rgba(120,150,250,.06),rgba(120,150,250,0) 70%),linear-gradient(180deg,#fff,#fbfaff);
+ --bg:#fff;
+}
+html[data-theme="dark"] body[data-section="connect"]{
+ --gl-gloss:.2;--gl-pk:.14;--gl-pu:.16;--gl-bl:122,146,255;
+ --gl-fill-a:rgba(104,58,150,.5);--gl-fill-b:rgba(30,12,52,.36);--gl-sheen:rgba(255,226,250,.2);--gl-edge:rgba(255,226,250,.36);
+ --gl-mfill-a:rgba(80,44,124,.84);--gl-mfill-b:rgba(32,14,58,.8);
+ --gl-btn:linear-gradient(180deg,rgba(255,255,255,.46),rgba(255,255,255,0) 52%),linear-gradient(135deg,#9db4ff 0%,#c58bff 52%,#f08be2 100%);
+ --gl-btn-h:linear-gradient(180deg,rgba(255,255,255,.56),rgba(255,255,255,.04) 52%),linear-gradient(135deg,#b0c2ff 0%,#d6a5ff 52%,#f79bea 100%);
+ --gl-btn-a:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 52%),linear-gradient(135deg,#86a0f5 0%,#b074f2 52%,#e070d4 100%);
+ --gl-btn-ink:#1a0628;
+ --gl-sh-1:0 1px 0 rgba(255,255,255,.36) inset,0 -1px 0 rgba(0,0,0,.42) inset,0 0 26px rgba(201,160,242,.12) inset,0 -18px 28px -18px rgba(var(--gl-bl),.13) inset,0 16px 34px -14px rgba(6,0,16,.82),0 2px 8px rgba(6,0,16,.4),0 0 30px -10px rgba(var(--gl-bl),.17);
+ --gl-sh-2:0 1px 0 rgba(255,255,255,.42) inset,0 -1px 0 rgba(0,0,0,.42) inset,0 0 30px rgba(201,160,242,.16) inset,0 -20px 30px -18px rgba(var(--gl-bl),.15) inset,0 24px 48px -16px rgba(6,0,16,.88),0 5px 14px rgba(6,0,16,.45),0 0 40px -8px rgba(var(--gl-bl),.23);
+ --gl-sh-3:0 1px 0 rgba(255,255,255,.46) inset,0 0 40px rgba(201,160,242,.16) inset,0 36px 80px -22px rgba(2,0,10,.94),0 10px 26px rgba(2,0,10,.55),0 0 56px -10px rgba(var(--gl-bl),.21);
+ --gl-bg:radial-gradient(70% 50% at 6% 0%,rgba(96,128,240,.14),rgba(96,128,240,0) 70%),radial-gradient(60% 45% at 98% 10%,rgba(166,107,224,.1),rgba(166,107,224,0) 70%),linear-gradient(165deg,#1f1830,#251c3a 55%,#1e1c3c);
+ --bg:#241c39;
+ --gl-ink-2:#ead9f8;
+}
+
+/* ---- Glass surfaces: blur + translucent fill + glossy arc + pink/purple reflections + thin white edge + inner shadows ---- */
+body[data-section="connect"]:not(#_) :is(.hm-card,.hm-dcard,.hm-hist-card,.hm-stat,.hm-pending-item,.hm-poll-bar,.hm-ev,.subj-card,.res-card,.syll-card,.about-note,.tt-day-card,.tt-next,.tt-tl-card,.tt-tl-break,.tt-desktop,.cal-card,.doc-card,.at-form,.at-hist-card,.at-hist-row,.at-readonly,.at-slot,.ex-card,.ex-q,.chat-box,.me-task-card,.me-summary-card,.me-day-academic-item,.me-day-task-item,.me-day-note-item,.me-note-hist-item,.me-setup,.me-cal,.smx-card,.smx-folder,.ann-card,.notif-banner,.notif-item,.qz-pod,.qz-stat,.xp-chip,.tst-pal,.dv-card,.cn-card,.cn-st,.lg-card,.mt-create,.mt-me,.mt-st,.mt-req,.hk-fact,.hk-me,.hk-mate,.sv-row,.pf-proj,.pf-mbox,.tc-box,.rg-box,.od-stat,.cp-box,.mh-row,.stat,.ws-center,.comm-conn,.toast,.msg-menu,#themeMenu,.av-bubble,#av-chat,.lg-panel){background:radial-gradient(120% 60% at 14% -12%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 58%),linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 42%),radial-gradient(90% 80% at 0% 0%,rgba(240,92,207,var(--gl-pk)),rgba(240,92,207,0) 62%),radial-gradient(90% 90% at 100% 100%,rgba(var(--gl-bl),var(--gl-pu)),rgba(var(--gl-bl),0) 64%),linear-gradient(150deg,var(--gl-fill-a),var(--gl-fill-b)) !important;-webkit-backdrop-filter:var(--gl-blur) !important;backdrop-filter:var(--gl-blur) !important;border:1px solid var(--gl-edge) !important;box-shadow:var(--gl-sh-1) !important}
+body[data-section="connect"]:not(#_) :is(.hm-card,.hm-dcard,.cal-card,.at-form,.me-cal,.chat-box) :is(.hm-ev,.stat,.at-slot,.tt-tl-card,.me-day-task-item,.me-day-academic-item,.me-day-note-item,.at-hist-row,.hm-stat,.hm-pending-item){--gl-gloss:.1;--gl-pk:.08;--gl-pu:.1;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+@media (hover:hover){body[data-section="connect"]:not(#_) :is(.lg-card,.subj-card,.res-card,.syll-card,.doc-card,.cn-card,.dv-card,.smx-card,.smx-folder,.hm-ev,.ann-card,.mt-me):hover{--gl-gloss:.46;--gl-pk:.17;--gl-pu:.19;box-shadow:var(--gl-sh-2) !important}}
+
+/* ---- Navigation bars ---- */
+body[data-section="connect"]:not(#_) :is(nav,nav.scrolled,#secNav,.mode-bar,.mobile-menu){background:radial-gradient(80% 140% at 12% -40%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 60%),radial-gradient(60% 120% at 92% 0%,rgba(var(--gl-bl),var(--gl-pk)),rgba(var(--gl-bl),0) 70%),linear-gradient(180deg,var(--gl-fill-a),var(--gl-fill-b)) !important;-webkit-backdrop-filter:blur(34px) saturate(1.8) !important;backdrop-filter:blur(34px) saturate(1.8) !important;border-bottom:1px solid var(--gl-edge) !important;box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 -12px 20px -14px rgba(var(--gl-bl),.12) inset,0 14px 34px -18px rgba(20,4,40,.6) !important}
+body[data-section="connect"]:not(#_) :is(#secNav,.mode-bar){border:1px solid var(--gl-edge) !important}
+
+/* ---- Popups, dialogs, overlays ---- */
+body[data-section="connect"]:not(#_) :is(.at-modal,.me-modal,.cn-modal,.pf-modal,#cseDlg,.cp-box,.rg-box,.tc-box,.tour-card-in){background:radial-gradient(120% 60% at 14% -12%,rgba(255,255,255,var(--gl-gloss)),rgba(255,255,255,0) 58%),linear-gradient(115deg,var(--gl-sheen),rgba(255,255,255,0) 42%),radial-gradient(90% 80% at 0% 0%,rgba(240,92,207,var(--gl-pk)),rgba(240,92,207,0) 62%),radial-gradient(90% 90% at 100% 100%,rgba(var(--gl-bl),var(--gl-pu)),rgba(var(--gl-bl),0) 64%),linear-gradient(150deg,var(--gl-mfill-a),var(--gl-mfill-b)) !important;border:1px solid var(--gl-edge) !important;box-shadow:var(--gl-sh-3) !important;-webkit-backdrop-filter:blur(42px) saturate(1.8) !important;backdrop-filter:blur(42px) saturate(1.8) !important}
+body[data-section="connect"]:not(#_) :is(.at-modal-overlay,.me-modal-overlay,.md-ov,.cp-ov,#acadOverlay,.qz-ovl,#cseDlgOv,.cm-ov,.rxp-ov){-webkit-backdrop-filter:blur(12px) saturate(1.2) !important;backdrop-filter:blur(12px) saturate(1.2) !important}
+
+/* ---- Buttons · dark mode: secondary = translucent glass with a visible outline ---- */
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actionsbutton,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open){background:linear-gradient(160deg,rgba(255,255,255,.2),rgba(255,255,255,.06) 55%,rgba(240,92,207,.1)) !important;border:1px solid rgba(240,214,255,.62) !important;color:#fbf1ff !important;box-shadow:0 1px 0 rgba(255,255,255,.34) inset,0 -10px 16px -10px rgba(240,92,207,.24) inset,0 0 0 1px rgba(201,130,255,.14),0 0 16px -4px rgba(201,130,255,.4),0 8px 18px -8px rgba(6,0,16,.65) !important;-webkit-backdrop-filter:blur(16px) saturate(1.5) !important;backdrop-filter:blur(16px) saturate(1.5) !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.hm-poll-btn.on,.ex-btn.on,.cn-btn.done){background:linear-gradient(160deg,rgba(255,170,236,.34),rgba(166,107,224,.22)) !important;border-color:rgba(255,170,236,.9) !important;color:#fff !important;box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 0 0 1px rgba(255,140,226,.3),0 0 20px -3px rgba(255,111,216,.55) !important}
+/* primary + selected = luminous purple→pink glass, dark plum text (≈7:1) */
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send,.pill.active,.comm-tab.active,.cn-tab.active,.qz-chip.on,.qz-chip.active,.sm-filter.active,.tt-daychip.active,.tt-daychip.on,.mt-pill.on,.mt-pill.active,.mode-btn.active,.cn-fc[aria-pressed="true"]){background:var(--gl-btn) !important;color:var(--gl-btn-ink) !important;border:1px solid rgba(255,240,252,.8) !important;text-shadow:0 1px 0 rgba(255,255,255,.3) !important;box-shadow:0 1px 0 rgba(255,255,255,.75) inset,0 -3px 8px rgba(190,50,170,.32) inset,0 0 0 1px rgba(255,205,244,.5),0 0 22px -2px rgba(255,111,216,.58),0 10px 24px -8px rgba(120,30,140,.72) !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send,.pill.active,.comm-tab.active,.cn-tab.active,.qz-chip.on,.qz-chip.active,.sm-filter.active,.tt-daychip.active,.tt-daychip.on,.mt-pill.on,.mt-pill.active,.mode-btn.active,.cn-fc[aria-pressed="true"],.sec-btn.active,.sec-btn[aria-selected="true"]) :is(span,b,i,em,strong){color:inherit !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.sec-btn.active,.sec-btn[aria-selected="true"],.mode-btn.active){color:var(--gl-btn-ink) !important;text-shadow:0 1px 0 rgba(255,255,255,.3) !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) #secNav .sec-ind{border-color:rgba(255,240,252,.8) !important;box-shadow:0 1px 0 rgba(255,255,255,.75) inset,0 0 20px -2px rgba(255,111,216,.55),0 8px 18px -8px rgba(120,30,140,.7) !important}
+
+/* ---- Hover / active (press) ---- */
+@media (hover:hover){
+ html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actionsbutton,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open):not(:disabled):not([aria-disabled="true"]):hover{background:linear-gradient(160deg,rgba(255,255,255,.32),rgba(255,255,255,.12) 55%,rgba(240,92,207,.2)) !important;border-color:rgba(255,184,238,.95) !important;box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 -10px 16px -10px rgba(240,92,207,.32) inset,0 0 0 1px rgba(255,140,226,.3),0 0 24px -2px rgba(255,111,216,.6),0 12px 22px -8px rgba(6,0,16,.7) !important;transform:translateY(-2px)}
+ html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send,.pill.active,.comm-tab.active,.cn-tab.active,.qz-chip.on,.qz-chip.active,.sm-filter.active,.tt-daychip.active,.tt-daychip.on,.mt-pill.on,.mt-pill.active,.mode-btn.active,.cn-fc[aria-pressed="true"]):not(:disabled):not([aria-disabled="true"]):hover{background:var(--gl-btn-h) !important;transform:translateY(-2px);box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 -3px 8px rgba(190,50,170,.28) inset,0 0 0 1px rgba(255,225,250,.75),0 0 32px 0 rgba(255,111,216,.78),0 14px 28px -8px rgba(120,30,140,.8) !important}
+ body[data-section="connect"]:not(#_) :is(.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send):not(:disabled):not([aria-disabled="true"]):hover{filter:brightness(1.08) saturate(1.1)}
+}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actionsbutton,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open):not(:disabled):not([aria-disabled="true"]):active{background:linear-gradient(160deg,rgba(201,160,242,.3),rgba(120,70,190,.22)) !important;transform:translateY(0) scale(.97);box-shadow:0 3px 9px rgba(6,0,16,.55) inset,0 0 0 1px rgba(201,130,255,.22),0 0 10px -4px rgba(201,130,255,.4) !important}
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send,.pill.active,.comm-tab.active,.cn-tab.active,.qz-chip.on,.qz-chip.active,.sm-filter.active,.tt-daychip.active,.tt-daychip.on,.mt-pill.on,.mt-pill.active,.mode-btn.active,.cn-fc[aria-pressed="true"]):not(:disabled):not([aria-disabled="true"]):active{background:var(--gl-btn-a) !important;transform:translateY(1px) scale(.97);box-shadow:0 3px 9px rgba(90,10,100,.5) inset,0 0 0 1px rgba(255,205,244,.45),0 0 12px -2px rgba(255,111,216,.45) !important}
+body[data-section="connect"]:not(#_) :is(.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send):not(:disabled):not([aria-disabled="true"]):active{filter:brightness(.92);transform:translateY(1px) scale(.97)}
+
+/* ---- Keyboard focus ---- */
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(button,[role="button"],a,.btn,.cn-btn,.pill):focus-visible{outline:2px solid #ffd6f6 !important;outline-offset:2px !important;box-shadow:0 0 0 5px rgba(240,92,207,.5),0 0 24px rgba(240,92,207,.55) !important}
+
+/* ---- Disabled: flat, dashed, desaturated, no glow (clearly unlike rest/hover/active) ---- */
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_) :is(button,.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send,.pill.active,.comm-tab.active,.cn-tab.active,.qz-chip.on,.qz-chip.active,.sm-filter.active,.tt-daychip.active,.tt-daychip.on,.mt-pill.on,.mt-pill.active,.mode-btn.active,.cn-fc[aria-pressed="true"],.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actionsbutton,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open):is(:disabled,[aria-disabled="true"],.disabled){background:rgba(160,130,190,.1) !important;border:1px dashed rgba(206,178,232,.3) !important;color:rgba(214,194,232,.5) !important;box-shadow:none !important;text-shadow:none !important;filter:saturate(.35);cursor:not-allowed !important;transform:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+body[data-section="connect"]:not(#_) :is(button,.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send,.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actionsbutton,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open):is(:disabled,[aria-disabled="true"],.disabled){cursor:not-allowed !important;transform:none !important}
+body[data-section="connect"] :is(button,.btn-primary,.hero-action-btn.btn-primary,.av-talk,#av-send,.ex-btn.primary,.pf-btn.primary,.pf-btn.pri,.cn-btn.pri:not(.mt-btn-danger),.chat-send,.btn-ghost,.btn-secondary,.backup-btn,.burger,.pill,.comm-tab,.qz-chip,.cn-tab,.sm-filter,.hm-poll-btn,.ex-btn,.pf-btn,.mt-pill,.ep-chip,.av-chip,.av-actionsbutton,.tt-daychip,.tt-daynav-arrow,.cn-btn,.dv-ibtn,.theme-switch,.totop,.mh-open):is(:disabled,[aria-disabled="true"],.disabled):not(#_):not(#__){background:rgba(120,90,150,.08) !important;border:1px dashed rgba(110,70,176,.32) !important;color:rgba(80,50,110,.5) !important;box-shadow:none !important;text-shadow:none !important;filter:saturate(.4)}
+
+/* ---- Performance / accessibility ---- */
+@media (max-width:760px){body[data-section="connect"]{--gl-blur:blur(20px) saturate(1.5)}}
+@media (prefers-reduced-transparency:reduce){body[data-section="connect"]:not(#_){--gl-blur:none;--gl-gloss:0;--gl-pk:0;--gl-pu:0}}
+@media (prefers-reduced-motion:reduce){body[data-section="connect"]:not(#_) :is(button,a,.btn,.cn-btn,.pill):hover,body[data-section="connect"]:not(#_) :is(button,a,.btn,.cn-btn,.pill):active{transform:none !important}}
+/* ---- Page background (light mode): white with a very soft blue-violet tint ---- */
+html[data-theme="light"]:has(body[data-section="connect"]),html:not([data-theme="dark"]):has(body[data-section="connect"]){background:#fff}
+html:not([data-theme="dark"]) body[data-section="connect"]::before{background:var(--gl-bg) !important}
+html:not([data-theme="dark"]) body[data-section="connect"]::after{background:none !important}
+/* ---- Page background (dark mode): deep blue-violet, low saturation ---- */
+html[data-theme="dark"]:has(body[data-section="connect"]){background:#1f1830}
+html[data-theme="dark"] body[data-section="connect"]::before{background:var(--gl-bg) !important}
+html[data-theme="dark"] body[data-section="connect"]::after{background:none !important}
+/* Connect → People (dark mode): the profile cards' "Connect" button gets white text so it stays clearly legible on the gradient */
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #sectionConnect .cn-prof .cn-btn.pri:not(.done){color:#fff !important;text-shadow:0 1px 2px rgba(20,8,50,.45) !important}
+/* Connect → Teams (dark mode): "Create Team" button text (and its + icon) in white */
+html[data-theme="dark"][data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #sectionConnect .mt-create{color:#fff !important}
+</style>
+<style id="campusWhiteBg">
+/* Campus section · light mode: near-white base; the blue-red wash is body::after (rule near "Section bar colours"), so the body itself stays transparent */
+html:not([data-theme="dark"]):has(body[data-section="campus"]){background:linear-gradient(150deg,#F6FAFF 0%,#E8F1FC 48%,#F2F8FF 100%) fixed !important}
+html:not([data-theme="dark"]) body[data-section="campus"]:not(#_){background:transparent !important}
+html:not([data-theme="dark"]) body[data-section="campus"] :is(.bg-fx,.academic-bg),html:not([data-theme="dark"]) body[data-section="campus"]::before{display:none !important}
+/* Campus: falling background particles (.p2-rain, the same layer Connect shows) in blue / sky blue */
+body[data-section="campus"] .p2-rain{--cyan:#2B4BA8;--brown-dark:#0A78B8}
+[data-theme="dark"] body[data-section="campus"] .p2-rain{--cyan:#7C9BEA;--brown-dark:#5CB8F0}
+/* Campus subject cards: keep the original plain look (no blue/sky gradient tints, edges or icon gradient) */
+body[data-section="campus"] .subj-card{--gl-tint-cool:color-mix(in srgb,var(--accent) 6%,transparent);--gl-tint-warm:color-mix(in srgb,var(--brown) 10%,transparent);--gl-edge:color-mix(in srgb,#fff var(--gl-edge-w),var(--line));--gl-edge-h:color-mix(in srgb,var(--accent) 42%,var(--gl-edge));--p2-navy:linear-gradient(145deg,#2D4FB3 0%,#1B3A8C 50%,#0F2160 100%)}
+/* Campus header: blue / sky-blue glass bar, section switcher and active indicator (same wash as the page) */
+body[data-section="campus"] nav,body[data-section="campus"] nav.scrolled{background:linear-gradient(100deg,rgba(46,86,214,.16),rgba(56,176,240,.14)),linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.64)) !important;box-shadow:0 1px 0 rgba(120,170,235,.45),0 10px 30px -18px rgba(27,58,140,.40) !important;border-bottom:1px solid rgba(70,140,228,.26)}
+[data-theme="dark"] body[data-section="campus"] nav,[data-theme="dark"] body[data-section="campus"] nav.scrolled{background:linear-gradient(100deg,rgba(46,86,214,.34),rgba(56,176,240,.16)),linear-gradient(180deg,rgba(12,22,46,.84),rgba(10,18,38,.70)) !important;box-shadow:0 1px 0 rgba(124,155,234,.22),0 10px 30px -18px rgba(0,0,0,.6) !important;border-bottom-color:rgba(124,155,234,.22)}
+body[data-section="campus"] #secNav{background-image:linear-gradient(100deg,rgba(46,86,214,.10),rgba(56,176,240,.12));border-color:rgba(70,140,228,.30)}
+body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(46,86,214,.22),rgba(56,176,240,.26));box-shadow:0 0 0 1px rgba(56,150,230,.38),0 6px 16px -10px rgba(27,58,140,.5)}
+[data-theme="dark"] body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(60,100,225,.42),rgba(56,176,240,.30))}
+</style>
 </body>
 </html>

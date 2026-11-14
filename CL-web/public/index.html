@@ -3057,6 +3057,9 @@ html:root #sectionConnect .mt-hero p{margin:3px 0 0;font-size:.85rem;line-height
 /* Requests */
 .rq-n{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:999px;font-size:.7rem;font-weight:800;background:#E8A2FB;color:#3B2470}
 .rq-n.hidden{display:none}
+#secBtnConnect .sec-ico{position:relative}
+#cnNavN{position:absolute;top:-7px;right:-10px;margin:0;pointer-events:none}
+.cn-sug{margin:0 0 14px}.cn-sug h3{font-size:.95rem;margin:0 0 6px}.cn-recent{margin-top:16px}.cn-recent small{opacity:.65;font-weight:400}
 #sectionConnect .rq-card{display:grid;gap:10px;align-content:start}
 #sectionConnect .rq-card.done{opacity:.82}
 #sectionConnect .rq-team{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--muted)}
@@ -3455,10 +3458,6 @@ html:root :is(.totop,.backup-btn,.burger){
 body[data-section="connect"] :is(.mode-bar-wrap:not(#cnModeWrap),#mainPanel,.totop,#shxFab,#shx,.mode-graphics){display:none !important}
 body:not([data-section="connect"]) #cnModeWrap{display:none !important}   /* Connect's mode bar is the Campus mode bar, shown only in Connect */
 #cnModeWrap .mode-bar{animation:fadeIn .35s ease}
-#sectionConnect .cn-admin-add{display:none;justify-content:flex-end;margin-bottom:12px}
-body.cse-admin #sectionConnect .cn-admin-add{display:flex}
-#sectionConnect .cn-admin-add .cn-addhk{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:999px;font-weight:700;cursor:pointer}
-#sectionConnect .cn-admin-add svg{width:16px;height:16px}
 .cn-pane:not(.hidden){animation:fadeIn .35s ease}   /* smooth switch between Posting / Teams / Discover */
 @media (max-width:820px){body[data-section="connect"] .cn-toast{bottom:calc(var(--bn-total,60px) + 12px)}}   /* toast clears the bottom mode bar, like Campus */
 @media (max-width:820px){
@@ -3892,6 +3891,17 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
 .cn-ev .cn-themes .cn-chip{font-size:.72rem}
 #cnEgrid .cn-ev{content-visibility:auto;contain-intrinsic-size:auto 520px}
 </style>
+<style id="clSettingsLayerFix">
+/* Settings is a full-screen layer (z-index 9000). Every popup opened from it (admin login / dashboard, confirm dialogs,
+   login screen, backup dialogs, toasts) used to sit underneath and only showed after Settings was closed.
+   While Settings (or Profile) is open, lift those popups above it. */
+body.cl-ov-open .at-modal-overlay,body.cl-ov-open .me-modal-overlay{z-index:9600 !important}
+body.cl-ov-open #loginGate{z-index:9650 !important}
+body.cl-ov-open #confirmModalOverlay{z-index:9700 !important}
+body.cl-ov-open #cseDlgOv{z-index:9750 !important}
+body.cl-ov-open #cseBusy{z-index:9760 !important}
+body.cl-ov-open .toast-host{z-index:9800 !important}
+</style>
 </head>
 <body>
 <div class="mode-graphics" id="modeGraphics" aria-hidden="true"></div>
@@ -4051,6 +4061,7 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
     <div class="cn-subtabs hidden" id="cnTsub" role="tablist" aria-label="Teams sections">
       <button type="button" class="cn-tab active" role="tab" data-cntsub="people" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>People</button>
       <button type="button" class="cn-tab" role="tab" data-cntsub="teams" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Teams</button>
+      <button type="button" class="cn-tab" role="tab" data-cntsub="connections" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>Connections<span class="rq-n hidden" id="cnConN" aria-label="pending connection requests"></span></button>
       <button type="button" class="cn-tab" role="tab" data-cntsub="requests" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnRqN" aria-label="pending requests"></span></button>
     </div>
     <div class="cn-pane" id="cnPosting" role="tabpanel"></div>
@@ -4723,7 +4734,7 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
   <div class="at-modal-overlay hidden" id="ownerDashOverlay">
     <div class="at-modal" role="dialog" aria-modal="true" aria-labelledby="odTitle" style="max-width:720px;overflow-x:hidden">
       <div class="at-modal-head"><div><h3 id="odTitle">👑 Admin Dashboard <span style="font-size:.65rem;background:var(--accent-light);color:var(--accent-dark);border-radius:999px;padding:2px 8px;vertical-align:middle">ADMIN</span></h3></div><button class="at-modal-close" id="odClose" aria-label="Close">✕</button></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="pill" data-odtab="overview">Overview</button><button class="pill" data-odtab="community">Community</button><button class="pill" data-odtab="resources">Resources</button><button class="pill" data-odtab="materials">Study Materials</button><button class="pill" data-odtab="announcements">Announcements</button><button class="pill" data-odtab="crinvites">CR Invite Links</button><button class="pill" data-odtab="quiz">Quiz Management</button><button class="pill" data-odtab="tests">Test</button><button class="pill" data-odtab="hackathons">Hackathons</button><button class="pill" data-odtab="reports">Reports</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="pill" data-odtab="overview">Overview</button><button class="pill" data-odtab="community">Community</button><button class="pill" data-odtab="resources">Resources</button><button class="pill" data-odtab="materials">Study Materials</button><button class="pill" data-odtab="announcements">Announcements</button><button class="pill" data-odtab="crinvites">CR Invite Links</button><button class="pill" data-odtab="quiz">Quiz Management</button><button class="pill" data-odtab="tests">Test</button><button class="pill" data-odtab="reports">Reports</button></div>
       <div id="odBody"></div>
       <div id="odCrPane" class="hidden"><div class="settings-section-title">CR Invite Links</div>
         <div class="theme-row hidden" id="crInviteRow" style="flex-direction:column;align-items:stretch;gap:8px"><span class="theme-label">Create a single-use CR invite link (valid 7 days)</span>
@@ -11950,7 +11961,7 @@ function ovClose(id){ if(id==='ownerDashOverlay' && window.odQuizStop) window.od
 function ownerErr(id,msg){ const e=$o(id); e.textContent=msg||''; e.classList.toggle('hidden',!msg); }
 function msOf(t){ return t && t.toMillis ? t.toMillis() : (t||0); }
 function setOwner(v){
-  isOwner = !!v; document.body.classList.toggle('cse-admin', isOwner);
+  isOwner = !!v;
   $o('ownerEntry').textContent = 'Admin Access'; $o('ownerRow').classList.toggle('hidden', !isOwner);
   if(!isOwner){ ovClose('ownerDashOverlay'); ovClose('ownerEditOverlay'); odLogs=[]; }
   try{ chatRoomUI(); }catch(e){}
@@ -12161,8 +12172,6 @@ function odRender(){
   if(odTab==='crinvites'){ if(window.odAnnStop) window.odAnnStop(); const r=$o('crInviteRow'); if(r && isOwner) r.classList.remove('hidden'); return; }   // admin-only pane; the existing invite logic + Firestore rules are unchanged
   if(odTab!=='quiz' && window.odQuizStop) window.odQuizStop();
   if(odTab!=='tests' && window.odTestStop) window.odTestStop();
-  if(odTab!=='hackathons' && window.odHackStop) window.odHackStop();
-  if(odTab==='hackathons'){ if(window.odAnnStop) window.odAnnStop(); if(window.odHackRender) window.odHackRender(b); return; }   // Hackathon Management (owner-only; Firestore + Storage rules enforce the owner claim)
   if(odTab!=='reports' && window.odReportsStop) window.odReportsStop();
   if(odTab==='reports'){ if(window.odAnnStop) window.odAnnStop(); if(window.odReportsRender) window.odReportsRender(b); return; }   // Reports (owner-only; Firestore rules + chatModerate re-verify the owner claim)
   if(odTab==='tests'){ if(window.odAnnStop) window.odAnnStop(); if(window.odTestRender) window.odTestRender(b); return; }   // Test Management (owner-only; Firestore rules + Cloud Functions enforce the owner claim)
@@ -12227,9 +12236,7 @@ function saveOwnerEdit(){
     .catch(e=>ownerErr('oeErr', e.code==='permission-denied' ? 'Permission denied. Check your admin access and deployed rules.' : 'Could not save. Try again.'))
     .then(()=>{ ownerBusy=false; $o('oeSave').textContent='Save Changes'; $o('oeSave').disabled=false; });
 }
-function closeSettingsOverlay(){ const s=$o('settingsMode'), back=$o('setBack'); if(s && s.classList.contains('cl-ov') && !s.classList.contains('hidden') && back) back.click(); }   // Settings (z 9000) sits above admin popups, so close it first
-$o('ownerEntry').addEventListener('click',e=>{ e.preventDefault(); if(isOwner){ closeSettingsOverlay(); openOwnerDash(); } });   // Admin Access: reuses the existing owner dashboard
-window.openAddHackathon=function(){ if(!isOwner) return; closeSettingsOverlay(); odTab='hackathons'; ovOpen('ownerDashOverlay'); odRender(); const nb=document.querySelector('#odBody [data-hm="new"]'); if(nb) nb.click(); };   // Connect → Events → Add hackathon (admin only)   // Admin Access: reuses the existing owner dashboard
+$o('ownerEntry').addEventListener('click',e=>{ e.preventDefault(); if(isOwner) openOwnerDash(); });   // Admin Access: reuses the existing owner dashboard
 $o('olClose').addEventListener('click',()=>ovClose('ownerLoginOverlay')); $o('olBack').addEventListener('click',()=>ovClose('ownerLoginOverlay'));
 $o('olSubmit').addEventListener('click',ownerLogin); $o('olPass').addEventListener('keydown',e=>{ if(e.key==='Enter') ownerLogin(); });
 $o('olShow').addEventListener('click',()=>{ const p=$o('olPass'); const h=p.type==='password'; p.type=h?'text':'password'; $o('olShow').textContent=h?'Hide':'Show'; });
@@ -17922,12 +17929,12 @@ function lvMerge(x, o){
   x._doms = null; lvDates(x); return before !== sig(); }
 function lvMark(i){ try{ var a = JSON.parse(localStorage.getItem('csec_saved_events') || '[]'); if(a.indexOf(evId(EV[i])) > -1) bm[i] = true; }catch(e){} }
 function lvIngest(e, sid, fresh, cnt){ var o = lvNorm(e, sid); if(!o) return; var k = lvFind(o);
-  if(k < 0){ lvPic(o); EV.push(o); fresh.push(o); lvMark(EV.length - 1); } else if(!EV[k].manual && lvMerge(EV[k], o)) cnt.n++; }
+  if(k < 0){ lvPic(o); EV.push(o); fresh.push(o); lvMark(EV.length - 1); } else if(lvMerge(EV[k], o)) cnt.n++; }
 function lvSave(){ try{ localStorage.setItem(LV_KEY, JSON.stringify({t:LIVE.ok, ev:EV.filter(function(x){ return x.live && !lvEnded(x); }).map(function(x){ var o = {}; LV_FIELDS.forEach(function(k){ if(x[k] != null && !(k === 'img' && x._autoPic)) o[k] = x[k]; }); o.id = evId(x); return o; })})); }catch(e){} }
 function lvRestore(){ var c = null; try{ c = JSON.parse(localStorage.getItem(LV_KEY) || 'null'); }catch(e){}
   if(!c || !Array.isArray(c.ev)) return; LIVE.ok = +c.t || 0; LIVE.had = true;
   c.ev.forEach(function(r){ if(!r || !r.t || !r.iso || !r.iso.date) return; lvDates(r); if(lvEnded(r)) return; r.live = true; r.sample = false; r.tags = Array.isArray(r.tags) ? r.tags : []; if(r.mode === 'online') ['venue', 'city', 'state', 'country', 'lat', 'lng'].forEach(function(f){ delete r[f]; });
-    var k = lvFind(r); if(k < 0){ lvPic(r); EV.push(r); } else if(!EV[k].manual) lvMerge(EV[k], r); }); }
+    var k = lvFind(r); if(k < 0){ lvPic(r); EV.push(r); } else lvMerge(EV[k], r); }); }
 function lvRSS(x){ var d = new DOMParser().parseFromString(String(x || ''), 'text/xml'); return [].map.call(d.querySelectorAll('item,entry'), function(i){ var g = function(s){ var n = i.querySelector(s); return n ? (n.textContent || n.getAttribute('href') || '').trim() : ''; }; return {title:g('title'), link:g('link') || g('guid'), desc:g('description') || g('summary'), date:g('pubDate') || g('published') || g('updated')}; }); }
 function lvGet(u){ var ctl = window.AbortController ? new AbortController() : null, tm = ctl ? setTimeout(function(){ ctl.abort(); }, LV_TIMEOUT) : 0;
   return fetch(u, {headers:{accept:'application/json, application/rss+xml, text/xml'}, cache:'no-store', signal:ctl ? ctl.signal : undefined})
@@ -17986,67 +17993,6 @@ function lvCurated(){ return {id:'imagine27', curated:true, sample:false, t:'Mic
 EV.forEach(function(x){ if(x.sample == null) x.sample = true; if(x.added == null) x.added = 0; });
 (function(){ var c = lvCurated(); lvDates(c); if(!lvEnded(c) && lvFind(c) < 0){ lvPic(c); EV.push(c); } })();
 lvRestore();
-/* ---------- Admin-added hackathons (Firestore: manualHackathons, published ones only) ----------
-   Each record is mapped into the SAME event object the live feeds produce, so cards, View Details, search, filters,
-   saving and registration all work unchanged. A manual listing wins over a feed record of the same event; feeds never overwrite it (see lvIngest). */
-var MH = {on:false};
-function mhT(s){ return String(s == null ? '' : s).replace(/<[^>]*>/g, '').trim(); }
-function mhList(a, n){ return Array.isArray(a) ? a.map(mhT).filter(Boolean).slice(0, n || 30) : []; }
-function mhPairs(a, k1, k2){ return (Array.isArray(a) ? a : []).map(function(p){ return [mhT(p && p[k1]), mhT(p && p[k2])]; }).filter(function(p){ return p[0]; }).slice(0, 20); }
-function mhEvent(id, r){
-  var date = lvYmd(r.startDate), title = mhT(r.title); if(!title || !date) return null;
-  var end = lvYmd(r.endDate); if(end && end <= date) end = '';
-  var mode = r.mode === 'online' || r.mode === 'offline' || r.mode === 'hybrid' ? r.mode : 'tbv', venue = mhT(r.venue).slice(0, 120);
-  var desc = mhT(r.shortDesc), about = mhT(r.about);
-  var o = {id:'mh-' + id, manual:true, sample:false, t:title.slice(0, 120), k:EKINDS.indexOf(r.kind) > -1 ? r.kind : 'Hackathon',
-    iso:{date:date, end:end, dl:lvYmd(r.deadline)}, mode:mode, loc:venue || (mode === 'online' ? 'Online' : 'Venue not announced'),
-    org:mhT(r.organizer).slice(0, 120) || 'Organizer not listed', e:'\ud83c\udfc6', el:mhT(r.eligibility).slice(0, 200) || 'See the official page',
-    d:(desc || about).slice(0, 300), about:about.slice(0, 5000), pz:mhT(r.prize).slice(0, 120), tags:[], reg:lvSafe(r.regUrl),
-    added:r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : Date.now()};
-  if(mode !== 'online'){ if(venue) o.venue = venue; var c = mhT(r.city).slice(0, 80), s = mhT(r.state).slice(0, 80); if(c) o.city = c; if(s) o.state = s; }
-  var all = mhList(r.themes, 12), lt = all.filter(function(t){ return /^loc:/.test(t); }).map(function(t){ return t.slice(4); }), th = all.filter(function(t){ return !/^loc:/.test(t); });
-  if(lt.length) o.locTags = lt; if(th.length) o.themes = th;
-  var web = lvSafe(r.website); if(web) o.url = web;
-  var cov = lvSafe(r.imageUrl); if(cov) o.img = cov;
-  if(mhT(r.duration)) o.dur = mhT(r.duration).slice(0, 60);
-  if(mhT(r.teamSize)) o.team = mhT(r.teamSize).slice(0, 60);
-  if(mhT(r.fee)) o.fee = mhT(r.fee).slice(0, 60);
-  var pr = mhPairs(r.problems, 'title', 'text'); if(pr.length) o.problems = pr;
-  var dt = mhPairs(r.dates, 'label', 'value'); if(dt.length) o.dates = dt;
-  var ru = mhList(r.rules, 30); if(ru.length) o.rules = ru;
-  var pk = mhList(r.perks, 30); if(pk.length) o.perks = pk;
-  if(mhT(r.contactEmail)) o.contact = mhT(r.contactEmail).slice(0, 120);
-  if(mhT(r.contactPhone)) o.phone = mhT(r.contactPhone).slice(0, 40);
-  o.tags = th.slice(0, 4); if(!o.tags.length) o.tags = lvDoms(o).slice();
-  if(!o.img) lvPic(o);
-  lvDates(o); return o;
-}
-/* Event positions change when one is removed, so saved / registered flags are re-mapped by event id. */
-function mhApply(rows){
-  var keep = {}, sr = {};
-  rows.forEach(function(r){ keep['mh-' + r.id] = 1; });
-  EV.forEach(function(x, i){ if(reg[i]) sr[evId(x)] = 1; });
-  for(var k = EV.length - 1; k >= 0; k--) if(EV[k].manual && !keep[EV[k].id]) EV.splice(k, 1);
-  rows.forEach(function(r){
-    var o = null; try{ o = mhEvent(r.id, r); }catch(e){ console.warn('[Hackathons] bad record', r.id, e); } if(!o) return;
-    var k = lvFind(o); if(k >= 0 && EV[k].manual && EV[k].id !== o.id) k = -1;   /* never overwrite another manual listing */
-    if(k >= 0){ if(sr[evId(EV[k])]) sr[o.id] = 1; EV[k] = o; } else EV.push(o);   /* same event already from a feed: the manual one replaces it (no duplicate) */
-  });
-  bm = {}; reg = {}; loadSaved();
-  EV.forEach(function(x, i){ if(sr[x.id] || (x.manual && rgAll()[x.id])) reg[i] = true; });
-  eventsChanged();
-}
-function mhStart(){
-  if(MH.on) return; var db = null; try{ db = fbDb; }catch(e){}
-  if(!db){ setTimeout(mhStart, 1500); return; }
-  MH.on = true;
-  try{
-    db.collection('manualHackathons').where('published', '==', true).onSnapshot(function(sn){
-      var rows = sn.docs.map(function(d){ var r = d.data(); r.id = d.id; return r; });
-      try{ mhApply(rows); }catch(e){ console.warn('[Hackathons] apply failed', e); }
-    }, function(e){ console.warn('[Hackathons] listener stopped:', e && e.code); MH.on = false; setTimeout(mhStart, 60000); });
-  }catch(e){ MH.on = false; setTimeout(mhStart, 60000); }
-}
 
 /* ---------- Posting ---------- */
 var pc = $('#cnPosting'), pf = {cat:'All'}, draft = {tags:[], imgs:[], fls:[]}, pid = 10;
@@ -18236,20 +18182,151 @@ function loadPeople(){
   }).catch(function(e){ console.warn('[Connect] could not load students (is the publicProfiles rule published?)', e && e.code); PS = 'err'; })
   .then(function(){ PBusy = false; drawPeople(); });
 }
-setInterval(function(){ publishMe(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
+setInterval(function(){ publishMe(); connTick(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
 
+
+/* ---------- Connections (real): Firebase Auth + Firestore listeners + `connections` Cloud Functions (asia-south1). Reuses the app's existing Firebase app. ---------- */
+var CS = {uid:'', out:{}, inc:{}, conn:{}, outL:[], incL:[], connL:[], notifs:[], ok:{}, busy:{}, ask:''}, cTab = 'received', cUn = [], fnC = null;
+var MU = {}, MUf = 0, MUp = {}, SUG = null, SUGt = 0, SUGn = -1, SUGw = 0, MUn = -1, MUt = Date.now();
+function cFns(){ return new Promise(function(res, rej){ if(firebase.functions) return res(); var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js'; s.onload = function(){ firebase.functions ? res() : rej(new Error('functions')); }; s.onerror = function(){ rej(new Error('network')); }; document.head.appendChild(s); }); }
+function cCall(name, data){ return cFns().then(function(){ if(!fnC) fnC = firebase.app().functions('asia-south1'); return fnC.httpsCallable(name, {timeout:30000})(data || {}); }).then(function(r){ return r.data; }); }
+function cErr(e){ var m = String(e && e.message || ''); return (!m || /^[A-Z_ ]+$/.test(m) || /network/i.test(m)) ? 'Could not reach Campus Loop. Check your connection and try again.' : m; }
+function tms(t){ return t && t.toMillis ? t.toMillis() : 0; }
+function cState(u){ return CS.conn[u] ? 'conn' : CS.inc[u] ? 'inc' : CS.out[u] === 'pending' ? 'out' : ''; }
+function pinfo(u){ for(var i = 0; i < PF.length; i++) if(PF[i][7] === u) return [yl(PF[i][2]), PF[i][1]].filter(Boolean).join(' · '); return ''; }
+function mutTxt(u){ var m = MU[u]; return m && m.length ? ' · ' + m.length + ' mutual' : ''; }
+function connStop(){ cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS = {uid:'', out:{}, inc:{}, conn:{}, outL:[], incL:[], connL:[], notifs:[], ok:{}, busy:{}, ask:''}; MU = {}; SUG = null; SUGn = -1; paintConn(); }
+function connStart(uid){
+  var db = fb(); if(!db) return; CS.uid = uid;
+  function lis(key, q, fn){ cUn.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; paintConn(); }, function(e){ console.warn('[Connections] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); CS.err = 1; paintConn(); })); }
+  lis('inc', db.collection('connectionRequests').where('to', '==', uid), function(s){
+    CS.inc = {}; CS.incL = []; s.docs.forEach(function(d){ var x = d.data(); if(x.status === 'pending'){ CS.inc[x.from] = 1; CS.incL.push({u:x.from, name:x.fromName, at:tms(x.createdAt)}); } });
+    CS.incL.sort(function(a, b){ return b.at - a.at; }); });
+  lis('out', db.collection('connectionRequests').where('from', '==', uid), function(s){
+    CS.out = {}; CS.outL = []; s.docs.forEach(function(d){ var x = d.data(); if(x.status === 'accepted') return; CS.out[x.to] = x.status; CS.outL.push({u:x.to, name:x.toName, st:x.status, at:tms(x.updatedAt)}); });
+    CS.outL.sort(function(a, b){ return b.at - a.at; }); });
+  lis('conn', db.collection('connections').where('users', 'array-contains', uid), function(s){
+    CS.conn = {}; CS.connL = []; s.docs.forEach(function(d){ var x = d.data(), o = (x.users || []).filter(function(i){ return i !== uid; })[0]; if(o){ CS.conn[o] = 1; CS.connL.push({u:o, name:(x.names && x.names[o]) || 'Student', at:tms(x.createdAt)}); } });
+    CS.connL.sort(function(a, b){ return a.name.localeCompare(b.name); }); });
+  lis('n', db.collection('connNotifs').doc(uid).collection('items').orderBy('createdAt', 'desc').limit(30), function(s){
+    var first = !CS.ok.n; CS.notifs = s.docs.map(function(d){ var x = d.data(); x.id = d.id; return x; });
+    if(!first) s.docChanges().forEach(function(c){ if(c.type !== 'added' || c.doc.metadata.hasPendingWrites) return; var n = c.doc.data();
+      toast(n.type === 'request' ? n.fromName + ' sent you a connection request' : n.type === 'accepted' ? n.fromName + ' accepted your connection request' : n.fromName + ' declined your connection request'); }); });
+}
+function connTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id && id === CS.uid && CS.ok.conn && (wantPeople() || connVisible()) && Date.now() - SUGt > 60000) loadSug(); if(id === CS.uid) return; connStop(); if(id) connStart(id); }
+function unreadN(){ return CS.notifs.filter(function(n){ return !n.read && n.type !== 'request'; }).length; }
+function connVisible(){ return active() && st.tab === 'teams' && st.tsub === 'connections'; }
+function setBadge(el, n){ if(!el) return; el.textContent = n ? (n > 99 ? '99+' : String(n)) : ''; el.classList.toggle('hidden', !n); }
+function paintConn(){
+  if(CS.ok.conn && (MUn !== CS.connL.length || Date.now() - MUt > 3e5)){ MUn = CS.connL.length; MUt = Date.now(); MU = {}; MUf = 0; }   /* mutuals are re-read when my connections change (and every 5 min) */
+  var inN = CS.incL.length, ico = document.querySelector('#secBtnConnect .sec-ico'), nb = $('#cnNavN', document);
+  if(ico && !nb){ nb = document.createElement('span'); nb.id = 'cnNavN'; nb.className = 'rq-n hidden'; nb.setAttribute('aria-label', 'new connection activity'); ico.appendChild(nb); }
+  setBadge(nb, inN + unreadN()); setBadge($('#cnConN'), inN);
+  if($('#cnConBody')) drawConn();
+  if($('#cnPgrid')){ drawPeople(); drawSug(); }
+  if(connVisible()) markRead();
+  if(cnWatch){ try{ cnWatch(); }catch(e){} }
+  if(CS.ok.conn && SUGn !== CS.connL.length && (wantPeople() || connVisible())) loadSug();
+}
+function markRead(){ var un = CS.notifs.filter(function(n){ return !n.read; }), db = fb(); if(!un.length || !db || !CS.uid) return; var b = db.batch();
+  un.forEach(function(n){ b.update(db.collection('connNotifs').doc(CS.uid).collection('items').doc(n.id), {read:true}); }); b.commit().catch(function(e){ console.warn('[Connections] mark read', e && e.code); }); }
+function loadMutuals(uids){
+  var me = CS.uid, want = []; uids.forEach(function(u){ if(u && u !== me && !MU[u] && !MUp[u] && want.indexOf(u) < 0) want.push(u); }); want = want.slice(0, 50);
+  if(!want.length || !me || Date.now() - MUf < 30000) return; want.forEach(function(u){ MUp[u] = 1; });
+  cCall('connMutuals', {uids:want}).then(function(r){ want.forEach(function(u){ MU[u] = (r.mutuals && r.mutuals[u]) || []; delete MUp[u]; }); paintConn(); })
+   .catch(function(e){ MUf = Date.now(); want.forEach(function(u){ delete MUp[u]; }); console.warn('[Connections] mutuals', e && e.code); });
+}
+function connHook(){ if(PS !== 'ok' || !CS.uid) return; loadMutuals(peopleRows().slice(0, 50).map(function(x){ return x.p[7]; })); }
+function loadSug(){
+  if(!CS.uid) return; var w = 4000 - (Date.now() - SUGt); if(w > 0){ if(!SUGw) SUGw = setTimeout(function(){ SUGw = 0; loadSug(); }, w + 50); return; }   /* throttled: retry once, so a change is never missed */
+  SUGt = Date.now(); SUGn = CS.connL.length;
+  cCall('connSuggest', {limit:8}).then(function(r){ SUG = r.suggestions || []; paintConn(); }).catch(function(e){ console.warn('[Connections] suggestions', e && e.code); });
+}
+function sugHtml(){
+  if(!SUG) return ''; var rows = SUG.filter(function(s){ return !cState(s.uid); }).slice(0, 5); if(!rows.length) return '';
+  return '<section class="cn-sug" aria-label="People you may know"><h3>People you may know</h3><div class="cn-ulist">' + rows.map(function(s, i){
+    return '<article class="cn-urow">' + av(s.name, i) + '<div class="cn-umain"><span class="cn-uname">' + esc(s.name) + '</span><small>' + [yl(+s.year), esc(s.branch)].filter(Boolean).join(' · ') + (s.mutual ? ' · ' + s.mutual + ' mutual connection' + (s.mutual > 1 ? 's' : '') : '') + '</small></div>' +
+     '<button class="cn-btn pri" type="button" data-sgc="' + esc(s.uid) + '"' + (CS.busy[s.uid] ? ' disabled' : '') + '>Connect</button></article>'; }).join('') + '</div></section>';
+}
+function drawSug(){ var h = (P.q || P.skills.length) ? '' : sugHtml(), a = $('#cnPsug'), b = $('#cnConSug'); if(a) a.innerHTML = h; if(b) b.innerHTML = sugHtml(); }
+function doConnect(u){
+  var uu = fbUser(); if(!uu || uu.isAnonymous) return toast('Sign in with your student account to connect', 'err');
+  if(!u || CS.busy[u]) return; var s = cState(u); if(s === 'conn') return; if(s === 'inc'){ closeM(); return go('teams', 'connections'); }
+  CS.busy[u] = 1; paintConn();
+  (s === 'out' ? cCall('connCancel', {to:u}).then(function(){ delete CS.out[u]; CS.outL = CS.outL.filter(function(x){ return x.u !== u; }); toast('Request withdrawn'); })
+    : cCall('connSend', {to:u}).then(function(){ CS.out[u] = 'pending'; toast('Connection request sent'); }))
+   .catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); reshow(); });
+}
+function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.busy[u]) return; CS.busy[u] = 1; CS.ask = ''; paintConn();
+  cCall(fn, data).then(function(){ toast(ok); }).catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); }); }
+function crow(name, sub, acts, i){ return '<article class="cn-urow">' + av(name, i) + '<div class="cn-umain"><span class="cn-uname">' + esc(name) + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
+function drawConn(){
+  var body = $('#cnConBody'); if(!body) return; var D = {received:CS.incL.length, sent:CS.outL.length, mine:CS.connL.length};
+  [].forEach.call(root.querySelectorAll('[data-ccon]'), function(b){ var k = b.dataset.ccon, on = k === cTab, n = $('.rq-n', b); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); setBadge(n, k === 'received' ? D.received : 0); });
+  var uids = CS.incL.concat(CS.outL, CS.connL).map(function(x){ return x.u; }); loadMutuals(uids);
+  var h = '', dis = function(u){ return CS.busy[u] ? ' disabled' : ''; };
+  if(CS.err && !CS.ok.inc) h = empty('⚠️', 'Could not load connections', 'Check your connection and reopen this tab.');
+  else if(!CS.uid) h = empty('🔒', 'Sign in to connect', 'Connections are available to signed-in students. Guests cannot send or receive requests.');
+  else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i); }).join('') + '</div>'
+    : empty('📥', 'No received requests', 'When a student sends you a connection request it appears here.');
+  else if(cTab === 'sent') h = CS.outL.length ? '<div class="cn-ulist">' + CS.outL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), r.st === 'rejected' ? 'Not accepted' : 'Pending', ago(r.at)].filter(Boolean).join(' · '), r.st === 'rejected' ? '<button class="cn-btn pri" type="button" data-cagain="' + u + '"' + dis(r.u) + '>Send again</button>' : '<button class="cn-btn" type="button" data-ccan="' + u + '"' + dis(r.u) + '>Cancel request</button>', i); }).join('') + '</div>'
+    : empty('📤', 'No sent requests', 'Requests you send from Find people show up here until they are answered.');
+  else h = CS.connL.length ? '<div class="cn-ulist">' + CS.connL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), 'Connected ' + ago(r.at) + mutTxt(r.u)].filter(Boolean).join(' · '), CS.ask === r.u ? '<button class="cn-btn mt-btn-danger pri" type="button" data-crmok="' + u + '"' + dis(r.u) + '>Confirm remove</button><button class="cn-btn" type="button" data-crmno="1">Keep</button>' : '<button class="cn-btn" type="button" data-crm="' + u + '">Remove</button>', i); }).join('') + '</div>'
+    : empty('🤝', 'No connections yet', 'Accepted requests become connections. Find students in Find people and tap Connect.');
+  body.innerHTML = h;
+  var act = $('#cnConAct'); if(act) act.innerHTML = CS.notifs.length ? '<section class="cn-recent"><h3 class="cn-sub">Recent activity</h3><ul style="list-style:none;margin:0;padding:0">' + CS.notifs.slice(0, 8).map(function(n){
+    return '<li style="padding:6px 0;border-top:1px solid var(--line);' + (n.read ? '' : 'font-weight:700') + '">' + esc(n.fromName) + (n.type === 'request' ? ' sent you a connection request' : n.type === 'accepted' ? ' accepted your request' : ' declined your request') + ' <small>' + ago(tms(n.createdAt)) + '</small></li>'; }).join('') + '</ul></section>' : '';
+  drawSug();
+}
+function initConn(){
+  var box = $('#cnTconn'); if(!box) return;
+  box.innerHTML = '<h2 class="cn-sr-h">Connections</h2><div class="cn-subtabs" role="tablist" aria-label="Connection sections">' +
+   '<button type="button" class="cn-tab active" role="tab" data-ccon="received" aria-selected="true">Received<span class="rq-n hidden" aria-label="pending requests"></span></button>' +
+   '<button type="button" class="cn-tab" role="tab" data-ccon="sent" aria-selected="false">Sent<span class="rq-n hidden"></span></button>' +
+   '<button type="button" class="cn-tab" role="tab" data-ccon="mine" aria-selected="false">My Connections<span class="rq-n hidden"></span></button></div>' +
+   '<div id="cnConBody"></div><div id="cnConSug"></div><div id="cnConAct"></div>';
+  drawConn();
+  root.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return; var d = b.dataset;
+    if(d.ccon){ cTab = d.ccon; CS.ask = ''; return drawConn(); }
+    if(d.cacc) return cAct('connRespond', {from:d.cacc, accept:true}, 'Connected');
+    if(d.crej) return cAct('connRespond', {from:d.crej, accept:false}, 'Request rejected');
+    if(d.ccan) return cAct('connCancel', {to:d.ccan}, 'Request cancelled');
+    if(d.cagain) return cAct('connSend', {to:d.cagain}, 'Connection request sent');
+    if(d.crm){ CS.ask = d.crm; return drawConn(); }
+    if(d.crmno){ CS.ask = ''; return drawConn(); }
+    if(d.crmok) return cAct('connRemove', {uid:d.crmok}, 'Connection removed');
+    if(d.sgc) return doConnect(d.sgc);
+  });
+}
+function connOpened(){ drawConn(); markRead(); loadSug(); }
+/* Small bridge so the separate peer-profile overlay uses the same real connection state. */
+var cnWatch = null;
+window.cnConn = {
+  label:function(u){ var q = cState(u); return q === 'conn' ? '\u2713 Connected' : q === 'out' ? '\u2713 Request sent' : q === 'inc' ? 'Accept request' : 'Connect'; },
+  act:function(u){ if(cState(u) === 'conn') return; if(cState(u) === 'inc') return cAct('connRespond', {from:u, accept:true}, 'Connected'); doConnect(u); },
+  watch:function(f){ cnWatch = f; }
+};
 
 function pkey(k){ return PF[k] && PF[k][7] ? PF[k][7] : k; }
-function connBtn(k, attr){ var d = sent[pkey(k)]; return '<button class="cn-btn' + (d ? ' done' : ' pri') + '" type="button" ' + attr + '="' + k + '">' + (d ? '\u2713 Request sent' : 'Connect') + '</button>'; }
+function connBtn(k, attr){ var u = pkey(k), q = cState(u);
+  if(q === 'conn') return '<button class="cn-btn done" type="button" disabled>✓ Connected</button>';
+  if(q === 'out') return '<button class="cn-btn done" type="button" ' + attr + '="' + k + '" title="Tap to cancel this request"' + (CS.busy[u] ? ' disabled' : '') + '>✓ Request sent</button>';
+  if(q === 'inc') return '<button class="cn-btn pri" type="button" ' + attr + '="' + k + '">Respond</button>';
+  return '<button class="cn-btn pri" type="button" ' + attr + '="' + k + '"' + (CS.busy[u] ? ' disabled' : '') + '>Connect</button>'; }
 function pct(x){ return P.skills.length ? Math.round(100 * x.hit.length / P.skills.length) : Math.min(100, Math.round(x.p[3].length * 20)); }
 function personCard(x){
   var p = x.p, k = x.k, v = pct(x), w = P.skills, mine = !!p[7] && p[7] === myUid();
-  var meta = [yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
+  var meta = [yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
   return '<article class="cn-urow">' + av(p[0], k) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
    (p[3].length ? '<div class="cn-ring sm" style="--p:' + v + '" data-v="' + v + '%" role="img" title="' + (w.length ? 'Share of the selected skills they have' : 'Skills listed (out of 5)') + '" aria-label="' + v + ' percent skills"></div>' : '') + (mine ? '' : connBtn(k, 'data-k')) + '</article>';
 }
 var pSkSig = null;
-function drawPeople(){
+function drawPeople(){ drawPeople0(); connHook(); }
+function drawPeople0(){
   if(!$('#cnPgrid')) return;
   var sk = skillList(), skl = $('#cnPskl'), chs = $('#cnPchips'), sig = sk.join('|');
   P.skills = P.skills.filter(function(s){ return sk.indexOf(s) > -1; });
@@ -18275,14 +18352,14 @@ function personModal(k){
    (p[3].length ? '<div><div class="cn-sub">Skills</div><div class="cn-chips">' + p[3].map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
    (p[4].length ? '<div><div class="cn-sub">Interests</div><div class="cn-chips">' + p[4].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
    (p[6] && p[6] !== '?' && p[6] !== '\u2014' ? '<div class="cn-meta"><div>' + ic('users') + '<span><b>Working on:</b> ' + esc(p[6]) + '</span></div></div>' : '') +
-   '<div class="cn-row">' + (mine ? '' : connBtn(k, 'data-mconn')) + '<button class="cn-btn" type="button" data-close="1">Close</button></div>' + (mine ? '' : '<span class="cn-demo">Connection requests are not sent anywhere yet.</span>') + '</div>', 'p', k);
+   '<div class="cn-row">' + (mine ? '' : connBtn(k, 'data-mconn')) + '<button class="cn-btn" type="button" data-close="1">Close</button></div>' + '</div>', 'p', k);
 }
-function togglePerson(k){ var u = pkey(k); sent[u] = !sent[u]; drawPeople(); reshow(); toast(sent[u] ? 'Connection request sent (demo)' : 'Request withdrawn'); }
+function togglePerson(k){ var u = pkey(k); if(typeof u === 'string') doConnect(u); }
 function initPeople(){
   var box = $('#cnTpeople');
   box.innerHTML = '<h2 class="cn-sr-h">Find people</h2>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
-   '<div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips"></div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
+   '<div id="cnPsug"></div><div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips"></div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
   $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
   box.addEventListener('click', function(e){
@@ -18321,7 +18398,7 @@ function initTeamsTab(){
     if(b.dataset.reset){ T = {q:'', chips:[]}; $('#cnTq').value = ''; syncChips($('#cnTchips'), T.chips, 'data-tc'); return drawTeams(); }
   });
 }
-function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div><div class="cn-pane hidden" id="cnTreq"></div>'; initPeople(); initTeamsTab(); }
+function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div><div class="cn-pane hidden" id="cnTreq"></div><div class="cn-pane hidden" id="cnTconn"></div>'; initPeople(); initConn(); initTeamsTab(); }
 /* Teams → Requests: one view over the SAME join requests stored on each team in "csec_myteams" (no second store).
    Incoming = requests to teams I lead (Accept / Reject reuse decide()); outgoing = my own requests (Withdraw / Dismiss reuse onAct()). */
 var rqAsk = '';
@@ -18416,7 +18493,7 @@ function evCard(x, i){
    '<button type="button" class="cn-bm" data-bm="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + ': ' + esc(x.t) + '">' + ic('bookmark') + '</button><span class="cn-lab">' + esc(x.k) + '</span></div>' +
    '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip' + (x.mode === 'tbv' ? ' cn-tbv' : '') + '">' + ic(x.mode === 'online' ? 'monitor' : 'pin') + modeLbl(x.mode) + '</span>' + (lvGeoLbl(x) ? '<span class="cn-chip cn-geo ' + lvGeo(x).t + '">' + esc(lvGeoLbl(x)) + '</span>' : '') + lvBadge(x) + x.tags.slice(0, 1).map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
    '<h3><button type="button" class="cn-tl" data-e="' + i + '">' + esc(x.t) + '</button></h3><div class="cn-org"><span class="cn-om" aria-hidden="true">' + esc(ini) + '</span>' + esc(x.org) + '</div>' + (lvPlain(x.d) ? '<p class="cn-desc">' + esc(lvPlain(x.d)) + '</p>' : '') + dlHtml(d) + metaHtml(x) + lvMoreFacts(x) +
-   (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : (x.live || x.manual) && hkUrl(x.reg) ? 'Register ↗' : 'Register') + '</button></div>') + '</div></article>';
+   (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : x.live && hkUrl(x.reg) ? 'Register ↗' : 'Register') + '</button></div>') + '</div></article>';
 }
 function updates(){
   var l = [];
@@ -18610,7 +18687,7 @@ function evPage(i){
    '<h1>' + esc(x.t) + '</h1><div class="ep-org">Organised by <b>' + esc(x.org || 'Campus Loop') + '</b></div>' +
    '<div class="ep-dl ' + d.k + '">' + ic('flag') + '<b>' + esc(d.l) + '</b>' + (d.s ? '<em>' + esc(d.s) + '</em>' : '') + '</div>' +
    (rg ? '<div class="ep-reg">✓ You are registered · ' + (rg.type === 'team' ? 'Team: ' + esc(rg.team) : 'Solo') + '</div>' : '') +
-   '<div class="ep-acts">' + (closed ? '' : '<button type="button" class="ep-b pri" data-ep="reg">' + (reg[i] ? '✓ Registered (tap to undo)' : (x.live || x.manual) && hkUrl(x.reg) ? 'Register now ↗' : 'Register now') + '</button>') +
+   '<div class="ep-acts">' + (closed ? '' : '<button type="button" class="ep-b pri" data-ep="reg">' + (reg[i] ? '✓ Registered (tap to undo)' : x.live && hkUrl(x.reg) ? 'Register now ↗' : 'Register now') + '</button>') +
    '<button type="button" class="ep-b" data-ep="save">' + (bm[i] ? '🔖 Saved' : '🔖 Save') + '</button><button type="button" class="ep-b' + (inter ? ' on' : '') + '" data-ep="int">' + (inter ? '★ Interested' : '☆ Interested') + '</button>' +
    '<button type="button" class="ep-b" data-ep="mates">Find teammates</button><button type="button" class="ep-b" data-ep="share">Share</button><button type="button" class="ep-b" data-ep="cal">Add to calendar</button><button type="button" class="ep-b' + (rem ? ' on' : '') + '" data-ep="rem">' + (rem ? '🔔 Reminder on' : '🔔 Remind me') + '</button></div></div></div>' +
    '<div class="ep-facts">' + facts + '</div><div class="ep-cols"><div class="ep-main">' +
@@ -18672,10 +18749,9 @@ function rgChoose(i){
   });
   document.body.appendChild(o); draw();
 }
-function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated || lx.manual) && !reg[i] && hkUrl(lx.reg)) return lvOpen(lx); if(reg[i]){ reg[i] = false; rgSet(evId(EV[i]), null); drawEvents(); reshow(); toast('Registration cancelled'); } else rgChoose(i); }
+function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated) && !reg[i] && hkUrl(lx.reg)) return lvOpen(lx); if(reg[i]){ reg[i] = false; rgSet(evId(EV[i]), null); drawEvents(); reshow(); toast('Registration cancelled'); } else rgChoose(i); }
 function initEvents(){
   ec.innerHTML = 
-   '<div class="cn-admin-add"><button type="button" class="btn btn-primary cn-addhk" onclick="window.openAddHackathon && window.openAddHackathon()">' + ic('plus') + 'Add hackathon</button></div>' +
    '<div class="cn-seg" id="cnEview" role="group" aria-label="Show events" style="margin-bottom:12px"></div>' +
    '<div class="cn-seg cn-areas" id="cnEmode" role="group" aria-label="Filter by mode or place" style="margin-bottom:12px"></div>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search event, college, organiser, city or tech" autocomplete="off"></div>' +
@@ -18716,7 +18792,7 @@ function sync(){
   [].forEach.call(document.querySelectorAll('#cnModeWrap [data-cn]'), function(b){ var on = b.dataset.cn === st.tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
   [].forEach.call(root.querySelectorAll('[data-cnsub]'), function(b){ var on = b.dataset.cnsub === st.sub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   [].forEach.call(root.querySelectorAll('[data-cntsub]'), function(b){ var on = b.dataset.cntsub === st.tsub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
-  $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTreq').classList.toggle('hidden', st.tsub !== 'requests'); document.body.setAttribute('data-cnbg', st.tab === 'teams' && st.tsub === 'requests' ? 'requests' : (st.tab === 'events' || st.tab === 'articles') ? 'discover' : st.tab); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
+  $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTreq').classList.toggle('hidden', st.tsub !== 'requests'); $('#cnTconn').classList.toggle('hidden', st.tsub !== 'connections'); if(st.tab === 'teams' && st.tsub === 'connections' && active()) connOpened(); document.body.setAttribute('data-cnbg', st.tab === 'teams' && st.tsub === 'requests' ? 'requests' : (st.tab === 'events' || st.tab === 'articles') ? 'discover' : st.tab); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
   var disc = st.tab === 'events' || st.tab === 'articles'; if(disc) st.sub = st.tab;
   $('#cnPosting').classList.toggle('hidden', st.tab !== 'posting'); $('#cnTeams').classList.toggle('hidden', st.tab !== 'teams'); $('#cnDiscover').classList.toggle('hidden', !disc);
   $('#cnSub').classList.add('hidden'); if(mtc){ mtc.classList.toggle('hidden', st.tab !== 'teams'); if(st.tab === 'teams'){ drawMyTeam(); drawTeams(); } }
@@ -18727,7 +18803,7 @@ function sync(){
   if(wantPeople()) loadPeople();
 }
 function go(tab, sub, o){
-  o = o || {}; tab = normTab(tab, sub); st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams' || sub === 'requests') st.tsub = sub;
+  o = o || {}; tab = normTab(tab, sub); st.tab = TABS.indexOf(tab) > -1 ? tab : 'posting'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams' || sub === 'requests' || sub === 'connections') st.tsub = sub;
   if(!active() && window.cseSection) window.cseSection.go('connect', {noHash:true, noAnim:o.noAnim});
   sync(); if(!o.noHash) setHash();
 }
@@ -19177,7 +19253,7 @@ function initMyTeam(){
   drawMyTeam();
 }
 initModal(); initPosting(); initTeams(); initMyTeam(); initReqs(); initEvents();
-var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], boot[1]); st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests')) st.tsub = boot[1]; }
+var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], boot[1]); st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests' || boot[1] === 'connections')) st.tsub = boot[1]; }
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
@@ -19206,15 +19282,15 @@ function renderSavedCard(){
       '<button type="button" class="sv-rm" data-svr="' + o.i + '" aria-label="Remove ' + esc(x.t) + ' from saved">✕</button></div>';
   }).join('') + '</div><button type="button" class="btn btn-ghost" data-svall="1" style="margin-top:10px">Open in Events</button>';
 }
+function leaveSettings(){ try{ if(window.clShell && clShell.closeSettings) clShell.closeSettings(); }catch(e){} }
 (function(){ var b = document.getElementById('svBody'); if(!b) return;
   b.addEventListener('click', function(e){ var t = e.target.closest('button'); if(!t) return;
-    if(t.dataset.svo != null) return openEvent(+t.dataset.svo);
+    if(t.dataset.svo != null){ leaveSettings(); return openEvent(+t.dataset.svo); }
     if(t.dataset.svr != null){ var i = +t.dataset.svr; bm[i] = false; persistSaved(); return drawEvents(); }
-    if(t.dataset.svall) showSaved(); });
+    if(t.dataset.svall){ leaveSettings(); showSaved(); } });
 })();
 window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
 lvStart();
-mhStart();
 try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   // Home may have rendered before Connect finished loading
 
 })();
@@ -19540,20 +19616,21 @@ function openPeer(p){
   if(p.mine){ openProfile(); return; }
   closeSettings(); state.sy=window.pageYOffset||0;
   var ck='csec_peer_conn',cn={};try{cn=JSON.parse(localStorage.getItem(ck))||{}}catch(e){}
-  var key=p.uid||p.name, sent=!!cn[key];
+  var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null, rcOnly=!!window.cnConn&&!!p.uid;
   function chips(a,c){return a.length?'<div class="pf-chips">'+a.map(function(x){return'<span class="pf-chip'+(c?' hi':'')+'" style="padding:6px 12px">'+esc(x)+'</span>'}).join('')+'</div>':'<div class="pf-empty">Not shared yet.</div>'}
   var proj=p.project&&p.project!=='?'&&p.project!=='\u2014'?p.project:'';
   $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"></div><div class="pf-head"><div class="pf-av"><span>'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</span></div>'+
-   '<button class="pf-btn pri pf-edit" id="pfConn">'+(sent?'\u2713 Request sent':'Connect')+'</button>'+
+   '<button class="pf-btn pri pf-edit" id="pfConn"'+(rcOnly&&p.mine?' style="display:none"':'')+'>'+(rc?rc.label(p.uid):(sent?'\u2713 Request sent':'Connect'))+'</button>'+
    '<div class="pf-nm">'+esc(p.name)+'</div><div class="pf-hl">'+esc([p.year,p.branch].filter(Boolean).join(' \u00b7 ')||'Campus Loop student')+'</div>'+
    '<div class="pf-stats"><div class="pf-stat"><b>'+p.skills.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+p.interests.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+(proj?1:0)+'</b><span>Projects</span></div><div class="pf-stat"><b>'+(p.year||'\u2014')+'</b><span>Year</span></div></div>'+
-   '<div class="pf-demo">Only details this student has shared are shown. Connection requests are not sent anywhere yet (demo).</div></div></div>'+
+   '<div class="pf-demo">Only details this student has shared are shown. '+(rcOnly?'':'Connection requests are not sent anywhere yet (demo).')+'</div></div></div>'+
    '<div class="pf-card"><h3>About</h3>'+(p.bio?'<div>'+esc(p.bio)+'</div>':'<div class="pf-empty">This student has not added a bio yet.</div>')+'</div>'+
    '<div class="pf-card"><h3>Education</h3><div class="pf-it" style="margin-left:8px"><b>'+esc(p.branch||'Branch not shared')+'</b><div class="pf-sm">'+esc(p.year||'Year not shared')+'</div></div></div>'+
    '<div class="pf-card"><h3>Skills</h3>'+chips(p.skills,1)+'</div><div class="pf-card"><h3>Interests</h3>'+chips(p.interests)+'</div>'+
    '<div class="pf-card"><h3>Projects &amp; Works</h3>'+(proj?'<div class="pf-proj"><div class="th"></div><div class="bd"><b>'+esc(proj)+'</b><span class="pf-tag">Currently working on</span></div></div>':'<div class="pf-empty">No projects shared yet.</div>')+'</div>';
   prof.querySelector('.cl-ovbar b').textContent=p.name; prof.classList.add('pf-peer');
-  $('pfConn').onclick=function(){sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'\u2713 Request sent':'Connect';toastMsg(sent?'Connection request sent (demo)':'Request withdrawn')};
+  if(rc)rc.watch(function(){var b=$('pfConn');if(b&&prof.classList.contains('pf-peer'))b.textContent=rc.label(p.uid)});
+  $('pfConn').onclick=function(){if(rc){rc.act(p.uid);return}sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'\u2713 Request sent':'Connect';toastMsg(sent?'Connection request sent (demo)':'Request withdrawn')};
   prof.classList.remove('hidden');prof.scrollTop=0;lock();
 }
 window.clShell={openPeer:openPeer,openSettings:openSettings,closeSettings:closeSettings,openProfile:openProfile,closeProfile:closeProfile};
@@ -19931,204 +20008,5 @@ body[data-section="campus"] #secNav{background-image:linear-gradient(100deg,rgba
 body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(46,86,214,.22),rgba(56,176,240,.26));box-shadow:0 0 0 1px rgba(56,150,230,.38),0 6px 16px -10px rgba(27,58,140,.5)}
 [data-theme="dark"] body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,rgba(60,100,225,.42),rgba(56,176,240,.30))}
 </style>
-<script id="hackMgmtJs">
-/* ===== Hackathon Management (admin) — rendered in Admin Dashboard → "Hackathons" =====
-   Writes go straight to Firestore (manualHackathons) and Firebase Storage (hackathonCovers/<id>/…). The UI only shows this tab to the verified admin;
-   the real protection is the owner custom claim checked by the Firestore + Storage rules. Public listing code lives in connectJs (mhStart / mhApply). */
-(function(){
-'use strict';
-var $ = function(i){ return document.getElementById(i); };
-function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-var KINDS = ['Hackathon','Ideathon','Coding Competition','Competition','Workshop','Seminar','Webinar','Tech Fest','Conference','College Event'];
-var TYPES = {'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp'}, MAXIMG = 3 * 1024 * 1024;
-var A = {root:null, rows:null, view:'list', id:null, cur:null, file:null, prev:'', rm:false, busy:false, unsub:null};
-function owner(){ try{ return !!isOwner; }catch(e){ return false; } }
-function col(){ return fbDb.collection('manualHackathons'); }
-function note(kind, text){ var m = $('hmMsg'); if(m) m.innerHTML = text ? '<div class="hm-msg ' + kind + '" role="alert">' + esc(text) + '</div>' : ''; if(text && m && m.scrollIntoView) try{ m.scrollIntoView({block:'nearest'}); }catch(e){} }
-function errText(e){ var c = String(e && e.code || ''), m = String(e && e.message || '');
-  if(c === 'permission-denied' || c === 'storage/unauthorized') return 'Permission denied. Sign in as the admin and make sure the new Firestore and Storage rules are published.';
-  if(c === 'unavailable' || !navigator.onLine) return 'You appear to be offline. Nothing was saved.';
-  if(c === 'timeout') return 'The image upload timed out. Check your connection and try again.';
-  if(c === 'storage/canceled') return 'Upload cancelled.';
-  return m || 'Unexpected error.'; }
-function ts(v){ try{ var d = v && v.toDate ? v.toDate() : null; return d ? d.toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}) : ''; }catch(e){ return ''; } }
-function ymd(s){ if(!s) return ''; var a = String(s).split('-'); var d = new Date(+a[0], +a[1] - 1, +a[2]); return isNaN(d) ? s : d.toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }
-
-(function(){ if($('hmCss')) return; var s = document.createElement('style'); s.id = 'hmCss';
-  s.textContent = '.hm-bar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px}' +
-  '.hm-form{display:flex;flex-direction:column;gap:12px}.hm-form details{border:1px solid var(--line);border-radius:12px;padding:10px 12px}.hm-form summary{cursor:pointer;font-weight:700;font-size:.92rem}' +
-  '.hm-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:10px}.hm-g .wide{grid-column:1/-1}.hm-g>div{min-width:0}' +
-  '.hm-form label{display:block;font-size:.76rem;color:var(--muted);margin-bottom:3px}.hm-form label i{font-style:normal;color:#c62828}' +
-  '.hm-form input[type=text],.hm-form input[type=url],.hm-form input[type=email],.hm-form input[type=tel],.hm-form input[type=date],.hm-form select,.hm-form textarea{width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font:inherit;font-size:.88rem;min-height:40px}' +
-  '.hm-form textarea{min-height:78px;resize:vertical}.hm-form small{display:block;color:var(--muted);font-size:.72rem;margin-top:3px}' +
-  '.hm-img{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.hm-img img{width:170px;max-width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--bg2)}' +
-  '.hm-st{font-size:.68rem;border-radius:999px;padding:2px 8px;background:var(--bg2);border:1px solid var(--line);margin-left:6px;vertical-align:middle}.hm-st.on{background:var(--accent-light);color:var(--accent-dark);border-color:transparent}' +
-  '.hm-msg{border-radius:10px;padding:9px 12px;font-size:.85rem;margin-bottom:8px}.hm-msg.err{background:rgba(198,40,40,.1);border:1px solid #c62828;color:#c62828}.hm-msg.ok{background:rgba(46,125,50,.1);border:1px solid #2E7D32;color:#2E7D32}' +
-  '.hm-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.hm-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;position:sticky;bottom:0;padding:8px 0;background:var(--card,var(--bg,transparent))}';
-  document.head.appendChild(s); })();
-
-window.odHackStop = function(){ if(A.unsub){ try{ A.unsub(); }catch(e){} A.unsub = null; } if(A.root){ A.root.onclick = null; A.root.onchange = null; } };
-window.odHackRender = function(b){
-  window.odHackStop(); A.root = b;
-  if(!owner()){ b.innerHTML = '<div class="hm-msg err">Admins only.</div>'; return; }
-  if(typeof fbDb === 'undefined' || !fbDb){ b.innerHTML = '<div class="hm-msg err">Still connecting to Firebase… reopen this tab in a moment.</div>'; return; }
-  b.innerHTML = '<div id="hmMsg" aria-live="polite"></div><div id="hmMain"></div>';
-  b.onclick = onClick; b.onchange = onChange; A.view = 'list'; A.rows = null; paint();
-  try{ A.unsub = col().orderBy('updatedAt', 'desc').limit(200).onSnapshot(function(sn){ A.rows = sn.docs.map(function(d){ var x = d.data(); x.id = d.id; return x; }); if(A.view === 'list') paint(); },
-    function(e){ A.rows = A.rows || []; if(A.view === 'list') paint(); note('err', errText(e)); }); }catch(e){ note('err', errText(e)); }
-};
-function paint(){ var m = $('hmMain'); if(!m) return; m.innerHTML = A.view === 'list' ? listPane() : formPane(); if(A.view === 'form') showPrev(); }
-
-function listPane(){
-  var h = '<div class="hm-bar"><div class="settings-section-title" style="margin:0">Hackathon Management</div><button type="button" class="btn btn-primary" data-hm="new">＋ Add Hackathon</button></div>' +
-    '<small style="color:var(--muted)">Published hackathons appear in Connect → Discover → Events for everyone. Drafts stay hidden.</small>';
-  if(A.rows === null) return h + '<div style="padding:18px;text-align:center;color:var(--muted)">Loading…</div>';
-  if(!A.rows.length) return h + '<p style="padding:14px 0;color:var(--muted)">No hackathons added yet. Tap “Add Hackathon” to create the first one.</p>';
-  return h + A.rows.map(function(r){
-    var pub = r.published === true;
-    return '<div class="od-row"><div><b>' + esc(r.title) + '</b><span class="hm-st' + (pub ? ' on' : '') + '">' + (pub ? 'Published' : 'Draft') + '</span>' +
-      '<small>' + esc(ymd(r.startDate)) + (r.endDate ? ' – ' + esc(ymd(r.endDate)) : '') + (r.organizer ? ' · ' + esc(r.organizer) : '') + '</small></div>' +
-      '<div class="hm-acts"><button type="button" class="btn btn-ghost" data-hm="edit" data-id="' + esc(r.id) + '">Edit</button>' +
-      '<button type="button" class="btn btn-ghost" data-hm="pub" data-id="' + esc(r.id) + '">' + (pub ? 'Unpublish' : 'Publish') + '</button>' +
-      '<button type="button" class="btn btn-ghost" data-hm="del" data-id="' + esc(r.id) + '">Delete</button></div></div>'; }).join('');
-}
-
-function inp(id, label, type, v, ph, max, wide, req){ return '<div' + (wide ? ' class="wide"' : '') + '><label for="' + id + '">' + label + (req ? ' <i>*</i>' : '') + '</label><input id="' + id + '" type="' + type + '" value="' + esc(v) + '" placeholder="' + esc(ph || '') + '" maxlength="' + (max || 200) + '" autocomplete="off"' + (type === 'url' || type === 'email' ? ' autocapitalize="none" spellcheck="false"' : '') + '></div>'; }
-function area(id, label, v, ph, max, hint){ return '<div class="wide"><label for="' + id + '">' + label + '</label><textarea id="' + id + '" maxlength="' + max + '" placeholder="' + esc(ph || '') + '">' + esc(v) + '</textarea>' + (hint ? '<small>' + hint + '</small>' : '') + '</div>'; }
-var LOC_TAGS = [['mysuru', 'Mysuru'], ['karnataka', 'Karnataka']];
-function locOf(r){ return (Array.isArray(r.themes) ? r.themes : []).filter(function(t){ return /^loc:/.test(t); }).map(function(t){ return String(t).slice(4); }); }
-function locTagsField(r){ var on = locOf(r); return '<div class="wide"><label>Location tags</label><div style="display:flex;gap:14px;flex-wrap:wrap">' + LOC_TAGS.map(function(t){ return '<label style="display:flex;gap:6px;align-items:center;font-size:.88rem;color:var(--text);margin:0"><input type="checkbox" data-loctag="' + t[0] + '"' + (on.indexOf(t[0]) > -1 ? ' checked' : '') + '> ' + t[1] + '</label>'; }).join('') + '</div><small>Shows the hackathon under these filters in Events. A city of Mysuru is tagged Mysuru automatically; Mysuru hackathons are listed first.</small></div>'; }
-function sel(id, label, opts, v){ return '<div><label for="' + id + '">' + label + '</label><select id="' + id + '">' + opts.map(function(o){ return '<option value="' + esc(o[0]) + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></div>'; }
-function join(a){ return (Array.isArray(a) ? a : []).join('\n'); }
-function pj(a, k1, k2){ return (Array.isArray(a) ? a : []).map(function(p){ return (p[k1] || '') + (p[k2] ? ' | ' + p[k2] : ''); }).join('\n'); }
-
-function formPane(){
-  var r = A.cur || {}, e = !!A.id;
-  return '<div class="hm-bar"><div class="settings-section-title" style="margin:0">' + (e ? 'Edit hackathon' : 'Add hackathon') + '</div></div><div class="hm-form">' +
-  '<details open><summary>Basic information</summary><div class="hm-g">' +
-    inp('hm_title', 'Hackathon name', 'text', r.title, 'e.g. Campus Loop Hack 2026', 120, true, true) +
-    sel('hm_kind', 'Category / type', KINDS.map(function(k){ return [k, k]; }), r.kind || 'Hackathon') + inp('hm_org', 'Organizer name', 'text', r.organizer, '', 120) +
-    area('hm_short', 'Short description (shown on the card)', r.shortDesc, '', 300) + area('hm_about', 'Detailed description', r.about, '', 5000) +
-    '<div class="wide"><label>Cover image</label><div class="hm-img"><img id="hmPrev" alt="Cover preview" class="hidden"><div><input id="hm_file" type="file" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG or WebP, up to 3 MB. A 16:9 picture looks best.</small>' +
-    '<button type="button" class="btn btn-ghost hidden" id="hmRmImg" data-hm="rmimg" style="margin-top:6px">Remove image</button><div id="hmProg" style="font-size:.78rem;color:var(--muted)"></div></div></div></div>' +
-    inp('hm_web', 'Event website URL', 'url', r.website, 'https://', 300) + inp('hm_reg', 'Registration URL', 'url', r.regUrl, 'https://', 300) +
-  '</div></details>' +
-  '<details open><summary>Dates and participation</summary><div class="hm-g">' +
-    inp('hm_start', 'Start date', 'date', r.startDate, '', 10, false, true) + inp('hm_end', 'End date', 'date', r.endDate, '', 10) + inp('hm_dl', 'Registration deadline', 'date', r.deadline, '', 10) +
-    inp('hm_dur', 'Event duration', 'text', r.duration, 'e.g. 24 hours', 60) +
-    sel('hm_mode', 'Mode', [['offline', 'Offline'], ['online', 'Online'], ['hybrid', 'Hybrid']], r.mode || 'offline') + inp('hm_venue', 'Venue / location', 'text', r.venue, 'Venue name or platform', 120) +
-    inp('hm_city', 'City', 'text', r.city, '', 80) + inp('hm_state', 'State', 'text', r.state, '', 80) +
-    locTagsField(r) +
-    inp('hm_elig', 'Eligibility', 'text', r.eligibility, 'e.g. All engineering students', 200) + inp('hm_team', 'Team size', 'text', r.teamSize, 'e.g. 2–4 members', 60) + inp('hm_fee', 'Registration fee', 'text', r.fee, 'e.g. Free / Rs 200', 60) +
-  '</div></details>' +
-  '<details><summary>Additional information</summary><div class="hm-g">' +
-    inp('hm_prize', 'Prize pool', 'text', r.prize, 'e.g. Rs 50,000', 120, true) + inp('hm_themes', 'Themes / domains / tracks', 'text', join((r.themes || []).filter(function(t){ return !/^loc:/.test(t); })).replace(/\n/g, ', '), 'Comma separated, e.g. AI, Web Dev', 400, true) +
-    area('hm_prob', 'Problem statements', pj(r.problems, 'title', 'text'), 'One per line: Title | short description', 4000, 'One per line. Use “|” to separate the title from the description.') +
-    area('hm_rules', 'Rules and guidelines', join(r.rules), 'One rule per line', 4000) + area('hm_perks', 'Perks and benefits', join(r.perks), 'One per line', 3000) +
-    area('hm_dates', 'Important dates', pj(r.dates, 'label', 'value'), 'One per line: Label | Date, e.g. Round 1 results | 12 Mar 2027', 3000) +
-    inp('hm_email', 'Contact email', 'email', r.contactEmail, '', 120) + inp('hm_phone', 'Contact phone', 'tel', r.contactPhone, '', 20) +
-  '</div></details>' +
-  '<label style="display:flex;gap:8px;align-items:center;font-size:.88rem;color:var(--text)"><input type="checkbox" id="hm_pub"' + (r.published === true || (!e) ? ' checked' : '') + '> Publish now (visible to all students)</label>' +
-  '<div class="hm-foot"><button type="button" class="btn btn-ghost" data-hm="cancel" id="hmCancel">Cancel</button><button type="button" class="btn btn-primary" data-hm="save" id="hmSave">' + (e ? 'Save changes' : 'Add hackathon') + '</button></div></div>';
-}
-function showPrev(){ var im = $('hmPrev'), rm = $('hmRmImg'); if(!im) return;
-  var src = A.file ? A.prev : (A.rm ? '' : ((A.cur && A.cur.imageUrl) || ''));
-  if(src){ im.src = src; im.classList.remove('hidden'); } else { im.removeAttribute('src'); im.classList.add('hidden'); }
-  if(rm) rm.classList.toggle('hidden', !src); }
-
-function onChange(ev){
-  if(!ev.target || ev.target.id !== 'hm_file') return; var f = ev.target.files && ev.target.files[0]; A.file = null; A.prev = '';
-  if(!f){ showPrev(); return; }
-  if(!TYPES[f.type]){ ev.target.value = ''; note('err', 'Please choose a JPG, PNG or WebP image.'); showPrev(); return; }
-  if(f.size > MAXIMG){ ev.target.value = ''; note('err', 'That image is ' + (f.size / 1048576).toFixed(1) + ' MB. Please choose one under 3 MB.'); showPrev(); return; }
-  note('', ''); var fr = new FileReader();
-  fr.onload = function(){ A.file = f; A.prev = String(fr.result); A.rm = false; showPrev(); };
-  fr.onerror = function(){ note('err', 'Could not read that image.'); };
-  fr.readAsDataURL(f);
-}
-function onClick(ev){
-  var b = ev.target.closest && ev.target.closest('[data-hm]'); if(!b || A.busy) return; var k = b.dataset.hm, id = b.dataset.id;
-  var row = id && (A.rows || []).filter(function(r){ return r.id === id; })[0];
-  if(k === 'new'){ A.id = null; A.cur = null; A.file = null; A.prev = ''; A.rm = false; A.view = 'form'; note('', ''); paint(); }
-  else if(k === 'edit' && row){ A.id = row.id; A.cur = row; A.file = null; A.prev = ''; A.rm = false; A.view = 'form'; note('', ''); paint(); }
-  else if(k === 'cancel'){ A.view = 'list'; note('', ''); paint(); }
-  else if(k === 'rmimg'){ A.file = null; A.prev = ''; A.rm = true; var fi = $('hm_file'); if(fi) fi.value = ''; showPrev(); }
-  else if(k === 'save') save();
-  else if(k === 'pub' && row) setPub(row);
-  else if(k === 'del' && row) del(row);
-}
-
-function val(id){ var e = $(id); return e ? String(e.value || '').trim() : ''; }
-function lines(id, n){ return val(id).split('\n').map(function(s){ return s.trim(); }).filter(Boolean).slice(0, n); }
-function pairs(id, k1, k2){ return lines(id, 20).map(function(l){ var i = l.indexOf('|'), o = {}; o[k1] = (i < 0 ? l : l.slice(0, i)).trim().slice(0, 120); o[k2] = (i < 0 ? '' : l.slice(i + 1)).trim().slice(0, 400); return o; }).filter(function(o){ return o[k1]; }); }
-function url(id, label){ var v = val(id); if(!v) return ''; var ok = /^https?:\/\/[^\s]+$/i.test(v); if(ok){ try{ new URL(v); }catch(e){ ok = false; } } if(!ok) throw new Error(label + ' must be a full link starting with http:// or https://'); return v; }
-function dateOk(id, label){ var v = val(id); if(!v) return ''; var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v), d = m && new Date(+m[1], +m[2] - 1, +m[3]); if(!d || d.getMonth() !== +m[2] - 1 || +m[1] < 2000 || +m[1] > 2100) throw new Error(label + ' is not a valid date.'); return v; }
-function collect(){
-  var d = {title:val('hm_title'), kind:val('hm_kind'), shortDesc:val('hm_short'), about:val('hm_about'), organizer:val('hm_org')};
-  if(!d.title) throw new Error('Please enter the hackathon name.');
-  d.website = url('hm_web', 'Event website URL'); d.regUrl = url('hm_reg', 'Registration URL');
-  d.startDate = dateOk('hm_start', 'Start date'); if(!d.startDate) throw new Error('Please choose the start date. Listings need a date to be sorted and filtered.');
-  d.endDate = dateOk('hm_end', 'End date'); d.deadline = dateOk('hm_dl', 'Registration deadline');
-  if(d.endDate && d.endDate < d.startDate) throw new Error('The end date cannot be before the start date.');
-  if(d.deadline && d.deadline > (d.endDate || d.startDate)) throw new Error('The registration deadline cannot be after the event ends.');
-  d.duration = val('hm_dur'); d.mode = val('hm_mode'); d.venue = val('hm_venue'); d.city = val('hm_city'); d.state = val('hm_state');
-  d.eligibility = val('hm_elig'); d.teamSize = val('hm_team'); d.fee = val('hm_fee'); d.prize = val('hm_prize');
-  var lt = [].slice.call(document.querySelectorAll('#odBody [data-loctag]:checked')).map(function(c){ return 'loc:' + c.getAttribute('data-loctag'); });   // location tags ride in themes so no new Firestore field is needed
-  d.themes = val('hm_themes').split(',').map(function(s){ return s.trim().slice(0, 40); }).filter(function(s){ return s && !/^loc:/.test(s); }).slice(0, 12 - lt.length).concat(lt);
-  d.problems = pairs('hm_prob', 'title', 'text'); d.rules = lines('hm_rules', 30).map(function(s){ return s.slice(0, 300); }); d.perks = lines('hm_perks', 30).map(function(s){ return s.slice(0, 200); });
-  d.dates = pairs('hm_dates', 'label', 'value');
-  d.contactEmail = val('hm_email'); if(d.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.contactEmail)) throw new Error('Contact email is not valid.');
-  d.contactPhone = val('hm_phone'); if(d.contactPhone && !/^[0-9+()\-\s]{6,20}$/.test(d.contactPhone)) throw new Error('Contact phone can only contain digits, spaces, + ( ) and -.');
-  d.published = !!($('hm_pub') && $('hm_pub').checked);
-  return d;
-}
-
-function storage(){ return typeof chatStorageReady === 'function' ? chatStorageReady() : Promise.resolve(firebase.storage()); }
-function upload(id, file){
-  return storage().then(function(st){
-    var path = 'hackathonCovers/' + id + '/' + Date.now() + '.' + TYPES[file.type];
-    return new Promise(function(res, rej){
-      var t = st.ref(path).put(file, {contentType:file.type, cacheControl:'public,max-age=31536000'}), done = false;
-      var to = setTimeout(function(){ if(done) return; done = true; try{ t.cancel(); }catch(e){} rej(Object.assign(new Error('timeout'), {code:'timeout'})); }, 120000);
-      t.on('state_changed', function(s){ var p = $('hmProg'); if(p) p.textContent = 'Uploading image… ' + Math.round(100 * s.bytesTransferred / s.totalBytes) + '%'; },
-        function(e){ if(done) return; done = true; clearTimeout(to); rej(e); },
-        function(){ if(done) return; done = true; clearTimeout(to); t.snapshot.ref.getDownloadURL().then(function(u){ res({url:u, path:path}); }, rej); });
-    });
-  });
-}
-function dropFile(path){ if(path) storage().then(function(st){ return st.ref(path).delete(); }).catch(function(){}); }
-function lock(on){ A.busy = on; ['hmSave', 'hmCancel'].forEach(function(i){ var b = $(i); if(b) b.disabled = on; }); var s = $('hmSave'); if(s) s.textContent = on ? 'Saving…' : (A.id ? 'Save changes' : 'Add hackathon'); }
-
-function save(){
-  if(A.busy) return; if(!owner()){ note('err', 'Admins only.'); return; }
-  var d; try{ d = collect(); }catch(e){ note('err', e.message); return; }
-  lock(true); note('', '');
-  var isNew = !A.id, id = A.id || col().doc().id, old = A.cur || {}, up = null, FV = firebase.firestore.FieldValue;
-  var p = Promise.resolve();
-  if(A.file) p = upload(id, A.file).then(function(r){ up = r; d.imageUrl = r.url; d.imagePath = r.path; });
-  else { d.imageUrl = A.rm ? '' : (old.imageUrl || ''); d.imagePath = A.rm ? '' : (old.imagePath || ''); }
-  p.then(function(){
-    d.source = 'manual'; d.updatedAt = FV.serverTimestamp();
-    if(isNew){ d.createdAt = FV.serverTimestamp(); d.createdBy = firebase.auth().currentUser.uid; } else { d.createdAt = old.createdAt; d.createdBy = old.createdBy; }
-    return col().doc(id).set(d);
-  }).then(function(){
-    if(old.imagePath && old.imagePath !== d.imagePath) dropFile(old.imagePath);
-    lock(false); A.view = 'list'; A.file = null; paint(); note('ok', (isNew ? 'Hackathon added' : 'Changes saved') + (d.published ? ' and visible in Events.' : ' as a draft (hidden from students).'));
-  }).catch(function(e){ if(up) dropFile(up.path); lock(false); var pr = $('hmProg'); if(pr) pr.textContent = ''; note('err', 'Not saved. ' + errText(e)); });
-}
-function setPub(r){
-  A.busy = true; col().doc(r.id).update({published:r.published !== true, updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
-    .then(function(){ A.busy = false; note('ok', r.published === true ? '“' + r.title + '” is now hidden from students.' : '“' + r.title + '” is now published.'); })
-    .catch(function(e){ A.busy = false; note('err', errText(e)); });
-}
-function del(r){
-  var ask = typeof openConfirm === 'function' ? openConfirm : function(t, m, ok){ if(window.confirm(t + '\n' + m)) ok(); };
-  ask('Delete this hackathon?', '“' + r.title + '” will be removed for everyone, including its cover image. This cannot be undone.', function(){
-    A.busy = true; col().doc(r.id).delete().then(function(){ A.busy = false; dropFile(r.imagePath); note('ok', 'Hackathon deleted.'); })
-      .catch(function(e){ A.busy = false; note('err', errText(e)); });
-  }, 'Delete');
-}
-})();
-</script>
 </body>
 </html>
