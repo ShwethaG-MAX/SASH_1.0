@@ -4043,7 +4043,7 @@ body.cl-ov-open .toast-host{z-index:9800 !important}
 <div class="mode-bar-wrap" id="cnModeWrap">
   <div class="mode-bar" role="tablist" aria-label="Connect modes">
     <button type="button" class="mode-btn active" role="tab" data-cn="posting" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span> <span class="mb-full">Posting</span><span class="mb-short">Posting</span></button>
-    <button type="button" class="mode-btn" role="tab" data-cn="teams" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span> <span class="mb-full">Teams</span><span class="mb-short">Teams</span></button>
+    <button type="button" class="mode-btn" role="tab" data-cn="teams" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span> <span class="mb-full">Teams</span><span class="mt-dot" id="cnTmN" style="display:none" aria-label="Pending team requests"></span><span class="mb-short">Teams</span></button>
     <button type="button" class="mode-btn" role="tab" data-cn="events" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> <span class="mb-full">Events</span><span class="mb-short">Events</span></button>
     <button type="button" class="mode-btn" role="tab" data-cn="articles" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg></span> <span class="mb-full">Articles</span><span class="mb-short">Articles</span></button>
   </div>
@@ -18677,7 +18677,7 @@ function evPage(i){
   var links = []; if(x.reg) links.push(['Official registration page', x.reg]); if(x.url && lvUrlKey(x.url) !== lvUrlKey(x.reg)) links.push(['Official website', x.url]);
   (x.sources || []).forEach(function(s){ if(s.url && !links.some(function(k){ return lvUrlKey(k[1]) === lvUrlKey(s.url); })) links.push(['Listed on ' + s.name, s.url]); });
   var linkHtml = links.map(function(l){ var h = ''; try{ h = new URL(l[1]).hostname; }catch(e){} return '<a class="ep-link" href="' + esc(l[1]) + '" target="_blank" rel="noopener noreferrer"><span><b>' + l[0] + '</b><small>' + esc(h) + '</small></span>↗</a>'; }).join('');
-  var teamsReg = []; try{ var rs = rgAll(); (JSON.parse(localStorage.getItem('csec_myteams')) || []).forEach(function(t){ if(rs[id] && rs[id].tid === t.id) teamsReg.push(t); }); }catch(e){}
+  var teamsReg = []; try{ var rs = rgAll(); myTeams.forEach(function(t){ if(rs[id] && rs[id].tid === t.id) teamsReg.push(t); }); }catch(e){}
   var teamsHtml = teamsReg.length ? teamsReg.map(function(t){ return '<div class="ep-team"><b>' + esc(t.name) + '</b><small>' + (1 + (t.members || []).length) + ' members · registered</small></div>'; }).join('') : '<p class="ep-mute">No teams have registered for this event yet.</p>';
   var inter = evFlag('csec_ev_interested', id), rem = evFlag('csec_ev_remind', id);
   var banStyle = x.img ? ' style="background-image:url(' + esc(x.img) + ');background-position:' + esc(x.pos || 'center') + '"' : '';
@@ -18716,7 +18716,7 @@ var RG_KEY = 'csec_event_regs';
 function rgAll(){ try{ return JSON.parse(localStorage.getItem(RG_KEY)) || {}; }catch(e){ return {}; } }
 function rgSet(id, v){ var a = rgAll(); if(v) a[id] = v; else delete a[id]; try{ localStorage.setItem(RG_KEY, JSON.stringify(a)); }catch(e){} }
 function evSize(x){ var m = /(\d+)\s*(?:[–\-]|to)\s*(\d+)/i.exec(String(x.team || '')); return m ? {min:+m[1], max:+m[2]} : (/solo|individual|\b1\b/i.test(String(x.team || '')) ? {min:1, max:1} : (/team/i.test(String(x.team || '')) ? {min:1, max:99} : {min:1, max:99})); }
-function myLedTeams(){ var a; try{ a = JSON.parse(localStorage.getItem('csec_myteams')); }catch(e){ a = null; } var k = String(me()).trim().toLowerCase(); return (Array.isArray(a) ? a : []).filter(function(t){ return t && String(t.owner).trim().toLowerCase() === k; }); }
+function myLedTeams(){ return myTeams.filter(isOwner); }
 function evMore(i, m){
   var x = EV[i], d = dlInfo(x), sz = evSize(x), box = m.querySelector('.cn-evb'); if(!box) return;
   var r = rgAll()[evId(x)];
@@ -18735,7 +18735,7 @@ function rgChoose(i){
   var o = document.createElement('div'); o.className = 'rg-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
   function draw(){
     var tl = '';
-    if(mode === 'team'){ tl = teams.length ? '<div class="rg-teams">' + teams.map(function(t, j){ var n = 1 + (t.members || []).length, bad = n > sz.max || n < sz.min; return '<button type="button" class="rg-opt' + (pick === j ? ' on' : '') + '" data-t="' + j + '"' + (bad ? ' disabled' : '') + '><span class="e">👥</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + ' · ' + esc(t.project || '') + (bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('') + '</div>' : '<p style="margin-top:12px">You have not created a team yet. Create one in Connect → Teams, then register.</p>'; }
+    if(mode === 'team'){ tl = teams.length ? '<div class="rg-teams">' + teams.map(function(t, j){ var n = cnt(t), bad = n > sz.max || n < sz.min; return '<button type="button" class="rg-opt' + (pick === j ? ' on' : '') + '" data-t="' + j + '"' + (bad ? ' disabled' : '') + '><span class="e">👥</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + ' · ' + esc(t.project || '') + (bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('') + '</div>' : '<p style="margin-top:12px">You do not lead a team yet. Create one in Connect → Teams, then register.</p>'; }
     o.innerHTML = '<div class="rg-box"><h3>Register for ' + esc(x.t) + '</h3><p>How do you want to participate?</p>' +
       '<button type="button" class="rg-opt' + (mode === 'solo' ? ' on' : '') + '" data-m="solo"' + (sz.min > 1 ? ' disabled' : '') + '><span class="e">🧑</span><span><b>Solo</b><small>' + (sz.min > 1 ? 'Not allowed – this event needs a team (' + esc(x.team) + ')' : 'Participate on your own') + '</small></span></button>' +
       '<button type="button" class="rg-opt' + (mode === 'team' ? ' on' : '') + '" data-m="team"' + (sz.max < 2 ? ' disabled' : '') + '><span class="e">👥</span><span><b>Team</b><small>' + (sz.max < 2 ? 'This event is solo only' : 'Pick one of the teams you created') + '</small></span></button>' + tl +
@@ -18745,7 +18745,7 @@ function rgChoose(i){
     var b = e.target.closest('button'); if(!b || b.disabled) return;
     if(b.dataset.m){ mode = b.dataset.m; pick = null; draw(); }
     else if(b.dataset.t != null){ pick = +b.dataset.t; draw(); }
-    else if(b.hasAttribute('data-ok')){ rgSet(evId(x), mode === 'solo' ? {type:'solo'} : {type:'team', team: teams[pick].name, tid: teams[pick].id}); reg[i] = true; o.remove(); drawEvents(); reshow(); toast('Registered' + (mode === 'solo' ? ' as Solo' : ' with team ' + teams[pick].name) + ' (demo)'); }
+    else if(b.hasAttribute('data-ok')){ if(mode === 'team' && !(tById(teams[pick].id) && isOwner(tById(teams[pick].id)))){ o.remove(); return toast('That team is no longer available.', 'err'); } rgSet(evId(x), mode === 'solo' ? {type:'solo'} : {type:'team', team: teams[pick].name, tid: teams[pick].id}); reg[i] = true; o.remove(); drawEvents(); reshow(); toast('Registered' + (mode === 'solo' ? ' as Solo' : ' with team ' + teams[pick].name) + ' (demo)'); }
   });
   document.body.appendChild(o); draw();
 }
@@ -18827,32 +18827,86 @@ root.addEventListener('click', function(e){
 window.addEventListener('hashchange', function(){ var r = parse(location.hash.replace('#', '')); if(r) go(r[0], r[1], {noHash:true}); });
 window.addEventListener('cse:sectionchange', function(e){ if(e.detail && e.detail.section === 'connect' && e.detail.previous !== 'connect'){ sync(); setHash(); } else sync(); });
 /* ---------- Teams → MY TEAM ----------
-   Frontend only. Teams, members, rules, join requests and their statuses are saved in localStorage ("csec_myteams"),
+   Live: teams, members, join requests and notifications come from Firestore (see the Teams block below);
    so everything survives a refresh on this device. No Firebase / backend calls. */
 ICN.crown = '<path d="M3 18h18M4 16 3 6l5 4 4-6 4 6 5-4-1 10z"/>';
 ICN.plus = '<path d="M12 5v14M5 12h14"/>';
 ICN.x = '<path d="M18 6 6 18M6 6l12 12"/>';
 ICN.minus = '<path d="M5 12h14"/>';
+/* ---------- Teams (real): Firestore listeners + `teams` Cloud Functions (asia-south1). Replaces the old localStorage layer. ----------
+   Reads: teams (all), teams where I am a member, teams/{id}/members (my teams only), teamRequests (to me / from me), teamNotifs/{uid}/items.
+   Writes: ONLY through callables (teamCreate, teamUpdate, teamDelete, teamRequestSend/Cancel/Decide, teamRemoveMember, teamLeave, teamTransfer). */
+var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}, fnT = null, tmT = 0;
+function tCall(name, data){ return cFns().then(function(){ if(!fnT) fnT = firebase.app().functions('asia-south1'); return fnT.httpsCallable(name, {timeout: 30000})(data || {}); }).then(function(r){ return r.data; }); }
+function tAct(name, data, okMsg){
+  if(!TM.uid){ toast('Sign in with your student account to use Teams.', 'err'); return Promise.resolve(false); }
+  return tCall(name, data).then(function(r){ if(okMsg) toast(okMsg); return r || true; }, function(e){ toast(cErr(e), 'err'); return false; });
+}
+function tmDis(){ try{ return JSON.parse(localStorage.getItem('csec_team_dismissed')) || {}; }catch(e){ return {}; } }
+function tmReq(d){ var x = d.data(), pend = x.status === 'pending'; return {id: d.id, teamId: x.teamId, uid: x.from, to: x.to, name: x.fromName || 'Student', branch: x.fromBranch || '', year: x.fromYear || '', sem: '', section: '', skills: [], msg: x.message || '', status: x.status, at: tms(x.createdAt) || Date.now(), at2: pend ? 0 : (tms(x.updatedAt) || 0)}; }
+function tmBuild(){
+  var ids = {}, dis = tmDis(), out = [];
+  Object.keys(TM.all).forEach(function(k){ ids[k] = TM.all[k]; }); Object.keys(TM.mine).forEach(function(k){ ids[k] = TM.mine[k]; });
+  Object.keys(ids).forEach(function(id){
+    var d = ids[id], t = {id: id, name: d.name || 'Team', project: d.project || '', desc: d.desc || '', skills: d.skills || [], max: d.maxMembers || 2, elig: d.eligibility || '', rules: d.rules || '', owner: d.leaderName || 'Student', ownerUid: d.leaderUid, open: d.open !== false, count: d.memberCount || 1, uids: d.memberUids || [], created: tms(d.createdAt), members: [], requests: []};
+    if(TM.mem[id]) t.members = TM.mem[id].filter(function(m){ return m.uid !== t.ownerUid; });
+    if(t.ownerUid === TM.uid) t.requests = TM.inc.filter(function(r){ return r.teamId === id && MT_ST[r.status]; });
+    else t.requests = TM.out.filter(function(r){ return r.teamId === id && MT_ST[r.status]; }).map(function(r){ r.dismissed = !!dis[r.id]; return r; });
+    out.push(t);
+  });
+  out.sort(function(a, b){ return b.created - a.created; }); myTeams = out;
+}
+function tmPending(){ return TM.inc.filter(function(r){ return r.status === 'pending' && TM.all[r.teamId] || r.status === 'pending' && TM.mine[r.teamId]; }).length; }
+function tmBadge(){ var b = document.getElementById('cnTmN'); if(!b) return; var n = tmPending(); b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; }
+function tmPaint(){
+  if(tmT) return;
+  tmT = setTimeout(function(){
+    tmT = 0; tmBuild(); drawMyTeam(); drawTeams(); tmBadge();
+    if(mtDash && mtM && !mtM.classList.contains('hidden')){
+      var t = tById(mtDash.id), ed = document.activeElement && document.activeElement.closest && document.activeElement.closest('#mtEdit');
+      if(!t || !isOwner(t)) mtClose(); else if(!(mtDash.tab === 'det' && ed)) dashRefresh();
+    }
+  }, 40);
+}
+function tmLis(key, q, fn){ TM.un.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Teams]', e); } TM.ok[key] = 1; TM.err = 0; tmPaint(); }, function(e){ console.warn('[Teams] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); TM.err = 1; tmPaint(); })); }
+function tmSyncMembers(db){
+  Object.keys(TM.mun).forEach(function(id){ if(!TM.mine[id]){ try{ TM.mun[id](); }catch(e){} delete TM.mun[id]; delete TM.mem[id]; } });
+  Object.keys(TM.mine).forEach(function(id){
+    if(TM.mun[id]) return;
+    TM.mun[id] = db.collection('teams').doc(id).collection('members').onSnapshot(function(s){
+      TM.mem[id] = s.docs.map(function(d){ var x = d.data(); return {uid: d.id, name: x.name || 'Student', branch: x.branch || '', year: x.year || '', role: x.role, sem: '', section: '', skills: [], joined: tms(x.joinedAt) || Date.now()}; }); tmPaint();
+    }, function(e){ console.warn('[Teams] members listener', e && e.code); });
+  });
+}
+function tmNote(n){
+  var t = n.teamName || 'a team', f = n.fromName || 'Someone';
+  return n.type === 'request' ? f + ' wants to join ' + t : n.type === 'accepted' ? 'You are in! ' + t + ' accepted your request' : n.type === 'rejected' ? t + ' declined your request' :
+    n.type === 'removed' ? 'You were removed from ' + t : n.type === 'left' ? f + ' left ' + t : n.type === 'disbanded' ? t + ' was deleted by its leader' : n.type === 'transferred' ? 'You are now the leader of ' + t : 'Team update: ' + t;
+}
+function tmStart(uid){
+  var db = fb(); if(!db) return; TM.uid = uid; TM.nfirst = true;
+  tmLis('all', db.collection('teams').orderBy('createdAt', 'desc').limit(200), function(s){ TM.all = {}; s.docs.forEach(function(d){ TM.all[d.id] = d.data(); }); });
+  tmLis('mine', db.collection('teams').where('memberUids', 'array-contains', uid), function(s){ TM.mine = {}; s.docs.forEach(function(d){ TM.mine[d.id] = d.data(); }); tmSyncMembers(db); });
+  tmLis('inc', db.collection('teamRequests').where('to', '==', uid), function(s){ TM.inc = s.docs.map(tmReq); });
+  tmLis('out', db.collection('teamRequests').where('from', '==', uid), function(s){ TM.out = s.docs.map(tmReq); });
+  tmLis('n', db.collection('teamNotifs').doc(uid).collection('items').orderBy('createdAt', 'desc').limit(30), function(s){
+    var fresh = [];
+    s.docChanges().forEach(function(c){ if(c.type !== 'added') return; var n = c.doc.data(); if(TM.nfirst ? n.read === false : !c.doc.metadata.hasPendingWrites){ fresh.push(n); } if(n.read === false){ try{ c.doc.ref.update({read: true}).catch(function(){}); }catch(e){} } });
+    TM.nfirst = false;
+    if(fresh.length === 1) toast(tmNote(fresh[0])); else if(fresh.length > 1) toast(fresh.length + ' new team updates. ' + tmNote(fresh[0]) + '.');
+  });
+}
+function tmStop(){
+  TM.un.forEach(function(f){ try{ f(); }catch(e){} }); Object.keys(TM.mun).forEach(function(k){ try{ TM.mun[k](); }catch(e){} });
+  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}; tmPaint();
+}
+function tmTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id === TM.uid) return; tmStop(); if(id) tmStart(id); }
 var MT_KEY = 'csec_myteams', MT_SKILLS = ['React', 'Python', 'Node.js', 'UI/UX', 'Machine Learning', 'Flutter', 'Figma', 'C++', 'Firebase', 'Arduino'];
 var mtc = $('#cnMyTeam'), myTeams = [], mtM = null, mtSk = [], mtAsk = '', mtAskL = '', mtAskR = '', mtBack = null, mtOk = true, mtSeen = {};
 function mtIn(k){ if(mtSeen[k]) return ''; mtSeen[k] = 1; return ' mt-in'; }
-function mtLoad(){
-  var a, fix = false; try{ a = JSON.parse(localStorage.getItem(MT_KEY)); }catch(e){ a = null; }
-  var seen = {};
-  myTeams = (Array.isArray(a) ? a : []).filter(function(t){ if(!t || typeof t !== 'object' || !t.id || !t.name || !Array.isArray(t.skills) || seen[t.id]) return false; seen[t.id] = 1; return true; }).map(function(t){
-    if(!t.owner || !Array.isArray(t.members) || !Array.isArray(t.requests) || typeof t.open !== 'boolean' || !(+t.max >= 2)){ fix = true; }
-    t.owner = t.owner || me(); t.open = t.open !== false; t.max = +t.max >= 2 ? +t.max : 4;
-    t.project = t.project || ''; t.desc = t.desc || ''; t.elig = t.elig || ''; t.rules = t.rules || '';
-    var mk = {};
-    t.members = (Array.isArray(t.members) ? t.members : []).filter(function(m){ var k = m && nrm(m.name); if(!k || mk[k] || k === nrm(t.owner)) return false; mk[k] = 1; return true; });
-    var rk = {};
-    t.requests = (Array.isArray(t.requests) ? t.requests : []).filter(function(r){ var k = r && r.id && r.name && MT_ST[r.status] && nrm(r.name); if(!k || rk[k]) return false; rk[k] = 1; return true; });
-    return t;
-  });
-  if(fix) mtSave();
-}
-function mtSave(){ try{ localStorage.setItem(MT_KEY, JSON.stringify(myTeams)); mtOk = true; }catch(e){ mtOk = false; } return mtOk; }
-function mtToast(m){ if(mtOk) toast(m); else toast(m + ' It could not be saved: this browser is blocking storage, so it will be lost on refresh.', 'err'); }
+function mtLoad(){ /* data now comes from Firestore listeners (tmBuild) */ }
+function mtSave(){ return true; }
+function mtToast(m){ toast(m); }
 function mtLogo(name, i){ return '<span class="cn-logo" style="--c:' + COL[i % COL.length] + '" aria-hidden="true">' + esc(String(name).trim().charAt(0).toUpperCase() || 'T') + '</span>'; }
 function mtChips(a){ return a.length ? '<div class="cn-chips">' + a.map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div>' : ''; }
 function mtLeader(name, i){ return '<div class="mt-lead">' + av(name, i, 'sm') + '<b>' + esc(name) + '</b><span class="mt-badge">' + ic('crown') + 'Team Leader</span></div>'; }
@@ -18872,7 +18926,7 @@ function drawMyTeam(){
   var led = myTeams.filter(isOwner), jc = myTeams.filter(function(t){ return !isOwner(t) && isMem(t); }),
       rq = myTeams.filter(function(t){ var r = myReq(t); return !isOwner(t) && !isMem(t) && r && !r.dismissed; }), total = led.length + jc.length + rq.length,
       pendAll = led.reduce(function(n, t){ return n + pendN(t); }, 0);
-  var sub = pendAll ? 'You have <b>' + pendAll + '</b> join request' + (pendAll === 1 ? '' : 's') + ' waiting for your review.' : total ? 'The teams you lead, the teams you have joined and your join requests, all in one place.' : 'Lead your own team for a hackathon or competition, or join one from Find Teams.';
+  var sub = !TM.uid ? 'Sign in with your student account to create or join teams.' : TM.err ? 'Could not load teams. Check your connection and try again.' : pendAll ? 'You have <b>' + pendAll + '</b> join request' + (pendAll === 1 ? '' : 's') + ' waiting for your review.' : total ? 'The teams you lead, the teams you have joined and your join requests, all in one place.' : 'Lead your own team for a hackathon or competition, or join one from Find Teams.';
   var html = '<div class="mt-hero"><div><h2>' + ic('users') + 'MY TEAM</h2><p>' + sub + '</p></div>' +
     '<button type="button" class="mt-create" data-mt-new="1">' + ic('plus') + 'Create Team</button></div>';
   if(total){
@@ -18923,16 +18977,16 @@ function mtFormHTML(){
     '<button type="button" class="mt-x" data-mt-close="1" aria-label="Close form">' + ic('x') + '</button></div>' +
     '<div class="mt-mb">' +
     '<div class="cn-row">' +
-      mtField('mtName', 'Team name', '<input class="cn-in" id="mtName" maxlength="60" autocomplete="off" placeholder="e.g. Neural Nomads" aria-describedby="mtNameErr">') +
+      mtField('mtName', 'Team name', '<input class="cn-in" id="mtName" maxlength="50" autocomplete="off" placeholder="e.g. Neural Nomads" aria-describedby="mtNameErr">') +
       mtField('mtProj', 'Project / hackathon / competition', '<input class="cn-in" id="mtProj" maxlength="80" autocomplete="off" placeholder="e.g. Smart India Hackathon 2026" aria-describedby="mtProjErr">') +
     '</div>' +
     mtField('mtDesc', 'Team description', '<textarea class="cn-in" id="mtDesc" maxlength="600" placeholder="What are you building, and what is the goal?" aria-describedby="mtDescErr"></textarea>', false, '<p class="mt-cnt" id="mtDescCnt">0 / 600</p>') +
     mtField('mtSkIn', 'Required skills', '<input class="cn-in" id="mtSkIn" maxlength="24" autocomplete="off" placeholder="Type a skill and press Enter" aria-describedby="mtSkInErr">',
       false, '<div class="mt-sks" id="mtSks"></div><div class="mt-sugg" id="mtSugg" aria-label="Suggested skills"></div>') +
     '<div class="cn-row">' +
-      mtField('mtMax', 'Maximum members', '<div class="mt-step"><button type="button" class="mt-st" data-mt-step="-1" aria-label="Fewer members">' + ic('minus') + '</button><input class="cn-in" id="mtMax" type="number" inputmode="numeric" min="2" max="50" value="4" aria-describedby="mtMaxErr"><button type="button" class="mt-st" data-mt-step="1" aria-label="More members">' + ic('plus') + '</button></div>', false, '<p class="mt-help">Includes you, between 2 and 50.</p>') +
+      mtField('mtMax', 'Maximum members', '<div class="mt-step"><button type="button" class="mt-st" data-mt-step="-1" aria-label="Fewer members">' + ic('minus') + '</button><input class="cn-in" id="mtMax" type="number" inputmode="numeric" min="2" max="20" value="4" aria-describedby="mtMaxErr"><button type="button" class="mt-st" data-mt-step="1" aria-label="More members">' + ic('plus') + '</button></div>', false, '<p class="mt-help">Includes you, between 2 and 20.</p>') +
     '</div>' +
-    mtField('mtElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtElig" maxlength="300" placeholder="e.g. 2nd or 3rd year, any branch, comfortable with Git"></textarea>', true) +
+    mtField('mtElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtElig" maxlength="150" placeholder="e.g. 2nd or 3rd year, any branch, comfortable with Git"></textarea>', true) +
     mtField('mtRules', 'Team rules and guidelines', '<textarea class="cn-in" id="mtRules" maxlength="500" placeholder="e.g. Weekly sync on Saturdays, share work on GitHub, respect each other’s time"></textarea>', true) +
     '</div><div class="mt-ft"><button type="button" class="cn-btn" data-mt-close="1">Cancel</button><button type="submit" class="cn-btn pri">Create Team</button></div></form>';
 }
@@ -18957,18 +19011,18 @@ function mtSubmit(){
   var si = $('#mtSkIn'); if(si && si.value.trim()){ if(mtAddSk(si.value)) si.value = ''; }
   var name = mtVal('mtName'), proj = mtVal('mtProj'), desc = mtVal('mtDesc'), maxRaw = mtVal('mtMax'), max = Number(maxRaw), bad = null;
   function need(id, ok, msg){ mtErr(id, ok ? '' : msg); if(!ok && !bad) bad = id; }
-  need('mtName', name.length >= 2, 'Enter a team name (at least 2 characters).');
+  need('mtName', name.length >= 3, 'Enter a team name (at least 3 characters).');
   need('mtProj', proj.length >= 2, 'Enter the project, hackathon or competition name.');
   need('mtDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
   need('mtSkIn', mtSk.length > 0, 'Add at least one required skill.');
-  need('mtMax', maxRaw !== '' && Math.floor(max) === max && max >= 2 && max <= 50, 'Enter a whole number from 2 to 50.');
-  if(!bad){ mtLoad(); if(myTeams.some(function(x){ return nrm(x.name) === nrm(name); })){ mtErr('mtName', 'A team with this name already exists. Choose a different name.'); bad = 'mtName'; } }
+  need('mtMax', maxRaw !== '' && Math.floor(max) === max && max >= 2 && max <= 20, 'Enter a whole number from 2 to 20.');
+  if(!bad && myTeams.some(function(x){ return nrm(x.name) === nrm(name); })){ mtErr('mtName', 'A team with this name already exists. Choose a different name.'); bad = 'mtName'; }
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
   var sb = $('#mtForm button[type=submit]'); if(sb) sb.disabled = true;
-  var t = {id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name, project: proj, desc: desc, skills: mtSk.slice(), max: max, elig: mtVal('mtElig'), rules: mtVal('mtRules'), created: Date.now(), owner: me(), open: true, members: [], requests: []};
-  mtLoad(); myTeams.unshift(t); mtSave(); mtBack = null; mtClose(); drawMyTeam(); drawTeams();
-  mtToast('Team created. You are the Team Leader.');
-  try{ mtc.scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(e){}
+  tAct('teamCreate', {name: name, project: proj, desc: desc, skills: mtSk.slice(), maxMembers: max, eligibility: mtVal('mtElig'), rules: mtVal('mtRules')}, 'Team created. You are the Team Leader.').then(function(r){
+    if(!r){ if(sb) sb.disabled = false; return; }
+    mtBack = null; mtClose(); tmPaint(); try{ mtc.scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(e){}
+  });
 }
 function mtView(id){
   mtLoad(); var t = tById(id); if(!t) return; var i = myTeams.indexOf(t);
@@ -18986,20 +19040,23 @@ function mtView(id){
 var MT_ST = {pending: 'Pending', accepted: 'Accepted', rejected: 'Rejected'}, mtPool = null, mtDash = null, mtReqT = null, mtAskM = '';
 function nrm(s){ return String(s == null ? '' : s).trim().toLowerCase(); }
 function tById(id){ for(var i = 0; i < myTeams.length; i++){ if(myTeams[i].id === id) return myTeams[i]; } return null; }
-function isOwner(t){ return nrm(t.owner) === nrm(me()); }
-function myReq(t){ var k = nrm(me()); for(var i = 0; i < t.requests.length; i++){ if(nrm(t.requests[i].name) === k) return t.requests[i]; } return null; }
-function isMem(t){ var k = nrm(me()); return t.members.some(function(m){ return nrm(m.name) === k; }); }
-function cnt(t){ return 1 + t.members.length; }
-function full(t){ return cnt(t) >= t.max; }
+function isOwner(t){ return !!TM.uid && t.ownerUid === TM.uid; }
+function myReq(t){ if(isOwner(t)) return null; var r = null; t.requests.forEach(function(x){ if(x.uid === TM.uid && (!r || x.at > r.at)) r = x; }); return (r && r.status === 'rejected' && r.dismissed) ? null : r; }
+function canRetry(r){ return !r || (r.status === 'rejected' && Date.now() - (r.at2 || r.at) > 3600000); }
+function reqBlocked(t){ var r = myReq(t); return !!r && !canRetry(r); }
+function isMem(t){ return !!TM.uid && !isOwner(t) && t.uids.indexOf(TM.uid) > -1; }
+function cnt(t){ return t.count; }
+function full(t){ return t.count >= t.max; }
 function pendN(t){ return t.requests.filter(function(r){ return r.status === 'pending'; }).length; }
-function mutate(fn){ mtLoad(); var ok = fn(); if(ok !== false) mtSave(); return ok; }
+function mutate(fn){ return fn(); }
 function profile(){ var u = {}; try{ u = (typeof currentUser !== 'undefined' && currentUser) || {}; }catch(e){} return {name: me(), branch: String(u.branch || ''), year: String(u.year || ''), sem: String(u.sem || ''), section: String(u.section || '')}; }
 function pLine(p){ var a = []; if(p.branch) a.push(esc(p.branch)); if(+p.year >= 1 && +p.year <= 4) a.push(yl(+p.year)); if(p.sem) a.push('Sem ' + esc(p.sem)); if(p.section) a.push('Sec ' + esc(p.section)); return a.length ? a.join(' · ') : 'Branch and year not set'; }
 function stChip(s){ return '<span class="mt-s mt-s-' + s + '">' + MT_ST[s] + '</span>'; }
 function ctJoinBtn(t){
   var id = esc(t.id), r = myReq(t);
   if(isOwner(t)) return '<button class="cn-btn pri" type="button" data-ct-manage="' + id + '">Manage Team</button>';
-  if(r) return r.status === 'accepted' ? '<button class="cn-btn done" type="button" disabled>✓ Joined</button>' : r.status === 'pending' ? '<button class="cn-btn done" type="button" disabled>Request pending</button>' : '<button class="cn-btn" type="button" disabled>Request rejected</button>';
+  if(isMem(t)) return '<button class="cn-btn done" type="button" disabled>✓ Joined</button>';
+  if(r && !canRetry(r)) return r.status === 'accepted' ? '<button class="cn-btn done" type="button" disabled>✓ Joined</button>' : r.status === 'pending' ? '<button class="cn-btn done" type="button" disabled>Request pending</button>' : '<button class="cn-btn" type="button" disabled>Request rejected</button>';
   if(full(t)) return '<button class="cn-btn" type="button" disabled>Team full</button>';
   if(!t.open) return '<button class="cn-btn" type="button" disabled>Applications closed</button>';
   return '<button class="cn-btn pri" type="button" data-ct-join="' + id + '">Request to Join</button>';
@@ -19048,14 +19105,16 @@ function reqHTML(t){
     '<div><div class="cn-sub">Team rules and guidelines</div>' + (t.rules ? '<div class="mt-rules" tabindex="0" role="region" aria-label="Team rules">' + esc(t.rules) + '</div>' : '<p class="mt-help">The leader hasn’t added specific rules. Please communicate respectfully and keep your commitments.</p>') + '</div>' +
     '<div><div class="cn-sub">Your profile</div><div class="mt-req"><div class="mt-ph">' + av(p.name, 0) + '<div><b>' + esc(p.name) + '</b><small>' + pLine(p) + '</small></div></div></div></div>' +
     mtField('mtSkIn', 'Your skills', '<input class="cn-in" id="mtSkIn" maxlength="24" autocomplete="off" placeholder="Type a skill and press Enter" aria-describedby="mtSkInErr">', false, '<div class="mt-sks" id="mtSks"></div><div class="mt-sugg" id="mtSugg"></div>') +
-    mtField('mtMsg', 'Message to the leader', '<textarea class="cn-in" id="mtMsg" maxlength="300" placeholder="Why would you like to join?"></textarea>', true) +
+    mtField('mtMsg', 'Message to the leader', '<textarea class="cn-in" id="mtMsg" maxlength="140" placeholder="Why would you like to join?"></textarea>', true) +
     '<div class="mt-f"><label class="mt-ck"><input type="checkbox" id="mtAgree" aria-describedby="mtAgreeErr"><span>I have read the team rules and agree to follow them.</span></label><p class="mt-err" id="mtAgreeErr" aria-live="polite"></p></div>' +
     '</div><div class="mt-ft"><button type="button" class="cn-btn" data-mt-close="1">Cancel</button><button type="submit" class="cn-btn pri" disabled>Send request</button></div></form>';
 }
 function mtOpenReq(id){
-  mtLoad(); var t = tById(id); if(!t) return toast('This team is no longer available.');
+  var t = tById(id); if(!t) return toast('This team is no longer available.');
+  if(!TM.uid) return toast('Sign in with your student account to join a team.', 'err');
   if(isOwner(t)) return toast('You lead this team. Use Manage Team to review requests.');
-  if(myReq(t)) return toast('You have already requested to join this team.');
+  if(isMem(t)) return toast('You are already a member of this team.');
+  if(reqBlocked(t)) return toast('You have already requested to join this team.');
   if(full(t)) return toast('This team is full.'); if(!t.open) return toast('This team is not accepting applications.');
   mtReqT = id; mtShow(reqHTML(t)); mtDrawSk(); var f = $('#mtSkIn'); if(f) f.focus();
 }
@@ -19063,21 +19122,17 @@ function mtSendReq(){
   var si = $('#mtSkIn'); if(si && si.value.trim()){ if(mtAddSk(si.value)) si.value = ''; }
   if(!mtSk.length){ mtErr('mtSkIn', 'Add at least one skill so the leader can review your request.'); if(si) si.focus(); return; }
   var ag = $('#mtAgree'); if(!ag.checked){ mtErr('mtAgree', 'Accept the team rules to send your request.'); ag.focus(); return; }
-  var id = mtReqT, p = profile(), res = '', good = false, skills = mtSk.slice(), msg = mtVal('mtMsg'), btn = $('#mtReq button[type=submit]'); if(btn) btn.disabled = true;
-  mutate(function(){
-    var t = tById(id); if(!t){ res = 'This team is no longer available.'; return false; }
-    if(isOwner(t)){ res = 'You lead this team.'; return false; }
-    if(myReq(t)){ res = 'You have already requested to join this team.'; return false; }
-    if(isMem(t)){ res = 'You are already a member of this team.'; return false; }
-    if(full(t)){ res = 'This team is full.'; return false; } if(!t.open){ res = 'This team is not accepting applications.'; return false; }
-    t.requests.push({id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name: p.name, branch: p.branch, year: p.year, sem: p.sem, section: p.section, skills: skills, msg: msg, status: 'pending', at: Date.now()});
-    res = 'Request sent. The team leader will review it.'; good = true; return true;
-  });
-  mtClose(); drawMyTeam(); drawTeams(); if(good) mtToast(res); else toast(res, 'err');
+  var id = mtReqT, msg = mtVal('mtMsg'), btn = $('#mtReq button[type=submit]'); if(btn) btn.disabled = true;
+  var sk = ('Skills: ' + mtSk.join(', ')).slice(0, 70), text = (sk + (msg ? ' · ' + msg : '')).slice(0, 200);
+  tAct('teamRequestSend', {teamId: id, message: text}, 'Request sent. The team leader will review it.').then(function(r){ if(r) mtClose(); else if(btn) btn.disabled = false; tmPaint(); });
 }
-function withdraw(id){ var done = mutate(function(){ var t = tById(id); if(!t) return false; var r = myReq(t); if(!r || r.status !== 'pending') return false; t.requests = t.requests.filter(function(x){ return x !== r; }); return true; }); drawMyTeam(); drawTeams(); if(done === false) toast('This request can no longer be withdrawn.', 'err'); else mtToast('Request withdrawn.'); }
-function dismissReq(id){ mutate(function(){ var t = tById(id); if(!t) return false; var r = myReq(t); if(!r || r.status !== 'rejected') return false; r.dismissed = true; return true; }); drawMyTeam(); mtToast('Request dismissed.'); }
-function leaveCustom(id){ var done = mutate(function(){ var t = tById(id); if(!t || isOwner(t)) return false; var k = nrm(me()); t.members = t.members.filter(function(m){ return nrm(m.name) !== k; }); t.requests = t.requests.filter(function(r){ return nrm(r.name) !== k; }); return true; }); mtAskL = ''; drawMyTeam(); drawTeams(); if(done === false) toast('This team is no longer available.', 'err'); else mtToast('You left the team.'); }
+function withdraw(id){ tAct('teamRequestCancel', {teamId: id}, 'Request withdrawn.').then(function(){ tmPaint(); }); }
+function dismissReq(id){
+  var t = tById(id), r = t && myReq(t); if(!r || r.status !== 'rejected') return;
+  var a = tmDis(); a[r.id] = 1; try{ localStorage.setItem('csec_team_dismissed', JSON.stringify(a)); }catch(e){}
+  tmPaint(); toast('Request dismissed.');
+}
+function leaveCustom(id){ mtAskL = ''; tAct('teamLeave', {teamId: id}, 'You left the team.').then(function(){ tmPaint(); drawMyTeam(); }); drawMyTeam(); }
 /* leader dashboard */
 function dashOpen(id, tab){
   mtLoad(); var t = tById(id); if(!t || !isOwner(t)) return toast('Only the Team Leader can manage this team.');
@@ -19105,7 +19160,7 @@ function dReq(t, r, i){
     (ok ? (mtAskR === r.id ? '<p class="mt-warn" role="alert">Reject ' + esc(r.name) + '’s request? They will see it as rejected.</p><div class="cn-row"><button class="cn-btn mt-btn-danger pri" type="button" data-mt-rejok="' + rid + '">Confirm reject</button><button class="cn-btn" type="button" data-mt-rejno="1">Keep pending</button></div>' : '<div class="cn-row"><button class="cn-btn pri" type="button" data-mt-acc="' + rid + '"' + (full(t) ? ' disabled title="The team is full"' : '') + '>Accept</button><button class="cn-btn mt-btn-danger" type="button" data-mt-rej="' + rid + '">Reject</button></div>') + (full(t) ? '<p class="mt-help" style="margin:0">The team is full. Remove a member or raise the member limit in Details to accept more people.</p>' : '') : '') + '</div>';
 }
 function dMem(t, m, j){
-  var k = esc(m.name), ask = mtAskM === nrm(m.name);
+  var k = esc(m.uid), ask = mtAskM === m.uid;
   return '<div class="mt-req"><div class="mt-ph">' + av(m.name, j + 1, 'sm') + '<div><b>' + esc(m.name) + '</b><small>' + pLine(m) + '</small></div></div>' +
     ((m.skills && m.skills.length) ? '<div><div class="cn-sub">Skills</div>' + mtChips(m.skills) + '</div>' : '') +
     '<div class="cn-row">' + (ask ? '<button class="cn-btn mt-btn-danger pri" type="button" data-mt-rmmok="' + k + '">Confirm remove</button><button class="cn-btn" type="button" data-mt-rmmno="1">Keep</button>' : '<button class="cn-btn mt-btn-danger" type="button" data-mt-rmm="' + k + '" aria-label="Remove ' + k + ' from the team">Remove from team</button>') + '</div>' +
@@ -19131,55 +19186,45 @@ function dashHTML(t){
   } else {
     body = '<form id="mtEdit" novalidate class="mt-mbx">' +
       mtField('mtEDesc', 'Team description', '<textarea class="cn-in" id="mtEDesc" maxlength="600" aria-describedby="mtEDescErr">' + esc(t.desc) + '</textarea>') +
-      mtField('mtEElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtEElig" maxlength="300">' + esc(t.elig || '') + '</textarea>', true) +
+      mtField('mtEElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtEElig" maxlength="150">' + esc(t.elig || '') + '</textarea>', true) +
       mtField('mtERules', 'Team rules and guidelines', '<textarea class="cn-in" id="mtERules" maxlength="500">' + esc(t.rules || '') + '</textarea>', true, '<p class="mt-help">New requests show the latest rules. Requests already sent keep the rules they accepted.</p>') +
-      mtField('mtEMax', 'Maximum members', '<input class="cn-in" id="mtEMax" type="number" inputmode="numeric" min="' + Math.max(2, n) + '" max="50" value="' + t.max + '" aria-describedby="mtEMaxErr" style="max-width:140px">', false, '<p class="mt-help">Includes you. Cannot be lower than the current ' + n + '.</p>') +
+      mtField('mtEMax', 'Maximum members', '<input class="cn-in" id="mtEMax" type="number" inputmode="numeric" min="' + Math.max(2, n) + '" max="20" value="' + t.max + '" aria-describedby="mtEMaxErr" style="max-width:140px">', false, '<p class="mt-help">Includes you. Cannot be lower than the current ' + n + '.</p>') +
       '<div class="cn-row" style="margin-top:6px"><button type="submit" class="cn-btn pri">Save changes</button></div></form>';
   }
   var fresh = mtDash.fresh ? ' mt-fade' : ''; mtDash.fresh = false;
   return head + tabs + '<div class="mt-dl' + fresh + '" role="tabpanel">' + body + '</div>';
 }
 function toggleApps(){
-  var id = mtDash && mtDash.id, now_ = null;
-  mutate(function(){ var t = tById(id); if(!t || !isOwner(t)) return false; t.open = !t.open; now_ = t.open; return true; });
-  if(now_ !== null) mtToast(now_ ? 'Applications reopened.' : 'Applications closed.'); dashRefresh();
+  var id = mtDash && mtDash.id, t = id && tById(id); if(!t || !isOwner(t)) return;
+  var next = !t.open;
+  tAct('teamUpdate', {teamId: id, open: next}, next ? 'Applications reopened.' : 'Applications closed.').then(function(){ tmPaint(); });
 }
 function decide(rid, st){
-  var id = mtDash && mtDash.id, msg = '', good = false; mtAskR = '';
-  mutate(function(){
-    var t = tById(id); if(!t || !isOwner(t)){ msg = 'Only the Team Leader can review requests.'; return false; } var r = null; t.requests.forEach(function(x){ if(x.id === rid) r = x; });
-    if(!r || r.status !== 'pending'){ msg = 'This request was already reviewed.'; return false; }
-    if(st === 'accepted'){
-      if(full(t)){ msg = 'The team is full. Remove a member or raise the member limit first.'; return false; }
-      if(!isMem2(t, r.name)) t.members.push({name: r.name, branch: r.branch, year: r.year, sem: r.sem, section: r.section, skills: r.skills || [], joined: Date.now()});
-    }
-    r.status = st; r.at2 = Date.now(); msg = st === 'accepted' ? r.name + ' joined the team.' : 'Request rejected.'; good = true; return true;
-  });
-  if(msg){ if(good) mtToast(msg); else toast(msg, 'err'); } dashRefresh();
+  var id = mtDash && mtDash.id, t = id && tById(id), r = null; mtAskR = '';
+  if(t) t.requests.forEach(function(x){ if(x.id === rid) r = x; });
+  if(!t || !isOwner(t)){ toast('Only the Team Leader can review requests.', 'err'); return; }
+  if(!r || r.status !== 'pending'){ toast('This request was already reviewed.', 'err'); return; }
+  if(st === 'accepted' && full(t)){ toast('The team is full. Remove a member or raise the member limit first.', 'err'); return; }
+  tAct('teamRequestDecide', {teamId: id, from: r.uid, accept: st === 'accepted'}, st === 'accepted' ? r.name + ' joined the team.' : 'Request rejected.').then(function(){ tmPaint(); });
 }
 function isMem2(t, name){ var k = nrm(name); return nrm(t.owner) === k || t.members.some(function(m){ return nrm(m.name) === k; }); }
-function removeMem(name){
-  var id = mtDash && mtDash.id, k = nrm(name), done;
-  done = mutate(function(){ var t = tById(id); if(!t || !isOwner(t)) return false; t.members = t.members.filter(function(m){ return nrm(m.name) !== k; }); t.requests = t.requests.filter(function(r){ return nrm(r.name) !== k; }); return true; });
-  mtAskM = ''; if(done === false) toast('Could not remove this member.', 'err'); else mtToast('Member removed.'); dashRefresh();
+function removeMem(uid){
+  var id = mtDash && mtDash.id; mtAskM = '';
+  tAct('teamRemoveMember', {teamId: id, member: uid}, 'Member removed.').then(function(){ tmPaint(); }); dashRefresh();
 }
 function mtSaveEdit(){
-  var id = mtDash && mtDash.id; if(!id) return; mtLoad(); var t0 = tById(id); if(!t0 || !isOwner(t0)) return;
+  var id = mtDash && mtDash.id; if(!id) return; var t0 = tById(id); if(!t0 || !isOwner(t0)) return;
   var desc = mtVal('mtEDesc'), maxRaw = mtVal('mtEMax'), max = Number(maxRaw), min = Math.max(2, cnt(t0)), bad = null;
   function need(f, ok, msg){ mtErr(f, ok ? '' : msg); if(!ok && !bad) bad = f; }
   need('mtEDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
-  need('mtEMax', maxRaw !== '' && Math.floor(max) === max && max >= min && max <= 50, 'Enter a whole number from ' + min + ' to 50.');
+  need('mtEMax', maxRaw !== '' && Math.floor(max) === max && max >= min && max <= 20, 'Enter a whole number from ' + min + ' to 20.');
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
-  var elig = mtVal('mtEElig'), rules = mtVal('mtERules');
-  mutate(function(){ var t = tById(id); if(!t || !isOwner(t)) return false; t.desc = desc; t.elig = elig; t.rules = rules; t.max = max; return true; });
-  mtToast('Team details saved.'); dashRefresh();
+  var btn = $('#mtEdit button[type=submit]'); if(btn) btn.disabled = true;
+  tAct('teamUpdate', {teamId: id, desc: desc, eligibility: mtVal('mtEElig'), rules: mtVal('mtERules'), maxMembers: max}, 'Team details saved.').then(function(){ if(btn) btn.disabled = false; });
 }
 function deleteTeam(id){
   var card = mtc.querySelector('[data-tid="' + id + '"]'), reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function go_(){
-    var done = mutate(function(){ var t = tById(id); if(!t || !isOwner(t)) return false; myTeams = myTeams.filter(function(x){ return x.id !== t.id; }); return true; });
-    mtAsk = ''; drawMyTeam(); drawTeams(); if(done === false) toast('This team could not be deleted.', 'err'); else mtToast('Team deleted.');
-  }
+  function go_(){ mtAsk = ''; tAct('teamDelete', {teamId: id}, 'Team deleted.').then(function(){ tmPaint(); drawMyTeam(); }); }
   if(card && !reduce){ card.classList.add('mt-out'); setTimeout(go_, 230); } else go_();
 }
 function onAct(b){
@@ -19214,14 +19259,14 @@ function initMyTeam(){
     if(d.mtClose) mtClose();
     else if(d.mtSk){ mtAddSk(d.mtSk); var i = $('#mtSkIn'); if(i) i.focus(); }
     else if(d.mtRm != null){ mtSk.splice(+d.mtRm, 1); mtDrawSk(); var j = $('#mtSkIn'); if(j) j.focus(); }
-    else if(d.mtStep){ var m = $('#mtMax'), v = parseInt(m.value, 10); if(isNaN(v)) v = 4; m.value = Math.max(2, Math.min(50, v + Number(d.mtStep))); mtErr('mtMax', ''); }
+    else if(d.mtStep){ var m = $('#mtMax'), v = parseInt(m.value, 10); if(isNaN(v)) v = 4; m.value = Math.max(2, Math.min(20, v + Number(d.mtStep))); mtErr('mtMax', ''); }
     else if(d.mtTab){ if(mtDash){ mtDash.tab = d.mtTab; mtDash.fresh = true; mtAskM = ''; mtAskR = ''; dashRefresh(); } }
     else if(d.mtTog) toggleApps();
     else if(d.mtAcc) decide(d.mtAcc, 'accepted');
     else if(d.mtRej){ mtAskR = d.mtRej; dashRefresh(); }
     else if(d.mtRejno){ mtAskR = ''; dashRefresh(); }
     else if(d.mtRejok) decide(d.mtRejok, 'rejected');
-    else if(d.mtRmm){ mtAskM = nrm(d.mtRmm); dashRefresh(); }
+    else if(d.mtRmm){ mtAskM = d.mtRmm; dashRefresh(); }
     else if(d.mtRmmno){ mtAskM = ''; dashRefresh(); }
     else if(d.mtRmmok) removeMem(d.mtRmmok);
     else onAct(b);
@@ -19246,13 +19291,9 @@ function initMyTeam(){
   });
   mtM.addEventListener('focusout', function(e){ var t = e.target; if(t.id === 'mtSkIn' && t.value.trim() && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('[data-mt-close]'))){ if(mtAddSk(t.value)) t.value = ''; } });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && mtM && !mtM.classList.contains('hidden')) mtClose(); });
-  window.addEventListener('storage', function(e){
-    if(e.key !== MT_KEY) return; mtLoad(); drawMyTeam(); drawTeams();
-    if(mtDash && mtDash.tab !== 'det' && mtM && !mtM.classList.contains('hidden')) dashRefresh();
-  });
   drawMyTeam();
 }
-initModal(); initPosting(); initTeams(); initMyTeam(); initReqs(); initEvents();
+initModal(); initPosting(); initTeams(); initMyTeam(); initReqs(); initEvents(); tmTick(); setInterval(tmTick, 3000);
 var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], boot[1]); st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'posting'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests' || boot[1] === 'connections')) st.tsub = boot[1]; }
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
