@@ -20290,6 +20290,19 @@ body[data-section="campus"] #secNav .sec-ind{background:linear-gradient(135deg,r
 /* Connect (light theme only): the "Connect" buttons were white text on a near-white glass fill. Give them a solid purple fill so they are clearly visible. */
 html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) :is(#sectionConnect .cn-btn.pri:not(.mt-btn-danger):not(:disabled):not(.done),#pfConn:not(:disabled),.pf-btn.pri:not(:disabled)){background:linear-gradient(135deg,#7F57DD 0%,#6A42C8 55%,#5A33B4 100%) !important;color:#fff !important;border:1px solid #5A33B4 !important;text-shadow:0 1px 1px rgba(30,8,70,.35) !important;box-shadow:0 1px 0 rgba(255,255,255,.28) inset,0 8px 18px -8px rgba(90,51,180,.6) !important;-webkit-backdrop-filter:none;backdrop-filter:none}
 html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) :is(#sectionConnect .cn-btn.pri:not(.mt-btn-danger):not(:disabled):not(.done),#pfConn:not(:disabled),.pf-btn.pri:not(:disabled)):hover{filter:brightness(1.08)}
+
+/* Welcome / name card (#hmNameCard) in dark mode: keep the Campus look (blue accents) instead of the purple Connect glass. */
+html[data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #hmNameCard{background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(0,0,0,0) 38%),radial-gradient(120% 90% at 100% 0%,rgba(100,190,250,.13),rgba(0,0,0,0) 62%),linear-gradient(160deg,rgba(41,39,32,.6),rgba(41,39,32,.42)) !important;border:1px solid rgba(160,176,240,.24) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.09),inset 0 -1px 0 rgba(0,0,0,.34),0 0 0 1px rgba(73,68,58,.55),0 1px 2px rgba(0,0,0,.4),0 14px 30px -14px rgba(0,0,0,.6),0 30px 56px -34px rgba(0,0,0,.55) !important;-webkit-backdrop-filter:blur(16px) saturate(1.25) !important;backdrop-filter:blur(16px) saturate(1.25) !important;color:#F3EDE3}
+html[data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #hmNameCard::before{background:#7C9BEA !important}
+html[data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #hmNameCard .hm-name-input{background:linear-gradient(#1F1D18,#26241E) !important;border-color:#49443A !important;box-shadow:inset 0 1px 3px rgba(0,0,0,.4) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;color:#F3EDE3 !important}
+html[data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #hmNameCard .btn-primary{background:linear-gradient(145deg,#3556B8 0%,#223F94 52%,#0A78B8 100%) !important;border-color:#fff !important;color:#fff !important;text-shadow:none !important;box-shadow:0 1px 2px rgba(16,42,69,.3),inset 0 1px 0 rgba(255,255,255,.14) !important}
+html[data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #hmNameCard .av{background:linear-gradient(135deg,#7C9BEA,#5C7BD6) !important}
+html[data-theme="dark"] body[data-section="connect"]:not(#_):not(#__) #hmNameCard .btn-ghost{background:none !important;border-color:#49443A !important;color:#F3EDE3 !important;box-shadow:0 1px 2px rgba(0,0,0,.28) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+
+/* Connect sub-tab rows (People / Teams / Connections / Requests): a centred flex row that overflows clips its first tab off-screen. Centre only when it fits; otherwise start at the left and scroll. */
+#sectionConnect .cn-subtabs{justify-content:flex-start}
+#sectionConnect .cn-subtabs>:first-child{margin-left:auto}
+#sectionConnect .cn-subtabs>:last-child{margin-right:auto}
 </style>
 </body>
 </html>
