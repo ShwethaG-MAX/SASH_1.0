@@ -1,9 +1,0 @@
-{
-  "name": "campus-loop-connections-functions",
-  "private": true,
-  "description": "Student connection requests (send / accept / reject / cancel / remove), notifications, mutuals and suggestions",
-  "main": "index.js",
-  "engines": { "node": "22" },
-  "scripts": { "test": "node test.js", "deploy": "firebase deploy --only functions:connections" },
-  "dependencies": { "firebase-admin": "^12.7.0", "firebase-functions": "^6.1.0" }
-}
