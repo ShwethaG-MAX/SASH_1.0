@@ -126,4 +126,55 @@ t('join limit and outgoing pending limit', async () => {
   await rejects(core.sendRequest(c, 'dave', { teamId: ids[10] }), 'resource-exhausted');
 });
 
+t('contact: optional, validated, normalised, stored on the request', async () => {
+  const { db, ctx } = await world(); const c = ctx(); const { teamId } = await mk(c, 'alice', { maxMembers: 5 });
+  await rejects(core.sendRequest(c, 'bob', { teamId, contactEmail: 'not-an-email' }), 'invalid-argument');
+  await rejects(core.sendRequest(c, 'bob', { teamId, contactPhone: '12ab' }), 'invalid-argument');
+  await rejects(core.sendRequest(c, 'bob', { teamId, contactPhone: '123456' }), 'invalid-argument');
+  await rejects(core.sendRequest(c, 'bob', { teamId, contactEmail: 'a'.repeat(95) + '@x.com' }), 'invalid-argument');
+  assert.strictEqual((await db.doc(`teamRequests/${teamId}_bob`).get()).exists, false);   // nothing saved on a bad request
+  await core.sendRequest(c, 'bob', { teamId, contactEmail: ' bob@college.edu ', contactPhone: '+91 98765-43210' });
+  let r = (await db.doc(`teamRequests/${teamId}_bob`).get()).data(); assert.strictEqual(r.contactEmail, 'bob@college.edu'); assert.strictEqual(r.contactPhone, '+919876543210');
+  await core.sendRequest(c, 'carol', { teamId });   // both fields are optional
+  r = (await db.doc(`teamRequests/${teamId}_carol`).get()).data(); assert.strictEqual(r.contactEmail, ''); assert.strictEqual(r.contactPhone, '');
+});
+t('contact: copied to the members-only doc on accept, wiped from the request on reject / cancel / leave / remove', async () => {
+  const { db, ctx } = await world(); const c = ctx(); const { teamId } = await mk(c, 'alice', { maxMembers: 5 });
+  const rq = async (u) => (await db.doc(`teamRequests/${teamId}_${u}`).get()).data();
+  for (const u of ['bob', 'carol', 'dave']) await core.sendRequest(c, u, { teamId, contactEmail: u + '@x.com', contactPhone: '9876543210' });
+  await core.decideRequest(c, 'alice', { teamId, from: 'bob', accept: true });
+  const m = (await db.doc(`teams/${teamId}/members/bob`).get()).data(); assert.strictEqual(m.email, 'bob@x.com'); assert.strictEqual(m.phone, '9876543210');
+  assert.strictEqual((await team(db, teamId)).email, undefined);   // never on the public team doc
+  await core.decideRequest(c, 'alice', { teamId, from: 'carol', accept: false }); assert.strictEqual((await rq('carol')).contactEmail, ''); assert.strictEqual((await rq('carol')).contactPhone, '');
+  await core.cancelRequest(c, 'dave', { teamId }); assert.strictEqual((await rq('dave')).contactEmail, '');
+  assert.strictEqual((await rq('bob')).contactEmail, 'bob@x.com');   // accepted members stay visible to the team
+  await core.leaveTeam(c, 'bob', { teamId }); assert.strictEqual((await rq('bob')).contactEmail, ''); assert.strictEqual((await rq('bob')).status, 'left');
+  assert.strictEqual((await db.doc(`teams/${teamId}/members/bob`).get()).exists, false);   // member doc (with contact) is gone
+  await core.sendRequest(c, 'bob', { teamId, contactEmail: 'b@x.com' }); await core.decideRequest(c, 'alice', { teamId, from: 'bob', accept: true });
+  await core.removeMember(c, 'alice', { teamId, member: 'bob' }); assert.strictEqual((await rq('bob')).contactEmail, ''); assert.strictEqual((await rq('bob')).status, 'removed');
+  await core.sendRequest(c, 'dave', { teamId, contactPhone: '5551234567' }); await core.decideRequest(c, 'alice', { teamId, from: 'dave', accept: true });
+  await core.deleteTeam(c, 'alice', { teamId }); assert.strictEqual((await rq('dave')).contactPhone, '');
+});
+t('whatsapp: validated, stored only in private/info, leader-only, clearable, deleted with the team', async () => {
+  const { db, ctx } = await world(); const c = ctx(); const link = 'https://chat.whatsapp.com/AbCdEf123456';
+  const priv = async (id) => (await db.doc(`teams/${id}/private/info`).get());
+  for (const bad of ['http://chat.whatsapp.com/AbCdEf123456', 'https://chat.whatsapp.com/short', 'https://evil.com/https://chat.whatsapp.com/AbCdEf123456', 'https://chat.whatsapp.com/AbCdEf123456 x'])
+    await rejects(mk(c, 'alice', { whatsappLink: bad }), 'invalid-argument');
+  const none = await mk(c, 'alice', { name: 'No link' }); assert.strictEqual((await priv(none.teamId)).exists, false);
+  const { teamId } = await mk(c, 'alice', { whatsappLink: link + '?mode=r_c' });
+  assert.strictEqual((await priv(teamId)).data().whatsappLink, link + '?mode=r_c'); assert.strictEqual((await team(db, teamId)).whatsappLink, undefined);
+  await core.sendRequest(c, 'bob', { teamId }); await core.decideRequest(c, 'alice', { teamId, from: 'bob', accept: true });
+  await rejects(core.updateTeam(c, 'bob', { teamId, whatsappLink: link }), 'permission-denied');
+  await rejects(core.updateTeam(c, 'alice', { teamId, whatsappLink: 'nope' }), 'invalid-argument');
+  await core.updateTeam(c, 'alice', { teamId, whatsappLink: link });   // link-only update is allowed
+  assert.strictEqual((await priv(teamId)).data().whatsappLink, link); assert.strictEqual((await team(db, teamId)).whatsappLink, undefined);
+  await core.updateTeam(c, 'alice', { teamId, desc: 'Changed' });      // other edits leave the link alone
+  assert.strictEqual((await priv(teamId)).data().whatsappLink, link);
+  await core.updateTeam(c, 'alice', { teamId, whatsappLink: '' });     // empty removes it
+  assert.strictEqual((await priv(teamId)).exists, false);
+  await core.updateTeam(c, 'alice', { teamId, whatsappLink: link }); await core.deleteTeam(c, 'alice', { teamId });
+  assert.strictEqual((await priv(teamId)).exists, false);
+  await rejects(core.updateTeam(c, 'alice', { teamId: none.teamId }), 'invalid-argument');   // still "nothing to update" when no field is sent
+});
+
 (async () => { let ok = 0; for (const [n, f] of tests) { try { await f(); ok++; console.log('ok  ' + n); } catch (e) { console.error('FAIL ' + n + '\n  ' + (e && e.stack || e)); process.exitCode = 1; } } console.log(`${ok}/${tests.length} passed`); })();

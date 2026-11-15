@@ -2731,6 +2731,13 @@ body.cn-modal-open #cnModeWrap{visibility:hidden}   /* the Connect tab bar must 
 .mt-req{display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
 .mt-ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .mt-ph>div{flex:1;min-width:0}.mt-ph b{display:block;color:var(--text);overflow-wrap:anywhere}.mt-ph small{color:var(--muted);font-size:.78rem}
+.mt-contact{display:grid;gap:4px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--cyan) 6%,transparent)}
+.mt-contact .row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:.86rem;color:var(--muted);overflow-wrap:anywhere}
+.mt-contact .row b{color:var(--text)}
+.mt-contact .row a{color:var(--text);font-weight:600;text-decoration:none;overflow-wrap:anywhere}
+.mt-contact .row a:hover,.mt-contact .row a:focus-visible{text-decoration:underline}
+.mt-priv{margin:0;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--cyan) 8%,transparent);font-size:.8rem;line-height:1.45;color:var(--muted)}
+a.cn-btn.mt-wa{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .mt-quote{margin:0;padding:8px 12px;border-left:3px solid var(--cyan);border-radius:4px;background:color-mix(in srgb,var(--cyan) 8%,transparent);font-size:.86rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)}
 .mt-rules{max-height:190px;overflow:auto;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg2,var(--card));font-size:.88rem;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)}
 .mt-txt{margin:0;font-size:.9rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)}
@@ -14083,7 +14090,7 @@ var CR_DOMAIN=/@cr\.cse-hub\.app$/i;
 
 /* ---------- which keys sync ---------- */
 var SCOPED=['csec_attendance','csec_attendance_settings','csec_favorites','csec_recent'];   // second-year keys + the _fy1 first-year twins
-var DATA_KEYS=[]; SCOPED.forEach(function(k){ DATA_KEYS.push(k,k+'_fy1'); }); DATA_KEYS.push('csec_tasks','csec_daily_notes');
+var DATA_KEYS=[]; SCOPED.forEach(function(k){ DATA_KEYS.push(k,k+'_fy1'); }); DATA_KEYS.push('csec_tasks','csec_daily_notes','csec_saved_events');   // csec_saved_events = bookmarked Connect events, now part of the account
 var PREF_KEYS=['csec_notif_cfg','csec_appearance','csec_theme','fyStudyCycle','csec_onboarding_completed'];   // pulled at login, pushed on change (not live: never flips another device's theme under the user)
 var SYNC_KEYS=DATA_KEYS.concat(PREF_KEYS);
 var KEEP_ON_WIPE=['csec_theme','csec_appearance','csec_element_theme','cse_analytics_optout','cse_analytics_notice','cse_analytics_debug','cse_base_url'];   // device display/diagnostic settings, not personal data
@@ -14160,6 +14167,7 @@ function memApply(k,raw){
     else if(k==='csec_recent'+sfx){ recent=Array.isArray(v)?v:[]; renderRecent(); }
     else if(k==='csec_tasks'){ tasks=Array.isArray(v)?v:[]; if(meInited) renderMe(); if(homeInited) renderHome(); try{ if(typeof requestSync==='function') requestSync(); }catch(e){} }
     else if(k==='csec_daily_notes'){ dailyNotes=isObj(v)?v:{}; if(meInited) renderMe(); }
+    else if(k==='csec_saved_events'){ window.dispatchEvent(new CustomEvent('cse:saved-events-sync')); }   // Connect re-reads the bookmarks and redraws
     else if(k==='csec_theme'){ applyTheme(v==='dark'?'dark':'light'); }
     else if(k==='csec_appearance'){ if(window.ThemeManager) { applying=true; try{ ThemeManager.set(v); } finally{ applying=false; } } }
   }catch(e){ console.warn('[Sync] could not refresh the screen for', k, e); }
@@ -18464,7 +18472,7 @@ function drawTeams(){
   var keep = T.chips.filter(function(c){ return avail.indexOf(c) > -1; }); if(keep.length !== T.chips.length){ T.chips = keep; syncChips($('#cnTchips'), T.chips, 'data-tc'); crows = ctRows(); tot = crows.length; any = T.q || T.chips.length; }
   var all = myTeams.length;
   $('#cnTsum').innerHTML = all ? '<span>' + tot + ' ' + (tot === 1 ? 'team' : 'teams') + (T.q ? ' for “' + esc(T.q) + '”' : '') + (T.chips.length ? ' with ' + T.chips.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '') : '';
-  $('#cnTgrid').innerHTML = crows.map(ctCard).join('');
+  $('#cnTgrid').innerHTML = (TM.uid && !TM.ok.all && !TM.err && !crows.length) ? mtSkel(3) : crows.map(ctCard).join('');
   $('#cnTempty').innerHTML = tot ? '' : (all ? empty('🧩', 'No teams found', 'Try a different skill, or search by another keyword.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>')
     : '');
   if(typeof drawReqs === 'function') drawReqs();
@@ -18492,7 +18500,7 @@ function rqIn(x){
     : '<div class="cn-row"><button class="cn-btn pri" type="button" data-rq-acc="' + key + '"' + (full(t) ? ' disabled title="Team is full"' : '') + '>Accept</button><button class="cn-btn mt-btn-danger" type="button" data-rq-rej="' + rid + '">Reject</button></div>' + (full(t) ? '<p class="mt-help" style="margin:0">The team is full. Remove a member or raise the limit in Manage Team.</p>' : '');
   return '<article class="cn-card rq-card' + (r.status !== 'pending' ? ' done' : '') + '"><div class="mt-ph">' + av(r.name, x.i, 'sm') + '<div><b>' + esc(r.name) + '</b><small>' + pLine(r) + '</small></div>' + stChip(r.status) + '</div>' +
     '<div class="rq-team">' + mtLogo(t.name, x.i) + '<span>Request to join <b>' + esc(t.name) + '</b>' + (t.project ? ' · ' + esc(t.project) : '') + '</span></div>' +
-    ((r.skills && r.skills.length) ? mtChips(r.skills) : '') + (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
+    ((r.skills && r.skills.length) ? mtChips(r.skills) : '') + contactHTML(r) + (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
     '<small class="mt-cap" style="margin:0">Requested ' + ago(r.at) + (r.at2 ? ' · ' + r.status + ' ' + ago(r.at2) : '') + '</small>' + acts + '</article>';
 }
 function drawReqs(){
@@ -18790,7 +18798,14 @@ function epClose(){ var ov = document.getElementById('evPage'); if(ov) ov.classL
 var SAVE_KEY = 'csec_saved_events';
 function evId(x){ return x.id || (x.id = String(x.t).toLowerCase().replace(/[^a-z0-9]+/g, '-')); }
 function loadSaved(){ try{ var a = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); EV.forEach(function(x, i){ if(a.indexOf(evId(x)) > -1) bm[i] = true; }); }catch(e){} renderSavedCard(); }
-function persistSaved(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(EV.filter(function(x, i){ return bm[i]; }).map(evId))); }catch(e){} renderSavedCard(); }
+function persistSaved(){ try{
+  /* Bookmarks of events this device has not loaded (yet) are kept, so a save made on another device is never wiped from the account by a tap here. */
+  var inEv = {}, keep = []; EV.forEach(function(x){ inEv[evId(x)] = 1; });
+  try{ keep = (JSON.parse(localStorage.getItem(SAVE_KEY) || '[]') || []).filter(function(id){ return typeof id === 'string' && !inEv[id]; }); }catch(e){}
+  localStorage.setItem(SAVE_KEY, JSON.stringify(EV.filter(function(x, i){ return bm[i]; }).map(evId).concat(keep)));
+}catch(e){} renderSavedCard(); }
+/* Account sync pulled a newer list of saved events (login, or a save/removal on another device): re-read it and redraw. */
+window.addEventListener('cse:saved-events-sync', function(){ try{ for(var k in bm) delete bm[k]; loadSaved(); drawEvents(); reshow(); eventsChanged(); }catch(e){} });
 function toggleSave(i){ bm[i] = !bm[i]; persistSaved(); drawEvents(); reshow(); toast(bm[i] ? 'Saved' : 'Removed from saved'); }
 function shareEv(i){ var x = EV[i], u = location.href.split('#')[0] + '#connect/events', f = function(){ toast('Link copied'); };
   if(navigator.share){ navigator.share({title:x.t, text:x.d, url:u}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(u).then(f, function(){ toast('Sharing not available'); }); } else toast('Sharing not available'); }
@@ -19042,19 +19057,19 @@ ICN.minus = '<path d="M5 12h14"/>';
 /* ---------- Teams (real): Firestore listeners + `teams` Cloud Functions (asia-south1). Replaces the old localStorage layer. ----------
    Reads: teams (all), teams where I am a member, teams/{id}/members (my teams only), teamRequests (to me / from me), teamNotifs/{uid}/items.
    Writes: ONLY through callables (teamCreate, teamUpdate, teamDelete, teamRequestSend/Cancel/Decide, teamRemoveMember, teamLeave, teamTransfer). */
-var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}, fnT = null, tmT = 0;
+var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}, fnT = null, tmT = 0;
 function tCall(name, data){ return cFns().then(function(){ if(!fnT) fnT = firebase.app().functions('asia-south1'); return fnT.httpsCallable(name, {timeout: 30000})(data || {}); }).then(function(r){ return r.data; }); }
 function tAct(name, data, okMsg){
   if(!TM.uid){ toast('Sign in with your student account to use Teams.', 'err'); return Promise.resolve(false); }
   return tCall(name, data).then(function(r){ if(okMsg) toast(okMsg); return r || true; }, function(e){ toast(cErr(e), 'err'); return false; });
 }
 function tmDis(){ try{ return JSON.parse(localStorage.getItem('csec_team_dismissed')) || {}; }catch(e){ return {}; } }
-function tmReq(d){ var x = d.data(), pend = x.status === 'pending'; return {id: d.id, teamId: x.teamId, uid: x.from, to: x.to, name: x.fromName || 'Student', branch: x.fromBranch || '', year: x.fromYear || '', sem: '', section: '', skills: [], msg: x.message || '', status: x.status, at: tms(x.createdAt) || Date.now(), at2: pend ? 0 : (tms(x.updatedAt) || 0)}; }
+function tmReq(d){ var x = d.data(), pend = x.status === 'pending'; return {id: d.id, teamId: x.teamId, uid: x.from, to: x.to, name: x.fromName || 'Student', branch: x.fromBranch || '', year: x.fromYear || '', sem: '', section: '', skills: [], msg: x.message || '', email: String(x.contactEmail || ''), phone: String(x.contactPhone || ''), status: x.status, at: tms(x.createdAt) || Date.now(), at2: pend ? 0 : (tms(x.updatedAt) || 0)}; }
 function tmBuild(){
   var ids = {}, dis = tmDis(), out = [];
   Object.keys(TM.all).forEach(function(k){ ids[k] = TM.all[k]; }); Object.keys(TM.mine).forEach(function(k){ ids[k] = TM.mine[k]; });
   Object.keys(ids).forEach(function(id){
-    var d = ids[id], t = {id: id, name: d.name || 'Team', project: d.project || '', desc: d.desc || '', skills: d.skills || [], max: d.maxMembers || 2, elig: d.eligibility || '', rules: d.rules || '', owner: d.leaderName || 'Student', ownerUid: d.leaderUid, open: d.open !== false, count: d.memberCount || 1, uids: d.memberUids || [], created: tms(d.createdAt), members: [], requests: []};
+    var d = ids[id], t = {id: id, name: d.name || 'Team', project: d.project || '', desc: d.desc || '', skills: d.skills || [], max: d.maxMembers || 2, elig: d.eligibility || '', rules: d.rules || '', owner: d.leaderName || 'Student', ownerUid: d.leaderUid, open: d.open !== false, count: d.memberCount || 1, uids: d.memberUids || [], created: tms(d.createdAt), members: [], requests: [], wa: String(TM.wa[id] || '')};
     if(TM.mem[id]) t.members = TM.mem[id].filter(function(m){ return m.uid !== t.ownerUid; });
     t.ownerTitle = ''; (TM.mem[id] || []).forEach(function(m){ if(m.uid === t.ownerUid) t.ownerTitle = m.title || ''; });
     if(t.ownerUid === TM.uid) t.requests = TM.inc.filter(function(r){ return r.teamId === id && MT_ST[r.status]; });
@@ -19077,12 +19092,12 @@ function tmPaint(){
 }
 function tmLis(key, q, fn){ TM.un.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Teams]', e); } TM.ok[key] = 1; TM.err = 0; tmPaint(); }, function(e){ console.warn('[Teams] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); TM.err = 1; tmPaint(); })); }
 function tmSyncMembers(db){
-  Object.keys(TM.mun).forEach(function(id){ if(!TM.mine[id]){ try{ TM.mun[id](); }catch(e){} delete TM.mun[id]; delete TM.mem[id]; } });
+  Object.keys(TM.mun).forEach(function(id){ if(!TM.mine[id]){ try{ TM.mun[id](); }catch(e){} delete TM.mun[id]; delete TM.mem[id]; delete TM.wa[id]; } });
   Object.keys(TM.mine).forEach(function(id){
     if(TM.mun[id]) return;
-    TM.mun[id] = db.collection('teams').doc(id).collection('members').onSnapshot(function(s){
-      TM.mem[id] = s.docs.map(function(d){ var x = d.data(); return {uid: d.id, name: x.name || 'Student', branch: x.branch || '', year: x.year || '', role: x.role, title: String(x.title || ''), sem: '', section: '', skills: [], joined: tms(x.joinedAt) || Date.now()}; }); tmPaint();
-    }, function(e){ console.warn('[Teams] members listener', e && e.code); });
+    var uW = db.collection('teams').doc(id).collection('private').doc('info').onSnapshot(function(d){ TM.wa[id] = d.exists ? String((d.data() || {}).whatsappLink || '') : ''; tmPaint(); }, function(e){ console.warn('[Teams] private info listener', e && e.code); }); var uM = db.collection('teams').doc(id).collection('members').onSnapshot(function(s){
+      TM.mem[id] = s.docs.map(function(d){ var x = d.data(); return {uid: d.id, name: x.name || 'Student', branch: x.branch || '', year: x.year || '', role: x.role, title: String(x.title || ''), email: String(x.email || ''), phone: String(x.phone || ''), sem: '', section: '', skills: [], joined: tms(x.joinedAt) || Date.now()}; }); tmPaint();
+    }, function(e){ console.warn('[Teams] members listener', e && e.code); }); TM.mun[id] = function(){ try{ uW(); }catch(e){} try{ uM(); }catch(e){} };
   });
 }
 function tmNote(n){
@@ -19105,12 +19120,13 @@ function tmStart(uid){
 }
 function tmStop(){
   TM.un.forEach(function(f){ try{ f(); }catch(e){} }); Object.keys(TM.mun).forEach(function(k){ try{ TM.mun[k](); }catch(e){} });
-  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}; tmPaint();
+  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}; tmPaint();
 }
 function tmTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id === TM.uid) return; tmStop(); if(id) tmStart(id); }
 var MT_KEY = 'csec_myteams', MT_SKILLS = ['React', 'Python', 'Node.js', 'UI/UX', 'Machine Learning', 'Flutter', 'Figma', 'C++', 'Firebase', 'Arduino'];
 var mtc = $('#cnMyTeam'), myTeams = [], mtM = null, mtSk = [], mtAsk = '', mtAskL = '', mtAskR = '', mtBack = null, mtOk = true, mtSeen = {};
 function mtIn(k){ if(mtSeen[k]) return ''; mtSeen[k] = 1; return ' mt-in'; }
+function mtSkel(n){ var h = ''; for(var i = 0; i < n; i++) h += '<div class="cn-card mt-card mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i><i class="m"></i><i class="s"></i><i class="c"></i></div>'; return h; }
 function mtLoad(){ /* data now comes from Firestore listeners (tmBuild) */ }
 function mtSave(){ return true; }
 function mtToast(m){ toast(m); }
@@ -19142,6 +19158,7 @@ function drawMyTeam(){
     if(jc.length) html += h('users', 'Teams I’ve joined', jc.length) + '<div class="cn-grid">' + jc.map(function(t){ return mtCustomJoined(t, myTeams.indexOf(t)); }).join('') + '</div>';
     if(rq.length) html += h('clock', 'My join requests', rq.length) + '<div class="cn-grid">' + rq.map(function(t){ return mtReqCard(t, myTeams.indexOf(t)); }).join('') + '</div>';
   }
+  if(!total && TM.uid && !TM.ok.mine && !TM.err) html += '<div class="cn-grid">' + mtSkel(2) + '</div>';
   mtc.innerHTML = html;
 }
 /* ---- Team Chat (frontend only, localStorage "csec_teamchat_<id>"). Only the leader and accepted members can open it. ---- */
@@ -19165,9 +19182,10 @@ function tcOpen(id){
   draw(); inp.focus();
 }
 function mtShow(html){
-  if(mtM.classList.contains('hidden')) mtBack = document.activeElement;
-  mtM.innerHTML = '<div class="cn-card cn-wide mt-pop" role="document" tabindex="-1">' + html + '</div>';
+  var was = !mtM.classList.contains('hidden'); if(!was) mtBack = document.activeElement; mtSwapTok++;
+  mtM.innerHTML = '<div class="cn-card cn-wide ' + (was ? 'mt-swap' : 'mt-pop mt-stag') + '" role="document" tabindex="-1">' + html + '</div>';
   mtM.classList.remove('hidden'); document.body.classList.add('cn-modal-open');
+  if(!was) setTimeout(function(){ var c = mtM.querySelector('.mt-stag'); if(c) c.classList.remove('mt-stag'); }, 900);
 }
 function mtClose(){
   if(!mtM || mtM.classList.contains('hidden')) return;
@@ -19193,7 +19211,7 @@ function mtFormHTML(){
       mtField('mtMax', 'Maximum members', '<div class="mt-step"><button type="button" class="mt-st" data-mt-step="-1" aria-label="Fewer members">' + ic('minus') + '</button><input class="cn-in" id="mtMax" type="number" inputmode="numeric" min="2" max="20" value="4" aria-describedby="mtMaxErr"><button type="button" class="mt-st" data-mt-step="1" aria-label="More members">' + ic('plus') + '</button></div>', false, '<p class="mt-help">Includes you, between 2 and 20.</p>') +
     '</div>' +
     mtField('mtElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtElig" maxlength="150" placeholder="e.g. 2nd or 3rd year, any branch, comfortable with Git"></textarea>', true) +
-    mtField('mtRules', 'Team rules and guidelines', '<textarea class="cn-in" id="mtRules" maxlength="500" placeholder="e.g. Weekly sync on Saturdays, share work on GitHub, respect each other’s time"></textarea>', true) +
+    mtField('mtRules', 'Team rules and guidelines', '<textarea class="cn-in" id="mtRules" maxlength="500" placeholder="e.g. Weekly sync on Saturdays, share work on GitHub, respect each other’s time"></textarea>', true) + mtField('mtWa', 'WhatsApp group link', '<input class="cn-in" id="mtWa" type="url" inputmode="url" maxlength="120" autocomplete="off" placeholder="https://chat.whatsapp.com/…" aria-describedby="mtWaErr">', true, '<p class="mt-help">Only members of your team can see this link.</p>') +
     '</div><div class="mt-ft"><button type="button" class="cn-btn" data-mt-close="1">Cancel</button><button type="submit" class="cn-btn pri">Create Team</button></div></form>';
 }
 function mtOpenForm(){
@@ -19221,12 +19239,12 @@ function mtSubmit(){
   need('mtProj', proj.length >= 2, 'Enter the project, hackathon or competition name.');
   need('mtDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
   need('mtSkIn', mtSk.length > 0, 'Add at least one required skill.');
-  need('mtMax', maxRaw !== '' && Math.floor(max) === max && max >= 2 && max <= 20, 'Enter a whole number from 2 to 20.');
+  need('mtMax', maxRaw !== '' && Math.floor(max) === max && max >= 2 && max <= 20, 'Enter a whole number from 2 to 20.'); var wa = mtVal('mtWa'); need('mtWa', !wa || waOk(wa), 'Enter a valid WhatsApp group invite link (https://chat.whatsapp.com/…), or leave it blank.');
   if(!bad && myTeams.some(function(x){ return nrm(x.name) === nrm(name); })){ mtErr('mtName', 'A team with this name already exists. Choose a different name.'); bad = 'mtName'; }
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
-  var sb = $('#mtForm button[type=submit]'); if(sb) sb.disabled = true;
-  tAct('teamCreate', {name: name, project: proj, desc: desc, skills: mtSk.slice(), maxMembers: max, eligibility: mtVal('mtElig'), rules: mtVal('mtRules')}, 'Team created. You are the Team Leader.').then(function(r){
-    if(!r){ if(sb) sb.disabled = false; return; }
+  var sb = $('#mtForm button[type=submit]'); if(sb){ sb.disabled = true; sb.classList.add('mt-busy'); }
+  tAct('teamCreate', {name: name, project: proj, desc: desc, skills: mtSk.slice(), maxMembers: max, eligibility: mtVal('mtElig'), rules: mtVal('mtRules'), whatsappLink: wa}, 'Team created. You are the Team Leader.').then(function(r){
+    if(!r){ if(sb){ sb.disabled = false; sb.classList.remove('mt-busy'); } return; }
     mtBack = null; mtClose(); tmPaint(); try{ mtc.scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(e){}
   });
 }
@@ -19239,11 +19257,32 @@ function mtView(id){
     '<div class="mt-dl">' + sec('About', t.desc) +
     '<div><div class="cn-sub">Required skills</div>' + mtChips(t.skills) + '</div>' +
     '<div><div class="cn-sub">Members · ' + cnt(t) + ' of ' + t.max + '</div><div class="cn-meta">' + people + '</div></div>' +
-    sec('Eligibility criteria', t.elig) + sec('Team rules and guidelines', t.rules) +
+    sec('Eligibility criteria', t.elig) + sec('Team rules and guidelines', t.rules) + teamPrivHTML(t) +
     '<div class="cn-row">' + ctJoinBtn(t) + '<button class="cn-btn" type="button" data-mt-close="1">Close</button></div></div>');
   var b = mtM.querySelector('.mt-x'); if(b) b.focus();
 }
 var MT_ST = {pending: 'Pending', accepted: 'Accepted', rejected: 'Rejected'}, mtPool = null, mtDash = null, mtReqT = null, mtAskM = '';
+/* ---- Contact details (email / phone, optional) + members-only WhatsApp group link ---- */
+function waOk(u){ return /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9_-]{8,}(\?[^\s]*)?$/.test(String(u || '').trim()); }
+function emOk(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || '').trim()); }
+function phNorm(v){ return String(v || '').replace(/[\s().-]/g, ''); }
+function phOk(v){ return /^\+?\d{7,15}$/.test(phNorm(v)); }
+function contactLines(o){
+  var a = ''; if(o.email) a += '<div class="row"><span>Email</span><a href="mailto:' + esc(o.email) + '">' + esc(o.email) + '</a></div>';
+  if(o.phone) a += '<div class="row"><span>Phone</span><a href="tel:' + esc(phNorm(o.phone)) + '">' + esc(o.phone) + '</a></div>';
+  return a;
+}
+function contactHTML(o){
+  if(!o || o.status === 'rejected' || !(o.email || o.phone)) return '';
+  return '<div class="mt-contact" role="group" aria-label="Contact details">' + contactLines(o) + '<small class="mt-help" style="margin:0">Visible to team members only.</small></div>';
+}
+function waBtn(t){ var u = String(t && t.wa || '').trim(); return waOk(u) ? '<a class="cn-btn pri mt-wa" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">Join WhatsApp group</a>' : ''; }
+function teamPrivHTML(t){
+  if(!(isOwner(t) || isMem(t))) return '<p class="mt-priv" role="note">Member contact details and the WhatsApp group are visible to team members only.</p>';
+  var wa = waBtn(t), rows = t.members.filter(function(m){ return m.email || m.phone; }).map(function(m){ return '<div class="mt-contact"><div class="row"><b>' + esc(m.name) + '</b></div>' + contactLines(m) + '</div>'; }).join('');
+  return (wa ? '<div><div class="cn-sub">WhatsApp group</div>' + wa + '</div>' : '') +
+    (rows ? '<div><div class="cn-sub">Team contact details</div><div class="mt-list">' + rows + '</div><p class="mt-help">Shown only to members of this team.</p></div>' : '');
+}
 function nrm(s){ return String(s == null ? '' : s).trim().toLowerCase(); }
 function tById(id){ for(var i = 0; i < myTeams.length; i++){ if(myTeams[i].id === id) return myTeams[i]; } return null; }
 function isOwner(t){ return !!TM.uid && t.ownerUid === TM.uid; }
@@ -19289,7 +19328,7 @@ function mtCustomJoined(t, i){
   var n = cnt(t), id = esc(t.id), pct = Math.min(100, Math.round(n / t.max * 100));
   var acts = mtAskL === t.id
     ? '<p class="mt-warn" role="alert">Leave “' + esc(t.name) + '”? You can send a new request later if the team is still open.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-lvok="' + id + '">Confirm leave</button><button class="cn-btn" type="button" data-mt-lvno="1">Stay</button>'
-    : '<button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
+    : waBtn(t) + '<button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
   return '<article class="cn-card mt-card' + mtIn('j' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div><span class="mt-s mt-s-accepted mt-joined">Joined</span></div>' +
     '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members</span></div>' +
@@ -19311,7 +19350,7 @@ function reqHTML(t){
     '<div><div class="cn-sub">Team rules and guidelines</div>' + (t.rules ? '<div class="mt-rules" tabindex="0" role="region" aria-label="Team rules">' + esc(t.rules) + '</div>' : '<p class="mt-help">The leader hasn’t added specific rules. Please communicate respectfully and keep your commitments.</p>') + '</div>' +
     '<div><div class="cn-sub">Your profile</div><div class="mt-req"><div class="mt-ph">' + av(p.name, 0) + '<div><b>' + esc(p.name) + '</b><small>' + pLine(p) + '</small></div></div></div></div>' +
     mtField('mtSkIn', 'Your skills', '<input class="cn-in" id="mtSkIn" maxlength="24" autocomplete="off" placeholder="Type a skill and press Enter" aria-describedby="mtSkInErr">', false, '<div class="mt-sks" id="mtSks"></div><div class="mt-sugg" id="mtSugg"></div>') +
-    mtField('mtMsg', 'Message to the leader', '<textarea class="cn-in" id="mtMsg" maxlength="140" placeholder="Why would you like to join?"></textarea>', true) +
+    mtField('mtMsg', 'Message to the leader', '<textarea class="cn-in" id="mtMsg" maxlength="140" placeholder="Why would you like to join?"></textarea>', true) + '<div class="mt-f"><div class="cn-sub">Contact details <span class="opt">(optional)</span></div><p class="mt-priv" role="note">Your email and phone number are optional. If you share them, they are shown only to the members of this team, and to no one else.</p></div>' + mtField('mtEmail', 'Email', '<input class="cn-in" id="mtEmail" type="email" inputmode="email" maxlength="100" autocomplete="email" placeholder="you@example.com" aria-describedby="mtEmailErr">', true) + mtField('mtPhone', 'Phone number', '<input class="cn-in" id="mtPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel" placeholder="+91 98765 43210" aria-describedby="mtPhoneErr">', true) +
     '<div class="mt-f"><label class="mt-ck"><input type="checkbox" id="mtAgree" aria-describedby="mtAgreeErr"><span>I have read the team rules and agree to follow them.</span></label><p class="mt-err" id="mtAgreeErr" aria-live="polite"></p></div>' +
     '</div><div class="mt-ft"><button type="button" class="cn-btn" data-mt-close="1">Cancel</button><button type="submit" class="cn-btn pri" disabled>Send request</button></div></form>';
 }
@@ -19327,10 +19366,10 @@ function mtOpenReq(id){
 function mtSendReq(){
   var si = $('#mtSkIn'); if(si && si.value.trim()){ if(mtAddSk(si.value)) si.value = ''; }
   if(!mtSk.length){ mtErr('mtSkIn', 'Add at least one skill so the leader can review your request.'); if(si) si.focus(); return; }
-  var ag = $('#mtAgree'); if(!ag.checked){ mtErr('mtAgree', 'Accept the team rules to send your request.'); ag.focus(); return; }
-  var id = mtReqT, msg = mtVal('mtMsg'), btn = $('#mtReq button[type=submit]'); if(btn) btn.disabled = true;
+  var em = mtVal('mtEmail'), ph = mtVal('mtPhone'); mtErr('mtEmail', ''); mtErr('mtPhone', ''); if(em && !emOk(em)){ mtErr('mtEmail', 'Enter a valid email address, or leave it blank.'); $('#mtEmail').focus(); return; } if(ph && !phOk(ph)){ mtErr('mtPhone', 'Enter a valid phone number (7 to 15 digits), or leave it blank.'); $('#mtPhone').focus(); return; } var ag = $('#mtAgree'); if(!ag.checked){ mtErr('mtAgree', 'Accept the team rules to send your request.'); ag.focus(); return; }
+  var id = mtReqT, msg = mtVal('mtMsg'), btn = $('#mtReq button[type=submit]'); if(btn){ btn.disabled = true; btn.classList.add('mt-busy'); }
   var sk = ('Skills: ' + mtSk.join(', ')).slice(0, 70), text = (sk + (msg ? ' · ' + msg : '')).slice(0, 200);
-  tAct('teamRequestSend', {teamId: id, message: text}, 'Request sent. The team leader will review it.').then(function(r){ if(r) mtClose(); else if(btn) btn.disabled = false; tmPaint(); });
+  tAct('teamRequestSend', {teamId: id, message: text, contactEmail: em, contactPhone: phNorm(ph)}, 'Request sent. The team leader will review it.').then(function(r){ if(r) mtClose(); else if(btn){ btn.disabled = false; btn.classList.remove('mt-busy'); } tmPaint(); });
 }
 function withdraw(id){ tAct('teamRequestCancel', {teamId: id}, 'Request withdrawn.').then(function(){ tmPaint(); }); }
 function dismissReq(id){
@@ -19346,10 +19385,43 @@ function dashOpen(id, tab){
   if(mtM.classList.contains('hidden')) mtShow(dashHTML(t)); else mtSet(dashHTML(t));
   var f = mtM.querySelector('.mt-x'); if(f) f.focus();
 }
+var MT_TAB_ORDER = {req: 0, mem: 1, det: 2}, mtSwapTok = 0;
+function mtReduced(){ try{ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
+/* Dashboard refresh. Header, tabs and panel are updated IN PLACE (scroll, focus and untouched cards stay put);
+   switching tab fades the old panel out, then the new one slides in while the popup glides to its new height. */
 function mtSet(html){
-  var c = mtM.querySelector('.cn-card'), top = c ? c.scrollTop : 0;
-  mtM.innerHTML = '<div class="cn-card cn-wide" role="document" tabindex="-1">' + html + '</div>';
-  c = mtM.querySelector('.cn-card'); c.scrollTop = top; try{ c.focus({preventScroll: true}); }catch(e){}
+  var c = mtM.querySelector('.cn-card'), top = c ? c.scrollTop : 0, tp = document.createElement('template'); tp.innerHTML = html;
+  var oP = c && c.querySelector('.mt-dl[data-tab]'), nP = tp.content.querySelector('.mt-dl[data-tab]'), oH = c && c.querySelector('.mt-mh'), nH = tp.content.querySelector('.mt-mh'), oT = c && c.querySelector('.mt-tabs'), nT = tp.content.querySelector('.mt-tabs');
+  if(!(window.clMorph && oP && nP && oH && nH && oT && nT)){
+    mtM.innerHTML = '<div class="cn-card cn-wide" role="document" tabindex="-1">' + html + '</div>';
+    c = mtM.querySelector('.cn-card'); c.scrollTop = top; try{ c.focus({preventScroll: true}); }catch(e){}
+    return;
+  }
+  window.clMorph(oH, nH.innerHTML); window.clMorph(oT, nT.innerHTML);
+  if(oP.getAttribute('data-tab') !== nP.getAttribute('data-tab')) mtSwapPanel(c, oP, nP);
+  else { mtSwapTok++; window.clMorph(oP, nP.innerHTML); }
+}
+function mtSwapPanel(card, oP, nP){
+  var tok = ++mtSwapTok, dir = (MT_TAB_ORDER[nP.getAttribute('data-tab')] || 0) >= (MT_TAB_ORDER[oP.getAttribute('data-tab')] || 0) ? 1 : -1;
+  function put(){ if(oP.parentNode) oP.parentNode.replaceChild(nP, oP); }
+  if(mtReduced() || !oP.animate){ put(); card.scrollTop = 0; return; }
+  var h0 = oP.getBoundingClientRect().height;
+  var out = oP.animate([{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'translateX(' + (-dir * 14) + 'px)'}], {duration: 130, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
+  out.onfinish = function(){
+    if(tok !== mtSwapTok || !oP.isConnected){ try{ out.cancel(); }catch(e){} return; }
+    put(); var h1 = nP.getBoundingClientRect().height;
+    try{ card.scrollTo({top: 0, behavior: 'smooth'}); }catch(e){ card.scrollTop = 0; }
+    nP.style.overflow = 'hidden';
+    var inn = nP.animate([{opacity: 0, transform: 'translateX(' + (dir * 18) + 'px)', height: h0 + 'px'}, {opacity: 1, transform: 'none', height: h1 + 'px'}], {duration: 360, easing: 'cubic-bezier(.22,1,.36,1)'});
+    var done = function(){ nP.style.overflow = ''; }; inn.onfinish = done; inn.oncancel = done;
+  };
+}
+/* A request / member card that is being accepted, rejected or removed collapses away right on the tap; if the server refuses, undo() brings it back. */
+function mtCollapse(btn){
+  var el = btn && btn.closest && btn.closest('.mt-req'); if(!el || mtReduced() || !el.animate) return null;
+  var h = el.getBoundingClientRect().height; el.setAttribute('data-collapsing', '1');
+  var a = el.animate([{height: h + 'px', opacity: 1, marginBottom: '0px'}, {height: '0px', opacity: 0, marginBottom: '-10px', paddingTop: '0px', paddingBottom: '0px', borderTopWidth: '0px', borderBottomWidth: '0px'}], {duration: 340, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards'});
+  return function(){ try{ a.cancel(); }catch(e){} el.removeAttribute('data-collapsing'); };
 }
 function dashRefresh(){
   if(!mtDash) return; mtLoad(); var t = tById(mtDash.id);
@@ -19361,7 +19433,7 @@ function dReq(t, r, i){
   var ok = r.status === 'pending', rid = esc(r.id);
   return '<div class="mt-req' + (r.status !== 'pending' ? ' done' : '') + '"><div class="mt-ph">' + av(r.name, i, 'sm') + '<div><b>' + esc(r.name) + '</b><small>' + pLine(r) + '</small></div>' + stChip(r.status) + '</div>' +
     '<div><div class="cn-sub">Skills</div>' + mtChips(r.skills || []) + '</div>' +
-    (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
+    contactHTML(r) + (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
     '<small class="mt-cap" style="margin:0">Requested ' + ago(r.at) + (r.at2 ? ' · ' + r.status + ' ' + ago(r.at2) : '') + '</small>' +
     (ok ? (mtAskR === r.id ? '<p class="mt-warn" role="alert">Reject ' + esc(r.name) + '’s request? They will see it as rejected.</p><div class="cn-row"><button class="cn-btn mt-btn-danger pri" type="button" data-mt-rejok="' + rid + '">Confirm reject</button><button class="cn-btn" type="button" data-mt-rejno="1">Keep pending</button></div>' : '<div class="cn-row"><button class="cn-btn pri" type="button" data-mt-acc="' + rid + '"' + (full(t) ? ' disabled title="The team is full"' : '') + '>Accept</button><button class="cn-btn mt-btn-danger" type="button" data-mt-rej="' + rid + '">Reject</button></div>') + (full(t) ? '<p class="mt-help" style="margin:0">The team is full. Remove a member or raise the member limit in Details to accept more people.</p>' : '') : '') + '</div>';
 }
@@ -19386,7 +19458,7 @@ function setRole(uid, title){
 function dMem(t, m, j){
   var k = esc(m.uid), ask = mtAskM === m.uid;
   return '<div class="mt-req"><div class="mt-ph">' + av(m.name, j + 1, 'sm') + '<div><b>' + esc(m.name) + '</b><small>' + pLine(m) + '</small></div>' + roleChip(m.title) + '</div>' +
-    ((m.skills && m.skills.length) ? '<div><div class="cn-sub">Skills</div>' + mtChips(m.skills) + '</div>' : '') + roleBox(t, m.uid, m.title) +
+    ((m.skills && m.skills.length) ? '<div><div class="cn-sub">Skills</div>' + mtChips(m.skills) + '</div>' : '') + contactHTML(m) + roleBox(t, m.uid, m.title) +
     '<div class="cn-row">' + (ask ? '<button class="cn-btn mt-btn-danger pri" type="button" data-mt-rmmok="' + k + '">Confirm remove</button><button class="cn-btn" type="button" data-mt-rmmno="1">Keep</button>' : '<button class="cn-btn mt-btn-danger" type="button" data-mt-rmm="' + k + '" aria-label="Remove ' + k + ' from the team">Remove from team</button>') + '</div>' +
     '<small class="mt-cap" style="margin:0">Joined ' + ago(m.joined || Date.now()) + '</small></div>';
 }
@@ -19412,11 +19484,12 @@ function dashHTML(t){
       mtField('mtEDesc', 'Team description', '<textarea class="cn-in" id="mtEDesc" maxlength="600" aria-describedby="mtEDescErr">' + esc(t.desc) + '</textarea>') +
       mtField('mtEElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtEElig" maxlength="150">' + esc(t.elig || '') + '</textarea>', true) +
       mtField('mtERules', 'Team rules and guidelines', '<textarea class="cn-in" id="mtERules" maxlength="500">' + esc(t.rules || '') + '</textarea>', true, '<p class="mt-help">New requests show the latest rules. Requests already sent keep the rules they accepted.</p>') +
+      mtField('mtEWa', 'WhatsApp group link', '<input class="cn-in" id="mtEWa" type="url" inputmode="url" maxlength="120" autocomplete="off" placeholder="https://chat.whatsapp.com/…" value="' + esc(t.wa || '') + '" aria-describedby="mtEWaErr">', true, '<p class="mt-help">Only members of your team can see this link. Leave it blank to remove it.</p>') +
       mtField('mtEMax', 'Maximum members', '<input class="cn-in" id="mtEMax" type="number" inputmode="numeric" min="' + Math.max(2, n) + '" max="20" value="' + t.max + '" aria-describedby="mtEMaxErr" style="max-width:140px">', false, '<p class="mt-help">Includes you. Cannot be lower than the current ' + n + '.</p>') +
       '<div class="cn-row" style="margin-top:6px"><button type="submit" class="cn-btn pri">Save changes</button></div></form>';
   }
-  var fresh = mtDash.fresh ? ' mt-fade' : ''; mtDash.fresh = false;
-  return head + tabs + '<div class="mt-dl' + fresh + '" role="tabpanel">' + body + '</div>';
+  mtDash.fresh = false;
+  return head + tabs + '<div class="mt-dl" role="tabpanel" data-tab="' + tab + '">' + body + '</div>';
 }
 function toggleApps(){
   var id = mtDash && mtDash.id, t = id && tById(id); if(!t || !isOwner(t)) return;
@@ -19429,22 +19502,25 @@ function decide(rid, st){
   if(!t || !isOwner(t)){ toast('Only the Team Leader can review requests.', 'err'); return; }
   if(!r || r.status !== 'pending'){ toast('This request was already reviewed.', 'err'); return; }
   if(st === 'accepted' && full(t)){ toast('The team is full. Remove a member or raise the member limit first.', 'err'); return; }
-  tAct('teamRequestDecide', {teamId: id, from: r.uid, accept: st === 'accepted'}, st === 'accepted' ? r.name + ' joined the team.' : 'Request rejected.').then(function(){ tmPaint(); });
+  var undo = mtCollapse(mtM.querySelector('[data-mt-acc="' + rid + '"],[data-mt-rejok="' + rid + '"]'));
+  tAct('teamRequestDecide', {teamId: id, from: r.uid, accept: st === 'accepted'}, st === 'accepted' ? r.name + ' joined the team.' : 'Request rejected.').then(function(res){ if(!res && undo) undo(); tmPaint(); });
 }
 function isMem2(t, name){ var k = nrm(name); return nrm(t.owner) === k || t.members.some(function(m){ return nrm(m.name) === k; }); }
 function removeMem(uid){
   var id = mtDash && mtDash.id; mtAskM = '';
-  tAct('teamRemoveMember', {teamId: id, member: uid}, 'Member removed.').then(function(){ tmPaint(); }); dashRefresh();
+  var undo = mtCollapse(mtM.querySelector('[data-mt-rmmok="' + String(uid).replace(/[^A-Za-z0-9_-]/g, '') + '"]'));
+  tAct('teamRemoveMember', {teamId: id, member: uid}, 'Member removed.').then(function(res){ if(!res){ if(undo) undo(); dashRefresh(); } tmPaint(); });
+  if(!undo) dashRefresh();
 }
 function mtSaveEdit(){
   var id = mtDash && mtDash.id; if(!id) return; var t0 = tById(id); if(!t0 || !isOwner(t0)) return;
   var desc = mtVal('mtEDesc'), maxRaw = mtVal('mtEMax'), max = Number(maxRaw), min = Math.max(2, cnt(t0)), bad = null;
   function need(f, ok, msg){ mtErr(f, ok ? '' : msg); if(!ok && !bad) bad = f; }
   need('mtEDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
-  need('mtEMax', maxRaw !== '' && Math.floor(max) === max && max >= min && max <= 20, 'Enter a whole number from ' + min + ' to 20.');
+  need('mtEMax', maxRaw !== '' && Math.floor(max) === max && max >= min && max <= 20, 'Enter a whole number from ' + min + ' to 20.'); var wa = mtVal('mtEWa'); need('mtEWa', !wa || waOk(wa), 'Enter a valid WhatsApp group invite link (https://chat.whatsapp.com/…), or leave it blank.');
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
-  var btn = $('#mtEdit button[type=submit]'); if(btn) btn.disabled = true;
-  tAct('teamUpdate', {teamId: id, desc: desc, eligibility: mtVal('mtEElig'), rules: mtVal('mtERules'), maxMembers: max}, 'Team details saved.').then(function(){ if(btn) btn.disabled = false; });
+  var btn = $('#mtEdit button[type=submit]'); if(btn){ btn.disabled = true; btn.classList.add('mt-busy'); }
+  tAct('teamUpdate', {teamId: id, desc: desc, eligibility: mtVal('mtEElig'), rules: mtVal('mtERules'), maxMembers: max, whatsappLink: wa}, 'Team details saved.').then(function(){ if(btn){ btn.disabled = false; btn.classList.remove('mt-busy'); } });
 }
 function deleteTeam(id){
   var card = mtc.querySelector('[data-tid="' + id + '"]'), reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -19501,7 +19577,7 @@ function initMyTeam(){
     if(t.dataset && t.dataset.mtRole != null){ if(t.value === '__custom'){ var cu = t.parentNode.querySelector('.mt-role-cu'); if(cu){ cu.classList.remove('hidden'); var ci = cu.querySelector('input'); if(ci) ci.focus(); } } else setRole(t.dataset.mtRole, t.value); return; }
     if(t.id === 'mtAgree'){ var s = $('#mtReq button[type=submit]'); if(s) s.disabled = !t.checked; if(t.checked) mtErr('mtAgree', ''); } });
   mtM.addEventListener('input', function(e){
-    var t = e.target; if(!t.id) return;
+    var t = e.target; if(!t.id) return; if(t.id === 'mtEmail' || t.id === 'mtPhone' || t.id === 'mtWa' || t.id === 'mtEWa') mtErr(t.id, '');
     if(t.id === 'mtDesc'){ var c = $('#mtDescCnt'); if(c) c.textContent = t.value.length + ' / 600'; }
     if(t.id === 'mtSkIn' && t.value.indexOf(',') > -1){ var parts = t.value.split(','); t.value = parts.pop(); parts.forEach(function(x){ mtAddSk(x); }); }
     if(t.getAttribute('aria-invalid')) mtErr(t.id, '');
@@ -19511,6 +19587,10 @@ function initMyTeam(){
     if(e.key === 'Enter' && t.dataset && t.dataset.mtRolein != null){ e.preventDefault(); if(t.value.trim()) setRole(t.dataset.mtRolein, t.value); }
     else if(e.key === 'Enter' && t.id === 'mtSkIn'){ e.preventDefault(); if(mtAddSk(t.value)) t.value = ''; }
     else if(e.key === 'Backspace' && t.id === 'mtSkIn' && !t.value && mtSk.length){ mtSk.pop(); mtDrawSk(); }
+    else if(t.dataset && t.dataset.mtTab && /^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key)){
+      e.preventDefault(); var tb = [].slice.call(mtM.querySelectorAll('.mt-tab')), ix = tb.indexOf(t), nx = e.key === 'Home' ? 0 : e.key === 'End' ? tb.length - 1 : (ix + (e.key === 'ArrowRight' ? 1 : -1) + tb.length) % tb.length;
+      if(tb[nx]){ tb[nx].focus(); tb[nx].click(); }
+    }
     else if(e.key === 'Tab'){
       var f = [].filter.call(mtM.querySelectorAll('button,input,textarea,select,[href],[tabindex="0"]'), function(x){ return !x.disabled && x.offsetParent !== null; }); if(!f.length) return;
       if(e.shiftKey && (document.activeElement === f[0] || document.activeElement === mtM.querySelector('.cn-card'))){ e.preventDefault(); f[f.length - 1].focus(); }
@@ -20737,6 +20817,7 @@ html{scrollbar-gutter:stable}                                   /* opening a pop
   function sameKind(a, b){ return a.nodeType === b.nodeType && (a.nodeType !== 1 || a.nodeName === b.nodeName); }
   function syncAttrs(a, b){
     var i, n;
+    if(a.hasAttribute('data-collapsing')) return;                 // a card that is animating out keeps its state until it is removed
     for(i = a.attributes.length - 1; i >= 0; i--){
       n = a.attributes[i].name;
       if(!b.hasAttribute(n)){
@@ -20763,7 +20844,7 @@ html{scrollbar-gutter:stable}                                   /* opening a pop
   function patchChildren(a, b, fresh){
     var oldKids = [].slice.call(a.childNodes), map = {}, claimed = new Set(), pos = 0;
     oldKids.forEach(function(n){ var k = keyOf(n); if(k && !(k in map)) map[k] = n; });
-    var isGrid = a.classList && a.classList.contains('cn-grid');
+    var isGrid = a.classList && (a.classList.contains('cn-grid') || a.classList.contains('mt-list'));
     [].slice.call(b.childNodes).forEach(function(y){
       var k = keyOf(y), x = null, ref = a.childNodes[pos] || null;
       if(k && map[k] && !claimed.has(map[k])) x = map[k];
@@ -20790,6 +20871,7 @@ html{scrollbar-gutter:stable}                                   /* opening a pop
     }
   }
 
+  window.clMorph = function(el, html){ morph(el, html); };       // in-place update for the Manage Team popup (used by mtSet)
   var desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML'), mtTimer = 0;
   if(desc && desc.set && desc.get){
     Object.defineProperty(Element.prototype, 'innerHTML', {
@@ -20825,6 +20907,94 @@ html{scrollbar-gutter:stable}                                   /* opening a pop
       }); });
     }).observe(document.body, {childList:true});
   }catch(e){}
+})();
+</script>
+<style id="teamsUiCss">
+/* ===== Teams UI motion: Manage Team + View Team popups, tabs, lists (builds on smoothTeamsCss) ===== */
+/* Popup open: soft backdrop blur (desktop only, phones skip it for speed) and a springy rise */
+@media (min-width:561px){#mtModal{-webkit-backdrop-filter:blur(7px) saturate(1.1);backdrop-filter:blur(7px) saturate(1.1)}}
+#mtModal{transition:opacity .3s ease,visibility 0s}
+.cn-modal .mt-pop{animation:mtPopX .5s var(--sm-ease) both}
+@keyframes mtPopX{from{opacity:0;transform:translateY(24px) scale(.96)}}
+@media (max-width:560px){#mtModal .cn-card.mt-pop{animation:mtSheetX .52s var(--sm-ease) both}}
+@keyframes mtSheetX{from{opacity:0;transform:translateY(56px)}}
+/* Popup content changes while it is open (e.g. View Team -> Request to join): quick crossfade, no re-pop */
+#mtModal .cn-card.mt-swap{animation:mtSwapIn .28s var(--sm-ease) both}
+@keyframes mtSwapIn{from{opacity:0;transform:translateY(8px)}}
+/* Sections rise in one after another when a popup opens */
+.mt-stag .mt-mb>*,.mt-stag .mt-dl>*,.mt-stag .mt-tabs,.mt-stag .mt-ft{animation:mtRise .55s var(--sm-ease) both}
+.mt-stag .mt-tabs{animation-delay:.04s}
+.mt-stag .mt-mb>:nth-child(1),.mt-stag .mt-dl>:nth-child(1){animation-delay:.07s}
+.mt-stag .mt-mb>:nth-child(2),.mt-stag .mt-dl>:nth-child(2){animation-delay:.11s}
+.mt-stag .mt-mb>:nth-child(3),.mt-stag .mt-dl>:nth-child(3){animation-delay:.15s}
+.mt-stag .mt-mb>:nth-child(4),.mt-stag .mt-dl>:nth-child(4){animation-delay:.19s}
+.mt-stag .mt-mb>:nth-child(5),.mt-stag .mt-dl>:nth-child(5){animation-delay:.23s}
+.mt-stag .mt-mb>:nth-child(6),.mt-stag .mt-dl>:nth-child(6){animation-delay:.27s}
+.mt-stag .mt-mb>:nth-child(n+7),.mt-stag .mt-dl>:nth-child(n+7),.mt-stag .mt-ft{animation-delay:.31s}
+@keyframes mtRise{from{opacity:0;transform:translateY(12px)}}
+/* Manage Team tabs: the underline grows from the centre, counts and hover ease in */
+#mtModal .mt-tab{position:relative;border-bottom-color:transparent!important;border-radius:10px 10px 0 0;transition:color .25s ease,background-color .25s ease,scale .16s var(--sm-ease)}
+#mtModal .mt-tab::after{content:"";position:absolute;left:12px;right:12px;bottom:-3px;height:3px;border-radius:3px 3px 0 0;background:var(--sage);transform:scaleX(0);transform-origin:center;transition:transform .42s var(--sm-ease)}
+#mtModal .mt-tab[aria-selected="true"]::after{transform:scaleX(1)}
+#mtModal .mt-tab:hover{background:color-mix(in srgb,var(--cyan) 7%,transparent)}
+#mtModal .mt-tab:active{scale:.97}
+#mtModal .mt-tab .n{transition:background-color .25s ease,color .25s ease,transform .3s var(--sm-ease)}
+#mtModal .mt-tab[aria-selected="true"] .n{background:color-mix(in srgb,var(--sage) 24%,transparent)}
+/* Cards inside the dashboard */
+#mtModal .mt-req{transition:opacity .35s ease,background-color .35s ease,border-color .3s ease,box-shadow .3s var(--sm-ease),transform .3s var(--sm-ease)}
+@media (hover:hover){#mtModal .mt-req:hover{border-color:color-mix(in srgb,var(--cyan) 40%,var(--line));box-shadow:0 12px 26px -20px rgba(16,42,69,.55)}}
+[data-collapsing]{overflow:hidden!important;pointer-events:none}
+/* Confirm boxes (reject / remove / leave / delete) ease in instead of snapping */
+.mt-warn{animation:mtWarnIn .34s var(--sm-ease) both}
+@keyframes mtWarnIn{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+/* Status chips and counters change colour smoothly */
+.mt-s,.mt-pill,.mt-badge,.mt-role-chip,.mt-dot{transition:background-color .3s ease,color .3s ease,border-color .3s ease}
+/* Busy buttons */
+.cn-btn.mt-busy{pointer-events:none}
+.cn-btn.mt-busy::after{content:"";display:inline-block;width:14px;height:14px;margin-left:8px;vertical-align:-2px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:mtSpin .7s linear infinite}
+@keyframes mtSpin{to{transform:rotate(360deg)}}
+/* Loading skeletons for Find Teams / My Team while the first data arrives */
+.mt-skel{display:grid;gap:12px;align-content:start;min-height:200px;pointer-events:none;overflow:hidden}
+.mt-skel i{display:block;height:12px;border-radius:8px;background:linear-gradient(90deg,color-mix(in srgb,var(--cyan) 8%,transparent) 25%,color-mix(in srgb,var(--cyan) 20%,transparent) 50%,color-mix(in srgb,var(--cyan) 8%,transparent) 75%);background-size:200% 100%;animation:mtShimmer 1.3s linear infinite}
+.mt-skel i.l{width:55%;height:18px}.mt-skel i.m{width:82%}.mt-skel i.s{width:38%}.mt-skel i.c{height:36px;border-radius:12px;margin-top:6px}
+@keyframes mtShimmer{to{background-position:-200% 0}}
+/* Phone: grab handle for the swipe-down sheet */
+@media (max-width:560px){
+  #mtModal .mt-mh{touch-action:none}
+  #mtModal .mt-mh::before{content:"";position:absolute;top:6px;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:4px;background:rgba(255,255,255,.5)}
+}
+@media (prefers-reduced-motion:reduce){
+  .cn-modal .mt-pop,#mtModal .cn-card.mt-pop,#mtModal .cn-card.mt-swap,.mt-stag .mt-mb>*,.mt-stag .mt-dl>*,.mt-stag .mt-tabs,.mt-stag .mt-ft,.mt-warn,.mt-skel i,.cn-btn.mt-busy::after{animation:none!important}
+  #mtModal .mt-tab,#mtModal .mt-tab::after,#mtModal .mt-req{transition:none}
+}
+</style>
+<script id="teamsUiJs">
+/* Swipe down on the header of the Manage / View popup (phones) to dismiss it; a short or slow drag springs back. */
+(function(){
+  'use strict';
+  var mm = window.matchMedia ? matchMedia('(max-width:560px)') : null;
+  document.addEventListener('pointerdown', function(e){
+    var modal = document.getElementById('mtModal');
+    if(!modal || modal.classList.contains('hidden') || !mm || !mm.matches || !e.isPrimary) return;
+    var head = e.target.closest && e.target.closest('#mtModal .mt-mh'); if(!head || e.target.closest('button,a,input,textarea,select')) return;
+    var card = modal.querySelector('.cn-card'); if(!card) return;
+    var y0 = e.clientY, t0 = e.timeStamp, dy = 0, id = e.pointerId;
+    function mv(ev){ if(ev.pointerId !== id) return; dy = Math.max(0, ev.clientY - y0); card.style.transition = 'none'; card.style.transform = 'translateY(' + dy + 'px)'; }
+    function end(ev, cancelled){
+      if(ev.pointerId !== id) return;
+      document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', cn);
+      var v = dy / Math.max(1, ev.timeStamp - t0);
+      if(!cancelled && (dy > 120 || (dy > 40 && v > .6))){
+        card.style.transition = 'transform .28s cubic-bezier(.22,1,.36,1)'; card.style.transform = 'translateY(100%)';
+        setTimeout(function(){ var x = card.querySelector('[data-mt-close]'); if(x) x.click(); }, 120);
+      } else if(dy){
+        card.style.transition = 'transform .45s cubic-bezier(.22,1,.36,1)'; card.style.transform = '';
+        setTimeout(function(){ card.style.transition = ''; }, 460);
+      }
+    }
+    function up(ev){ end(ev, false); } function cn(ev){ end(ev, true); }
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', cn);
+  });
 })();
 </script>
 <style id="glassEventsCss">

@@ -4,7 +4,7 @@
    transactions so capacity, membership and request status can never get out of step. */
 
 const LIM = { MAX_MEMBERS_MIN: 2, MAX_MEMBERS_MAX: 20, LEAD_MAX: 5, JOIN_MAX: 10, PENDING_OUT_MAX: 10, RETRY_AFTER_REJECT_MS: 3600 * 1000,
-  NAME_MIN: 3, NAME_MAX: 50, PROJECT_MAX: 80, DESC_MAX: 600, RULES_MAX: 600, ELIG_MAX: 150, MSG_MAX: 200, SKILLS_MAX: 12, SKILL_LEN: 30, ROLE_MAX: 30 };
+  NAME_MIN: 3, NAME_MAX: 50, PROJECT_MAX: 80, DESC_MAX: 600, RULES_MAX: 600, ELIG_MAX: 150, MSG_MAX: 200, SKILLS_MAX: 12, SKILL_LEN: 30, ROLE_MAX: 30, EMAIL_MAX: 100, WA_MAX: 120 };
 
 class CoreError extends Error { constructor(code, message) { super(message); this.code = code; } }   // index.js maps to HttpsError
 const E = (code, msg) => new CoreError(code, msg);
@@ -23,6 +23,25 @@ function cleanSkills(a) {
   if (out.length > LIM.SKILLS_MAX) throw E('invalid-argument', `Choose at most ${LIM.SKILLS_MAX} skills.`);
   return out;
 }
+
+/* Optional contact details (applicant email / phone) and the team WhatsApp group link. Empty input means "none". */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/, PHONE_RE = /^\+?\d{7,15}$/, WA_RE = /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9_-]{8,}(\?\S*)?$/;
+function cleanEmail(v) {
+  const s = clean(v, 200); if (!s) return '';
+  if (s.length > LIM.EMAIL_MAX || !EMAIL_RE.test(s)) throw E('invalid-argument', 'Enter a valid email address, or leave it blank.');
+  return s;
+}
+function cleanPhone(v) {
+  const s = String(v == null ? '' : v).replace(/[\s().-]/g, ''); if (!s) return '';
+  if (!PHONE_RE.test(s)) throw E('invalid-argument', 'Enter a valid phone number (7 to 15 digits), or leave it blank.');
+  return s;
+}
+function cleanWa(v) {
+  const s = clean(v, 300); if (!s) return '';
+  if (s.length > LIM.WA_MAX || !WA_RE.test(s)) throw E('invalid-argument', 'Enter a valid WhatsApp group invite link (https://chat.whatsapp.com/...), or leave it blank.');
+  return s;
+}
+const SCRUB = { contactEmail: '', contactPhone: '' };   // wipe a person's contact details from a request once they are no longer a prospect or member
 
 function validateTeam(d, partial) {
   d = d || {}; const o = {};
@@ -64,7 +83,7 @@ const mustLead = (t, uid) => { if (t.leaderUid !== uid) throw E('permission-deni
 
 /* ---------------- create / update / delete ---------------- */
 async function createTeam(ctx, uid, data) {
-  const { db, FV } = ctx, v = validateTeam(data, false), me = await profileOf(db, uid);
+  const { db, FV } = ctx, v = validateTeam(data, false), wa = cleanWa((data || {}).whatsappLink), me = await profileOf(db, uid);
   if (!me.hasName) throw E('failed-precondition', 'Finish your profile (name) before creating a team.');
   if (await teamCount(db, 'leaderUid', uid) >= LIM.LEAD_MAX) throw E('resource-exhausted', `You can lead at most ${LIM.LEAD_MAX} teams.`);
   const ref = db.collection('teams').doc();
@@ -72,18 +91,23 @@ async function createTeam(ctx, uid, data) {
   const batch = db.batch();
   batch.create(ref, team);
   batch.create(ref.collection('members').doc(uid), { uid, name: me.name, branch: me.branch, year: me.year, role: 'leader', joinedAt: FV.serverTimestamp() });
+  if (wa) batch.create(ref.collection('private').doc('info'), { whatsappLink: wa, updatedAt: FV.serverTimestamp() });   // members-only, never on the public team doc
   await batch.commit();
   return { teamId: ref.id };
 }
 
 async function updateTeam(ctx, uid, data) {
   const { db, FV } = ctx; data = data || {};
-  const v = validateTeam(data, true);
+  const v = validateTeam(data, true), hasWa = data.whatsappLink !== undefined, wa = hasWa ? cleanWa(data.whatsappLink) : '';
   await db.runTransaction(async (tx) => {
     const { ref, t } = await mustTeam(tx, db, data.teamId); mustLead(t, uid);
     if (v.maxMembers !== undefined && v.maxMembers < t.memberCount) throw E('failed-precondition', `The team already has ${t.memberCount} members. Remove members before lowering the size.`);
-    if (!Object.keys(v).length) throw E('invalid-argument', 'Nothing to update.');
-    tx.update(ref, Object.assign({}, v, { updatedAt: FV.serverTimestamp() }));
+    if (!Object.keys(v).length && !hasWa) throw E('invalid-argument', 'Nothing to update.');
+    if (Object.keys(v).length) tx.update(ref, Object.assign({}, v, { updatedAt: FV.serverTimestamp() }));
+    if (hasWa) {   // empty string removes the link
+      const pref = ref.collection('private').doc('info');
+      if (wa) tx.set(pref, { whatsappLink: wa, updatedAt: FV.serverTimestamp() }, { merge: true }); else tx.delete(pref);
+    }
   });
   return { ok: true };
 }
@@ -106,8 +130,10 @@ async function deleteTeam(ctx, uid, data) {
     tx.delete(ref);
     return { name: t.name, members: t.memberUids };
   });
-  const reqs = await settleRequests(ctx, data.teamId, 'cancelled', { reason: 'team-deleted' });
-  const b = db.batch(); info.members.forEach((m) => b.delete(db.collection('teams').doc(data.teamId).collection('members').doc(m))); await b.commit();
+  const reqs = await settleRequests(ctx, data.teamId, 'cancelled', Object.assign({ reason: 'team-deleted' }, SCRUB));
+  const acc = await db.collection('teamRequests').where('teamId', '==', data.teamId).where('status', '==', 'accepted').get();   // accepted members' requests also hold contact details
+  for (let i = 0; i < acc.docs.length; i += 400) { const ab = db.batch(); acc.docs.slice(i, i + 400).forEach((d) => ab.update(d.ref, SCRUB)); await ab.commit(); }
+  const b = db.batch(); info.members.forEach((m) => b.delete(db.collection('teams').doc(data.teamId).collection('members').doc(m))); b.delete(db.collection('teams').doc(data.teamId).collection('private').doc('info')); await b.commit();
   const nb = db.batch(); reqs.forEach((r) => nb.create(db.collection('teamNotifs').doc(r.from).collection('items').doc(), { type: 'disbanded', teamId: data.teamId, teamName: info.name, fromName: '', read: false, createdAt: FV.serverTimestamp() })); await nb.commit();
   return { ok: true };
 }
@@ -115,6 +141,7 @@ async function deleteTeam(ctx, uid, data) {
 /* ---------------- join requests ---------------- */
 async function sendRequest(ctx, uid, data) {
   const { db, FV, nowMs } = ctx; data = data || {};
+  const contactEmail = cleanEmail(data.contactEmail), contactPhone = cleanPhone(data.contactPhone);
   const me = await profileOf(db, uid), message = clean(data.message, LIM.MSG_MAX);
   if (!me.hasName) throw E('failed-precondition', 'Finish your profile (name) before requesting to join a team.');
   if (await teamCount(db, 'memberUids', uid) >= LIM.JOIN_MAX) throw E('resource-exhausted', `You can be in at most ${LIM.JOIN_MAX} teams.`);
@@ -130,7 +157,7 @@ async function sendRequest(ctx, uid, data) {
       if (r.status === 'pending') throw E('already-exists', 'You already sent a request to this team.');
       if (r.status === 'rejected' && nowMs - ms(r.updatedAt) < LIM.RETRY_AFTER_REJECT_MS) throw E('failed-precondition', 'This team declined your request recently. Try again later.');
     }
-    tx.set(rref, { teamId: data.teamId, teamName: t.name, from: uid, fromName: me.name, fromBranch: me.branch, fromYear: me.year, to: t.leaderUid, status: 'pending', message, createdAt: FV.serverTimestamp(), updatedAt: FV.serverTimestamp() });
+    tx.set(rref, { teamId: data.teamId, teamName: t.name, from: uid, fromName: me.name, fromBranch: me.branch, fromYear: me.year, to: t.leaderUid, status: 'pending', message, contactEmail, contactPhone, createdAt: FV.serverTimestamp(), updatedAt: FV.serverTimestamp() });
     notify(db, FV, tx, t.leaderUid, { type: 'request', teamId: data.teamId, teamName: t.name, fromUid: uid, fromName: me.name });
   });
   return { ok: true };
@@ -143,7 +170,7 @@ async function cancelRequest(ctx, uid, data) {
     const rref = db.collection('teamRequests').doc(reqId(data.teamId, uid)), rs = await tx.get(rref);
     if (!rs.exists) throw E('not-found', 'Request not found.');
     if (rs.data().status !== 'pending') throw E('failed-precondition', 'This request was already answered.');
-    tx.update(rref, { status: 'cancelled', updatedAt: ctx.FV.serverTimestamp() });
+    tx.update(rref, Object.assign({ status: 'cancelled', updatedAt: ctx.FV.serverTimestamp() }, SCRUB));
   });
   return { ok: true };
 }
@@ -157,16 +184,17 @@ async function decideRequest(ctx, uid, data) {
     const { ref, t } = await mustTeam(tx, db, data.teamId); mustLead(t, uid);
     const rref = db.collection('teamRequests').doc(reqId(data.teamId, data.from)), rs = await tx.get(rref);
     if (!rs.exists) throw E('not-found', 'Request not found.');
-    if (rs.data().status !== 'pending') throw E('failed-precondition', 'This request was already answered or withdrawn.');
+    const req = rs.data();
+    if (req.status !== 'pending') throw E('failed-precondition', 'This request was already answered or withdrawn.');
     if (!data.accept) {
-      tx.update(rref, { status: 'rejected', updatedAt: FV.serverTimestamp() });
+      tx.update(rref, Object.assign({ status: 'rejected', updatedAt: FV.serverTimestamp() }, SCRUB));
       notify(db, FV, tx, data.from, { type: 'rejected', teamId: data.teamId, teamName: t.name, fromName: t.leaderName });
       return;
     }
     if (t.memberUids.includes(data.from)) { tx.update(rref, { status: 'accepted', updatedAt: FV.serverTimestamp() }); return; }
     if (t.memberCount >= t.maxMembers) throw E('failed-precondition', 'The team is full. Remove a member or raise the team size first.');
     tx.update(ref, { memberUids: t.memberUids.concat([data.from]), memberCount: t.memberCount + 1, updatedAt: FV.serverTimestamp() });
-    tx.create(ref.collection('members').doc(data.from), { uid: data.from, name: joiner.name, branch: joiner.branch, year: joiner.year, role: 'member', joinedAt: FV.serverTimestamp() });
+    tx.create(ref.collection('members').doc(data.from), { uid: data.from, name: joiner.name, branch: joiner.branch, year: joiner.year, role: 'member', email: String(req.contactEmail || ''), phone: String(req.contactPhone || ''), joinedAt: FV.serverTimestamp() });   // contact details are copied only into the members-only doc
     tx.update(rref, { status: 'accepted', updatedAt: FV.serverTimestamp() });
     notify(db, FV, tx, data.from, { type: 'accepted', teamId: data.teamId, teamName: t.name, fromName: t.leaderName });
   });
@@ -184,7 +212,7 @@ async function removeMember(ctx, uid, data) {
     const rref = db.collection('teamRequests').doc(reqId(data.teamId, data.member)), rs = await tx.get(rref);   // a former leader has no request doc
     tx.update(ref, { memberUids: t.memberUids.filter((m) => m !== data.member), memberCount: t.memberCount - 1, updatedAt: FV.serverTimestamp() });
     tx.delete(ref.collection('members').doc(data.member));
-    if (rs.exists) tx.update(rref, { status: 'removed', updatedAt: FV.serverTimestamp() });
+    if (rs.exists) tx.update(rref, Object.assign({ status: 'removed', updatedAt: FV.serverTimestamp() }, SCRUB));
     notify(db, FV, tx, data.member, { type: 'removed', teamId: data.teamId, teamName: t.name, fromName: t.leaderName });
   });
   return { ok: true };
@@ -214,7 +242,7 @@ async function leaveTeam(ctx, uid, data) {
     const rref = db.collection('teamRequests').doc(reqId(data.teamId, uid)), rs = await tx.get(rref);   // a former leader has no request doc
     tx.update(ref, { memberUids: t.memberUids.filter((m) => m !== uid), memberCount: t.memberCount - 1, updatedAt: FV.serverTimestamp() });
     tx.delete(ref.collection('members').doc(uid));
-    if (rs.exists) tx.update(rref, { status: 'left', updatedAt: FV.serverTimestamp() });
+    if (rs.exists) tx.update(rref, Object.assign({ status: 'left', updatedAt: FV.serverTimestamp() }, SCRUB));
     notify(db, FV, tx, t.leaderUid, { type: 'left', teamId: data.teamId, teamName: t.name, fromUid: uid, fromName: me.name });
   });
   return { ok: true };
@@ -238,4 +266,4 @@ async function transferLeader(ctx, uid, data) {
   return { ok: true };
 }
 
-module.exports = { LIM, CoreError, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, setMemberRole, leaveTeam, transferLeader, reqId };
+module.exports = { LIM, CoreError, cleanEmail, cleanPhone, cleanWa, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, setMemberRole, leaveTeam, transferLeader, reqId };

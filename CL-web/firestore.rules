@@ -503,8 +503,14 @@ service cloud.firestore{
         allow read: if isStudent() && isTeamMember(teamId) || isOwner();
         allow write: if false;
       }
+      // Members-only extras: the team's WhatsApp group link (`private/info`). Never put it on the public team doc above.
+      match /private/{doc}{
+        allow read: if isStudent() && isTeamMember(teamId) || isOwner();
+        allow write: if false;
+      }
     }
-    // A join request is visible only to the student who sent it and the leader it was sent to.
+    // A join request is visible only to the student who sent it and the leader it was sent to (it can carry the applicant's optional email / phone;
+    // the functions copy them to the members-only member doc on accept and wipe them from the request on reject / cancel / leave / remove).
     match /teamRequests/{id}{
       allow read: if request.auth!=null && (resource.data.from==request.auth.uid || resource.data.to==request.auth.uid);
       allow write: if false;
