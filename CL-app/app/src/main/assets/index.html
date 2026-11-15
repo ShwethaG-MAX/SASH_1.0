@@ -2567,6 +2567,13 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-fc .n{opacity:.65;margin-left:4px;font-size:.72rem}
 .cn-fc:focus-visible,.cn-seg button:focus-visible,.cn-bm:focus-visible,.cn-link:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .cn-chip.on{background:var(--sage);border-color:var(--sage);color:#fff}
+.cn-flt{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:0 12px 6px;margin:0 0 10px}
+.cn-flt>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;font-weight:700;font-size:.9rem;color:var(--text);-webkit-tap-highlight-color:transparent}
+.cn-flt>summary::-webkit-details-marker{display:none}
+.cn-flt>summary::after{content:"+";margin-left:auto;font-size:1.2rem;font-weight:500;color:var(--muted)}
+.cn-flt[open]>summary::after{content:"\2212"}
+.cn-flt .cn-fn{font-weight:600;font-size:.74rem;color:var(--muted);background:color-mix(in srgb,var(--cyan) 14%,transparent);border-radius:99px;padding:2px 9px}.cn-flt .cn-fn:empty{display:none}
+.cn-flt>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:10px}
 .cn-sum{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:32px;font-size:.84rem;color:var(--muted);margin:0 2px 8px}
 .cn-link{border:0;background:none;color:var(--text);font:inherit;font-weight:600;font-size:.84rem;text-decoration:underline;cursor:pointer;min-height:32px;padding:0 4px}
 .cn-ring{--p:0;flex:none;margin-left:auto;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--cyan) calc(var(--p)*1%),var(--line) 0);font-weight:800;font-size:.72rem;color:var(--text)}
@@ -18320,6 +18327,35 @@ function peopleRows(){
     return (!q || hay.indexOf(q) > -1) && (!w.length || x.hit.length) && (!P.years.length || P.years.indexOf(yl(x.p[2])) > -1);
   }).sort(function(a, b){ return b.hit.length - a.hit.length || a.p[0].localeCompare(b.p[0]); });
 }
+/* ---------- Self-healing live listeners ----------
+   A Firestore onSnapshot listener that hits an error is DEAD for good (the SDK never restarts it), which is what produced the permanent
+   "connection problem" in People / Connections / Teams / Requests. clListen() re-subscribes automatically (backoff 0.7s -> 15s, refreshing the
+   sign-in token, and immediately when the network returns or the app comes back to the foreground) and never gives up.
+   next(snap) = data; fail(err, n) = n-th failure in a row (the UI shows an error only after several, and keeps the last data meanwhile). */
+window.clListen = window.clListen || (function(){
+  var waiting = [], tokAt = 0;
+  function kickAll(){ waiting.slice().forEach(function(f){ try{ f(); }catch(e){} }); }
+  window.addEventListener('online', kickAll); window.addEventListener('focus', kickAll); window.addEventListener('pageshow', kickAll);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) kickAll(); });
+  function freshToken(){ var u = null; try{ u = firebase.auth().currentUser; }catch(e){} if(!u || Date.now() - tokAt < 20000) return Promise.resolve(); tokAt = Date.now(); return Promise.resolve(u.getIdToken(true)).catch(function(){}); }
+  return function(q, next, fail){
+    var un = null, dead = false, tries = 0, timer = 0, kick = null;
+    function unwait(){ clearTimeout(timer); timer = 0; var i = waiting.indexOf(kick); if(i > -1) waiting.splice(i, 1); }
+    function retry(e){
+      try{ if(un) un(); }catch(x){} un = null; tries++;
+      try{ if(fail) fail(e, tries); }catch(x){}
+      if(dead) return; unwait();
+      kick = function(){ unwait(); if(dead) return; freshToken().then(go); };
+      waiting.push(kick); timer = setTimeout(kick, Math.min(15000, 700 * Math.pow(2, Math.min(tries - 1, 5))));
+    }
+    function go(){
+      if(dead) return;
+      try{ un = q.onSnapshot(function(s){ tries = 0; try{ next(s); }catch(x){ console.warn('[listen]', x); } }, retry); }catch(e){ retry(e); }
+    }
+    go();
+    return function(){ dead = true; unwait(); try{ if(un) un(); }catch(e){} un = null; };
+  };
+})();
 /* ---------- Firebase: real students (publicProfiles) ---------- */
 var PS = 'wait', PT = 0, PBusy = false, pubKey = '';
 var BR = ['CSE','CSEAIML','ISE','ECE','EEE','EI','CV','IP','ENV','BT','CTM','ME','PST','CSBS'];
@@ -18351,13 +18387,13 @@ function loadPeople(){
   if(PL){ try{ PL(); }catch(e){} PL = null; }
   PLuid = u.uid; if(PS !== 'ok') setPS('loading');
   publishMe();
-  PL = db.collection('publicProfiles').orderBy('name').limit(500).onSnapshot(function(snap){
+  PL = clListen(db.collection('publicProfiles').orderBy('name').limit(500), function(snap){
     PD = {};
     PF = snap.docs.map(function(d){ var x = d.data() || {}, n = String(x.name || '').trim(); if(!n) return null; PD[d.id] = x;
       var sk = (x.skills || []).map(function(a){ return String(a && a.n || a || ''); }).filter(Boolean), pr = (x.projects || [])[0];
       return [n, x.branch || '', +x.year || 0, sk, (x.interests || []).map(String), String(x.bio || x.headline || ''), pr && pr.title ? String(pr.title) : '', d.id]; }).filter(Boolean);
     PT = Date.now(); PS = 'ok'; drawPeople();
-  }, function(e){ console.warn('[Connect] could not load students (is the publicProfiles rule published?)', e && e.code); PL = null; PS = 'err'; drawPeople(); });
+  }, function(e, n){ console.warn('[Connect] students listener failed, retrying (' + n + ')', e && e.code); if(PS !== 'ok' && n >= 4){ PS = 'err'; drawPeople(); } });   /* keeps the list on screen and reconnects by itself */
 }
 setInterval(function(){ publishMe(); connTick(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
 
@@ -18375,7 +18411,7 @@ function mutTxt(u){ var m = MU[u]; return m && m.length ? ' · ' + m.length + ' 
 function connStop(){ cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS = {uid:'', out:{}, inc:{}, conn:{}, outL:[], incL:[], connL:[], notifs:[], ok:{}, busy:{}, ask:''}; MU = {}; SUG = null; SUGn = -1; paintConn(); }
 function connStart(uid){
   var db = fb(); if(!db) return; CS.uid = uid;
-  function lis(key, q, fn){ cUn.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; if(CS.errs){ delete CS.errs[key]; if(!Object.keys(CS.errs).length) CS.err = 0; } paintConn(); }, function(e){ console.warn('[Connections] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); CS.err = 1; (CS.errs = CS.errs || {})[key] = String(e && e.code || 'error'); paintConn(); })); }
+  function lis(key, q, fn){ cUn.push(clListen(q, function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; if(CS.errs){ delete CS.errs[key]; if(!Object.keys(CS.errs).length) CS.err = 0; } paintConn(); }, function(e, n){ console.warn('[Connections] ' + key + ' listener failed, retrying (' + n + ')', e && e.code); if(n >= 4){ CS.err = 1; (CS.errs = CS.errs || {})[key] = String(e && e.code || 'error'); paintConn(); } })); }
   lis('inc', db.collection('connectionRequests').where('to', '==', uid), function(s){
     CS.inc = {}; CS.incL = []; s.docs.forEach(function(d){ var x = d.data(); if(x.status === 'pending'){ CS.inc[x.from] = 1; CS.incL.push({u:x.from, name:x.fromName, at:tms(x.createdAt)}); } });
     CS.incL.sort(function(a, b){ return b.at - a.at; }); });
@@ -18444,7 +18480,7 @@ function drawConn(){
   var uids = CS.incL.concat(CS.outL, CS.connL).map(function(x){ return x.u; }); loadMutuals(uids);
   var h = '', dis = function(u){ return CS.busy[u] ? ' disabled' : ''; };
   var ek = cTab === 'received' ? 'inc' : cTab === 'sent' ? 'out' : 'conn', ec = CS.errs && CS.errs[ek];
-  if(ec && !CS.ok[ek]) h = empty('⚠️', ec === 'permission-denied' ? 'Connections are unavailable right now' : 'Could not load connections', ec === 'permission-denied' ? 'We could not open your connections. Please try again in a moment.' : 'Check your connection and try again.', '<button class="cn-btn pri" type="button" data-cretry="1">Try again</button>');
+  if(ec && !CS.ok[ek]) h = empty('⏳', 'Reconnecting…', 'Campus Loop could not be reached. This reconnects by itself, or tap Try again.', '<button class="cn-btn pri" type="button" data-cretry="1">Try again</button>');
   else if(CS.uid && !CS.ok[ek]) h = '<div class="cn-ulist" aria-busy="true" aria-label="Loading">' + [0, 1, 2].map(function(){ return '<div class="cn-urow mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i></div>'; }).join('') + '</div>';
   else if(!CS.uid) h = empty('🔒', 'Sign in to connect', 'Connections are available to signed-in students. Guests cannot send or receive requests.');
   else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
@@ -18508,17 +18544,19 @@ function personCard(x){
    (p[3].length ? '<div class="cn-ring sm" style="--p:' + v + '" data-v="' + v + '%" role="img" title="' + (w.length ? 'Share of the selected skills they have' : 'Skills listed (out of 5)') + '" aria-label="' + v + ' percent skills"></div>' : '') + (mine ? '' : connBtn(k, 'data-k')) + '</article>';
 }
 var pSkSig = null;
+function fltN(id, n){ var e = document.getElementById(id); if(e) e.textContent = n ? n + ' active' : ''; }
 function drawPeople(){ drawPeople0(); connHook(); }
 function drawPeople0(){
   if(!$('#cnPgrid')) return;
   var sk = skillList(), skl = $('#cnPskl'), chs = $('#cnPchips'), sig = sk.join('|');
   P.skills = P.skills.filter(function(s){ return sk.indexOf(s) > -1; });
+  fltN('cnPfn', P.skills.length + P.years.length);
   if(skl) skl.style.display = sk.length ? '' : 'none';
   if(chs){ if(sig !== pSkSig){ pSkSig = sig; chs.innerHTML = sk.length ? chipbar('Filter by skill', [''].concat(sk), P.skills, 'data-sk') : ''; } else syncChips(chs, P.skills, 'data-sk'); }
   if(PS !== 'ok'){
     $('#cnPsum').innerHTML = ''; $('#cnPgrid').innerHTML = ''; $('#cnPgrid').className = '';
     $('#cnPempty').innerHTML = PS === 'guest' ? empty('\uD83D\uDD12', 'Sign in to see students', 'Students who have signed in to Campus Loop are listed here. Guests cannot see the list.')
-      : PS === 'err' ? empty('\u26A0\uFE0F', 'Could not load students', 'Check your connection and open this tab again.')
+      : PS === 'err' ? empty('\u23F3', 'Reconnecting\u2026', 'Campus Loop could not be reached. This reconnects by itself as soon as you are online.')
       : empty('\u23F3', 'Loading students\u2026', 'Fetching the list from Campus Loop.');
     return;
   }
@@ -18542,7 +18580,7 @@ function initPeople(){
   var box = $('#cnTpeople');
   box.innerHTML = '<h2 class="cn-sr-h">Find people</h2>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
-   '<div id="cnPsug"></div><div class="cn-sum" id="cnPyl"><span class="cn-sub" style="margin:0">Filter by year</span></div><div id="cnPyears">' + chipbar('Filter by year', [''].concat(YRS), P.years, 'data-yr') + '</div><div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Filter by skill</span></div><div id="cnPchips"></div><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
+   '<div id="cnPsug"></div><details class="cn-flt" id="cnPflt" open><summary><span>Filters</span><span class="cn-fn" id="cnPfn" aria-live="polite"></span></summary><div class="cn-sum" id="cnPyl"><span class="cn-sub" style="margin:0">Year</span></div><div id="cnPyears">' + chipbar('Filter by year', [''].concat(YRS), P.years, 'data-yr') + '</div><div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Skill</span></div><div id="cnPchips"></div></details><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
   $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
   box.addEventListener('click', function(e){
@@ -18568,12 +18606,13 @@ function drawTeams(){
   $('#cnTgrid').innerHTML = (TM.uid && !TM.ok.all && !TM.err && !crows.length) ? mtSkel(3) : crows.map(ctCard).join('');
   $('#cnTempty').innerHTML = tot ? '' : (all ? empty('🧩', 'No teams found', 'Try a different skill, or search by another keyword.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>')
     : '');
+  fltN('cnTfn', T.chips.length);
   if(typeof drawReqs === 'function') drawReqs();
 }
 function initTeamsTab(){
   var box = $('#cnTteams');
   box.innerHTML = '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnTq">Search teams</label><input class="cn-in" id="cnTq" type="search" placeholder="Search by team, project or skill" autocomplete="off"></div></div>' +
-   '<div id="cnTchips">' + chipbar('Filter by skill', [''].concat(teamChips()), T.chips, 'data-tc') + '</div><div class="cn-sum" id="cnTsum" aria-live="polite"></div><div class="cn-grid" id="cnTgrid"></div><div id="cnTempty"></div>';
+   '<details class="cn-flt" id="cnTflt" open><summary><span>Filters</span><span class="cn-fn" id="cnTfn" aria-live="polite"></span></summary><div class="cn-sum"><span class="cn-sub" style="margin:0">Skill</span></div><div id="cnTchips">' + chipbar('Filter by skill', [''].concat(teamChips()), T.chips, 'data-tc') + '</div></details><div class="cn-sum" id="cnTsum" aria-live="polite"></div><div class="cn-grid" id="cnTgrid"></div><div id="cnTempty"></div>';
   drawTeams();
   $('#cnTq').addEventListener('input', function(e){ T.q = e.target.value.trim(); drawTeams(); });
   box.addEventListener('click', function(e){
@@ -19183,14 +19222,14 @@ function tmPaint(){
     }
   }, 40);
 }
-function tmLis(key, q, fn){ TM.un.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Teams]', e); } TM.ok[key] = 1; TM.err = 0; tmPaint(); }, function(e){ console.warn('[Teams] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); TM.err = 1; tmPaint(); })); }
+function tmLis(key, q, fn){ TM.un.push(clListen(q, function(s){ try{ fn(s); }catch(e){ console.warn('[Teams]', e); } TM.ok[key] = 1; TM.err = 0; tmPaint(); }, function(e, n){ console.warn('[Teams] ' + key + ' listener failed, retrying (' + n + ')', e && e.code); if(n >= 4){ TM.err = 1; tmPaint(); } })); }
 function tmSyncMembers(db){
   Object.keys(TM.mun).forEach(function(id){ if(!TM.mine[id]){ try{ TM.mun[id](); }catch(e){} delete TM.mun[id]; delete TM.mem[id]; delete TM.wa[id]; } });
   Object.keys(TM.mine).forEach(function(id){
     if(TM.mun[id]) return;
-    var uW = db.collection('teams').doc(id).collection('private').doc('info').onSnapshot(function(d){ TM.wa[id] = d.exists ? String((d.data() || {}).whatsappLink || '') : ''; tmPaint(); }, function(e){ console.warn('[Teams] private info listener', e && e.code); }); var uM = db.collection('teams').doc(id).collection('members').onSnapshot(function(s){
+    var uW = clListen(db.collection('teams').doc(id).collection('private').doc('info'), function(d){ TM.wa[id] = d.exists ? String((d.data() || {}).whatsappLink || '') : ''; tmPaint(); }, function(e, n){ console.warn('[Teams] private info listener', n, e && e.code); }); var uM = clListen(db.collection('teams').doc(id).collection('members'), function(s){
       TM.mem[id] = s.docs.map(function(d){ var x = d.data(); return {uid: d.id, name: x.name || 'Student', branch: x.branch || '', year: x.year || '', role: x.role, title: String(x.title || ''), email: String(x.email || ''), phone: String(x.phone || ''), sem: '', section: '', skills: [], joined: tms(x.joinedAt) || Date.now()}; }); tmPaint();
-    }, function(e){ console.warn('[Teams] members listener', e && e.code); }); TM.mun[id] = function(){ try{ uW(); }catch(e){} try{ uM(); }catch(e){} };
+    }, function(e, n){ console.warn('[Teams] members listener', n, e && e.code); }); TM.mun[id] = function(){ try{ uW(); }catch(e){} try{ uM(); }catch(e){} };
   });
 }
 function tmNote(n){
@@ -19242,7 +19281,7 @@ function drawMyTeam(){
   var led = myTeams.filter(isOwner), jc = myTeams.filter(function(t){ return !isOwner(t) && isMem(t); }),
       rq = myTeams.filter(function(t){ var r = myReq(t); return !isOwner(t) && !isMem(t) && r && !r.dismissed; }), total = led.length + jc.length + rq.length,
       pendAll = led.reduce(function(n, t){ return n + pendN(t); }, 0);
-  var sub = !TM.uid ? 'Sign in with your student account to create or join teams.' : TM.err ? 'Could not load teams. Check your connection and try again.' : pendAll ? 'You have <b>' + pendAll + '</b> join request' + (pendAll === 1 ? '' : 's') + ' waiting for your review.' : total ? 'The teams you lead, the teams you have joined and your join requests, all in one place.' : 'Lead your own team for a hackathon or competition, or join one from Find Teams.';
+  var sub = !TM.uid ? 'Sign in with your student account to create or join teams.' : TM.err ? 'Reconnecting to Campus Loop… your teams and requests will appear automatically.' : pendAll ? 'You have <b>' + pendAll + '</b> join request' + (pendAll === 1 ? '' : 's') + ' waiting for your review.' : total ? 'The teams you lead, the teams you have joined and your join requests, all in one place.' : 'Lead your own team for a hackathon or competition, or join one from Find Teams.';
   var html = '<div class="mt-hero"><div><h2>' + ic('users') + 'MY TEAM</h2><p>' + sub + '</p></div>' +
     '<button type="button" class="mt-create" data-mt-new="1">' + ic('plus') + 'Create Team</button></div>';
   if(total){
