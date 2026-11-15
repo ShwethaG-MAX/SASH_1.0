@@ -4902,7 +4902,7 @@ html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-n
   <div class="at-modal-overlay hidden" id="ownerDashOverlay">
     <div class="at-modal" role="dialog" aria-modal="true" aria-labelledby="odTitle" style="max-width:720px;overflow-x:hidden">
       <div class="at-modal-head"><div><h3 id="odTitle">👑 Admin Dashboard <span style="font-size:.65rem;background:var(--accent-light);color:var(--accent-dark);border-radius:999px;padding:2px 8px;vertical-align:middle">ADMIN</span></h3></div><button class="at-modal-close" id="odClose" aria-label="Close">✕</button></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="pill" data-odtab="overview">Overview</button><button class="pill" data-odtab="community">Community</button><button class="pill" data-odtab="resources">Resources</button><button class="pill" data-odtab="materials">Study Materials</button><button class="pill" data-odtab="announcements">Announcements</button><button class="pill" data-odtab="crinvites">CR Invite Links</button><button class="pill" data-odtab="quiz">Quiz Management</button><button class="pill" data-odtab="tests">Test</button><button class="pill" data-odtab="reports">Reports</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="pill" data-odtab="overview">Overview</button><button class="pill" data-odtab="community">Community</button><button class="pill" data-odtab="resources">Resources</button><button class="pill" data-odtab="materials">Study Materials</button><button class="pill" data-odtab="announcements">Announcements</button><button class="pill" data-odtab="crinvites">CR Invite Links</button><button class="pill" data-odtab="quiz">Quiz Management</button><button class="pill" data-odtab="tests">Test</button><button class="pill" data-odtab="reports">Reports</button><button class="pill" data-odtab="admins">Admins</button></div>
       <div id="odBody"></div>
       <div id="odCrPane" class="hidden"><div class="settings-section-title">CR Invite Links</div>
         <div class="theme-row hidden" id="crInviteRow" style="flex-direction:column;align-items:stretch;gap:8px"><span class="theme-label">Create a single-use CR invite link (valid 7 days)</span>
@@ -12287,11 +12287,13 @@ function ownerOnAuth(u){
   }), new Promise((_,j)=>setTimeout(()=>{ const e=new Error('role check timed out'); e.code='timeout'; j(e); }, 12000))]).then(v=>{   // bounded: a hung check must not leave roleChecking set (it blocks every later attempt)
     // 2) SERVER-CONFIRMED result. (Errors thrown while applying it are logged, never mistaken for a failed verification.)
     done();
+    try{ if(v.role!=='admin' && window.cseAcct && cseAcct.clearAdmin) cseAcct.clearAdmin(); }catch(e){}
     try{
       if(window.cseCrPending && v.role==='admin'){ window.cseCrPending=false; cseCrFail('This is an admin account. Use Admin Login.'); firebase.auth().signOut(); return; }
       if(v.role==='admin'){
         setOwner(true); if(window.cseRoleSet) cseRoleSet('admin'); roleCacheSet(u.uid,'admin',''); acctApply(u.uid,'admin','');
         if(ownerLoginPending){ ownerLoginPending=false; try{ cseTrack('login',{method:'admin'}); }catch(x){} ovClose('ownerLoginOverlay'); if(window.cseGateOpen && cseGateOpen()) cseLoginDone('admin'); else openOwnerDash(); }
+        try{ if(window.cseAcct && cseAcct.onAdmin) cseAcct.onAdmin(u); }catch(x){ console.warn('[Account] admin progress sync', x); }   // admin progress now saves to the account like a student's
       } else if(v.role==='cr'){
         setOwner(false); if(window.cseRoleSet) cseRoleSet('cr', v.sec); roleCacheSet(u.uid,'cr',v.sec); acctApply(u.uid,'cr',v.sec);
         if(ownerLoginPending){ ownerLoginPending=false; ownerErr('olErr','This is a CR account. Use CR Login.'); firebase.auth().signOut(); return; }
@@ -12320,7 +12322,7 @@ function ownerOnAuth(u){
     }
     if(roleErrTransient(e)){                             // TRANSIENT: never destroy a saved session
       if(saved){
-        try{ setOwner(saved.role==='admin'); if(window.cseRoleSet) cseRoleSet(saved.role, saved.section); roleCachedLabel(); acctApply(u.uid, saved.role, saved.section); }catch(x){}
+        try{ setOwner(saved.role==='admin'); if(window.cseRoleSet) cseRoleSet(saved.role, saved.section); roleCachedLabel(); acctApply(u.uid, saved.role, saved.section); if(saved.role==='admin' && window.cseAcct && cseAcct.onAdmin) cseAcct.onAdmin(u,{unverified:true}); }catch(x){}
         if(window.cseCrPending){ window.cseCrPending=false; try{ cseTrack('login',{method:'cr'}); }catch(x){} cseLoginDone('cr'); }
         if(ownerLoginPending){ ownerLoginPending=false; try{ cseTrack('login',{method:'admin'}); }catch(x){} ovClose('ownerLoginOverlay'); if(window.cseGateOpen && cseGateOpen()) cseLoginDone('admin'); else openOwnerDash(); }
         return;                                          // re-verified automatically on the next 'online' event
@@ -12357,8 +12359,11 @@ function ownerLogin(){
     .then(()=>{ ownerBusy=false; $o('olSubmit').textContent='Login'; $o('olSubmit').disabled=false; $o('olPass').value=''; });
 }
 function ownerLogout(){
-  cseLocalLogout();                                      // privileges are gone immediately, even if Firebase cannot be reached
-  firebase.auth().signOut().then(()=>toast('Logged out')).catch(()=>toast('Logged out on this device'));
+  const out=()=>{
+    cseLocalLogout();                                      // privileges are gone immediately, even if Firebase cannot be reached
+    firebase.auth().signOut().then(()=>toast('Logged out')).catch(()=>toast('Logged out on this device'));
+  };
+  if(window.cseAcct && cseAcct.adminSignOutPrep) cseAcct.adminSignOutPrep().then(out,out); else out();   // admin progress is pushed first
 }
 function ownerLog(action,col,docId){
   if(!isOwner||!fbDb) return;
@@ -12380,6 +12385,7 @@ function odRender(){
   if(odTab!=='quiz' && window.odQuizStop) window.odQuizStop();
   if(odTab!=='tests' && window.odTestStop) window.odTestStop();
   if(odTab!=='reports' && window.odReportsStop) window.odReportsStop();
+  if(odTab==='admins'){ if(window.odAnnStop) window.odAnnStop(); if(window.odAdminsRender) window.odAdminsRender(b); return; }   // Admin access (every action is re-verified server-side)
   if(odTab==='reports'){ if(window.odAnnStop) window.odAnnStop(); if(window.odReportsRender) window.odReportsRender(b); return; }   // Reports (owner-only; Firestore rules + chatModerate re-verify the owner claim)
   if(odTab==='tests'){ if(window.odAnnStop) window.odAnnStop(); if(window.odTestRender) window.odTestRender(b); return; }   // Test Management (owner-only; Firestore rules + Cloud Functions enforce the owner claim)
   if(odTab==='quiz'){ if(window.odAnnStop) window.odAnnStop(); if(window.odQuizRender) window.odQuizRender(b); return; }   // Quiz Management (owner-only; every action is re-verified server-side)
@@ -13938,8 +13944,11 @@ html.chat-open #commChatPanel .chat-list{scroll-behavior:auto;overflow-anchor:au
   $('acctBtn').addEventListener('click',function(){
     var r=window.cseRole.role;
     if(r==='student'){ if(window.cseAcct && cseAcct.isPermanent()){ cseAcct.logout(); return; } open(); return; }
-    cseLocalLogout(); open();                                   // local privileges cleared first (works offline)
-    firebase.auth().signOut().then(function(){ toast('Logged out'); }).catch(function(){ toast('Logged out on this device'); });
+    var adminOut=function(){
+      cseLocalLogout(); open();                                   // local privileges cleared first (works offline)
+      firebase.auth().signOut().then(function(){ toast('Logged out'); }).catch(function(){ toast('Logged out on this device'); });
+    };
+    if(r==='admin' && window.cseAcct && cseAcct.adminSignOutPrep) cseAcct.adminSignOutPrep().then(adminOut,adminOut); else adminOut();   // admin progress is pushed first
   });
   // First launch (no saved profile): show the gate after the welcome splash. Returning students skip it; a restored CR/admin session closes it.
   // ---- CR invite sign-up (?cr-invite=TOKEN) ----
@@ -14307,17 +14316,17 @@ function claim(u){
   return true;
 }
 function onGuest(u){
-  if(loggingOut) return;
+  if(loggingOut) return; ADMIN_UID='';
   var o=readOwner();
   if(!o.uid || o.anon){ setOwnerLS(u.uid,true); }       // the device's guest continues, even under a new anonymous uid
   else if(o.uid!==u.uid){ stopSync(); wipeUserData(); setOwnerLS(u.uid,true); location.reload(); return; }   // an account's data must never show to a new guest
   stopSync(); renderAccountCard();
 }
-function onSignedOut(){ if(loggingOut) return; stopSync(); renderAccountCard(); }
-function beforeAuth(u){ if(S.uid && S.uid!==u.uid) stopSync(); if(S2.uid && S2.uid!==u.uid){ S2.uid=''; S2.done=''; S2.p=null; } }
+function onSignedOut(){ if(loggingOut) return; ADMIN_UID=''; stopSync(); renderAccountCard(); }
+function beforeAuth(u){ if(ADMIN_UID && ADMIN_UID!==u.uid) ADMIN_UID=''; if(S.uid && S.uid!==u.uid) stopSync(); if(S2.uid && S2.uid!==u.uid){ S2.uid=''; S2.done=''; S2.p=null; } }
 
 /* ============================================================== STUDENT ACCOUNT ON AUTH ============================================================== */
-var S2={uid:'',done:'',p:null};
+var S2={uid:'',done:'',p:null}, ADMIN_UID='';   // ADMIN_UID: the account ownerOnAuth() has confirmed as admin (kept out of the student flow)
 function profileComplete(x){
   if(!x||!x.name) return false;
   var yr=String(x.year||''), br=x.branch||'';
@@ -14353,6 +14362,7 @@ function gateMsg(m){ var e=$('lgHomeErr'); if(!e) return; e.textContent=m||''; e
 function onStudentAccount(u,opts){
   opts=opts||{};
   if(loggingOut) return Promise.resolve();
+  if(ADMIN_UID===u.uid && window.cseRole && cseRole.role==='admin') return onAdmin(u,opts);   // an admin who signs in through the student screens keeps the admin role
   try{ setOwner(false); roleCacheClear(); if(window.cseRoleSet) cseRoleSet('student'); }catch(e){}
   S2.uid=u.uid; renderAccountCard();
   if(opts.unverified){                                 // offline / role not verified: keep working with this account's own local data only
@@ -14388,6 +14398,25 @@ function onStudentAccount(u,opts){
     });
   })().catch(function(e){ console.error('[Account] sign-in handling failed', e); }).then(function(){ S2.busyUid=''; renderAccountCard(); gSettleNow(); });
   return S2.p;
+}
+/* ============================================================== ADMIN ACCOUNT ON AUTH ==============================================================
+   An admin (custom claim owner:true) keeps the admin role, but their own progress (attendance, tasks, notes, favourites, saved events, preferences) now
+   saves to userData/{uid} and follows them across devices exactly like a student's. The role itself still comes ONLY from ownerOnAuth(). */
+function onAdmin(u,opts){
+  opts=opts||{};
+  if(loggingOut||!u||u.isAnonymous||!hasDb()) return Promise.resolve();
+  ADMIN_UID=u.uid;
+  var o=readOwner();
+  if(opts.unverified){ if(o.uid===u.uid) startSync(u.uid); gSettleNow(); return Promise.resolve(); }   // offline / role not re-verified yet: only this account's own local data syncs
+  if(o.uid && !o.anon && o.uid!==u.uid){ if(claim(u)) return Promise.resolve(); }   // leftovers of ANOTHER signed-in account: wiped, the page reloads clean
+  else if(o.uid!==u.uid) setOwnerLS(u.uid,false);                                   // this device's own data becomes the admin's (merged with the server copy, never discarded)
+  return startSync(u.uid).catch(function(){}).then(function(){ renderAccountCard(); gSettleNow(); });
+}
+/* Admin log out: push unsynced changes first (bounded), then release the device so it behaves exactly as before for the next person. */
+function adminSignOutPrep(){
+  var u=cu();
+  if(!S.active||!u||S.uid!==u.uid){ ADMIN_UID=''; return Promise.resolve(); }
+  return race(flush(),4000,false).then(function(){ stopSync(); try{ if(readOwner().uid===u.uid) setOwnerLS('',false); }catch(e){} ADMIN_UID=''; });
 }
 function finishGate(){ gSettleNow(); gateMsg(''); try{ homeInfo(''); }catch(e){} if(window.cseGateOpen && cseGateOpen()) cseGate.done('student'); else cseGate.mark(); renderAccountCard(); }
 function startOnboarding(u){
@@ -14913,8 +14942,12 @@ function btn(label,cls,fn){ var b=document.createElement('button'); b.type='butt
 function renderAccountCard(){
   var card=$('accountCard'); if(!card) return;
   var r=window.cseRole&&cseRole.role;
-  if(r==='admin'||r==='cr'){ card.classList.add('hidden'); return; }
+  if(r==='cr'){ card.classList.add('hidden'); return; }
   card.classList.remove('hidden');
+  if(r==='admin'){
+    var au=cu(), aa=$('acActions'); $('acLine').textContent=(au&&au.email?au.email+' · ':'')+'Admin'; $('acSub').textContent='Your progress (attendance, tasks, notes, favourites) is saved to your account and follows you across your devices.';
+    aa.innerHTML=''; aa.appendChild(btn('Sync now','btn-ghost',function(){ toast('Syncing…'); syncNow().then(updateStatus); })); updateStatus(); return;
+  }
   var u=cu(), line=$('acLine'), sub=$('acSub'), act=$('acActions'); act.innerHTML=''; sub.textContent='';
   if(!u){ line.textContent='Connecting…'; $('acSync').textContent=''; return; }
   if(u.isAnonymous){
@@ -14963,11 +14996,77 @@ function wire(){
 window.cseAcct={
   isStudentAccount:isStudentAccount, isPermanent:isPermanent,
   beforeAuth:beforeAuth, onGuest:onGuest, onSignedOut:onSignedOut, onStudentAccount:onStudentAccount,
+  onAdmin:onAdmin, adminSignOutPrep:adminSignOutPrep, clearAdmin:function(){ ADMIN_UID=''; },
   resumeOnboarding:resumeOnboarding, logout:logout, startUpgrade:startUpgrade,
   sync:{start:startSync,stop:stopSync,flush:flush,now:syncNow,pending:function(){ return dirtyKeys().length; },keys:SYNC_KEYS.slice(),merge:mergeRaw,state:S},
   _wipe:wipeUserData, _claim:claim
 };
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
+})();
+</script>
+<script id="adminsJs">
+/* ===== Admin access: give / remove admin access by email (Cloud Functions adminGrant / adminRevoke / adminList, codebase "account", asia-south1) =====
+   The browser only shows the screen; the functions re-check the caller against Firebase Auth. Only the MAIN admin can give or remove access. */
+(function(){
+'use strict';
+var fn = null;
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function call(name, data){
+  return new Promise(function(res, rej){
+    if(window.firebase && firebase.functions) return res();
+    var s = document.createElement('script'); s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js';
+    s.onload = function(){ firebase.functions ? res() : rej(new Error('network')); }; s.onerror = function(){ rej(new Error('network')); }; document.head.appendChild(s);
+  }).then(function(){ if(!fn) fn = firebase.app().functions('asia-south1'); return fn.httpsCallable(name, {timeout:30000})(data || {}); }).then(function(r){ return r.data; });
+}
+function errText(e){ var m = String(e && e.message || ''); return (!m || /^[A-Z_ ]+$/.test(m) || /network/i.test(m)) ? 'Could not reach Campus Loop. Check your connection and try again.' : m; }
+function when(ms){ try{ return ms ? new Date(ms).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}) : ''; }catch(e){ return ''; } }
+
+window.odAdminsRender = function(b){
+  var st = {list:null, can:false, err:'', busy:false}, alive = function(){ return document.body.contains(b) && window.odTab === 'admins'; };
+  function draw(){
+    if(!alive()) return;
+    var h = '<div class="settings-section-title">Admin access</div>';
+    if(st.can){
+      h += '<div class="theme-row" style="flex-direction:column;align-items:stretch;gap:8px"><span class="theme-label">Give admin access to an account</span>' +
+        '<input id="adEmail" type="email" class="hm-name-input" placeholder="Their account email, e.g. name@gmail.com" autocapitalize="none" autocomplete="off" spellcheck="false">' +
+        '<button type="button" class="btn btn-primary" id="adGive"' + (st.busy ? ' disabled' : '') + '>' + (st.busy ? 'Please wait…' : 'Give admin access') + '</button>' +
+        '<small>The account must already exist in Campus Loop and its email must be verified (signing in with Google counts). They get admin access the next time they log in or reopen the app.</small></div>';
+    } else if(st.list){
+      h += '<small>Only the main admin can give or remove admin access.</small>';
+    }
+    if(st.err) h += '<div class="auth-error" role="alert" style="margin:8px 0">' + esc(st.err) + '</div>';
+    h += '<div class="settings-section-title" style="margin-top:14px">Admins added here</div>';
+    if(!st.list) h += '<small>' + (st.err ? '' : 'Loading…') + '</small>';
+    else if(!st.list.length) h += '<small>No one yet. The main admin account is not listed here and cannot be removed from this screen.</small>';
+    else h += st.list.map(function(a){
+      return '<div class="od-row"><div>' + esc(a.name || a.email) + '<small>' + esc(a.name ? a.email + ' · ' : '') + 'added ' + esc(when(a.grantedAt)) + (a.grantedByEmail ? ' by ' + esc(a.grantedByEmail) : '') + '</small></div>' +
+        (st.can ? '<button type="button" class="btn btn-ghost" data-adrm="' + esc(a.uid) + '" data-adem="' + esc(a.email) + '"' + (st.busy ? ' disabled' : '') + '>Remove</button>' : '') + '</div>';
+    }).join('');
+    var keep = b.querySelector('#adEmail'), val = keep ? keep.value : '';
+    b.innerHTML = h;
+    var inp = b.querySelector('#adEmail'); if(inp){ inp.value = val; inp.addEventListener('keydown', function(e){ if(e.key === 'Enter') give(); }); }
+    var g = b.querySelector('#adGive'); if(g) g.addEventListener('click', give);
+    [].forEach.call(b.querySelectorAll('[data-adrm]'), function(x){ x.addEventListener('click', function(){ remove(x.dataset.adrm, x.dataset.adem); }); });
+  }
+  function load(){ call('adminList').then(function(r){ st.list = r.admins || []; st.can = !!r.canManage; st.err = ''; draw(); }, function(e){ st.err = errText(e); st.list = st.list || []; draw(); }); }
+  function give(){
+    if(st.busy) return; var inp = b.querySelector('#adEmail'), em = inp ? inp.value.trim() : '';
+    if(!em){ st.err = 'Enter the email of the account.'; draw(); return; }
+    st.busy = true; st.err = ''; draw();
+    call('adminGrant', {email:em}).then(function(r){
+      st.busy = false; var inp2 = b.querySelector('#adEmail'); if(inp2) inp2.value = '';
+      toast(r.status === 'already' ? r.email + ' is already an admin' : r.email + ' is now an admin'); load();
+    }, function(e){ st.busy = false; st.err = errText(e); draw(); });
+  }
+  function remove(uid, em){
+    if(st.busy) return;
+    openConfirm('Remove admin access?', (em || 'This account') + ' will lose admin access and be signed out of admin features.', function(){
+      st.busy = true; st.err = ''; draw();
+      call('adminRevoke', {uid:uid}).then(function(){ st.busy = false; toast('Admin access removed'); load(); }, function(e){ st.busy = false; st.err = errText(e); draw(); });
+    }, 'Remove');
+  }
+  draw(); load();
+};
 })();
 </script>
 <script id="announcementsJs">
