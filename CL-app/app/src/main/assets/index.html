@@ -689,7 +689,7 @@ nav .brand svg{width:20px;height:20px;color:var(--sage-dark)}
   overflow:hidden;contain:layout paint;
 }
 /* exit: opacity + transform only, one short animation, then the node is removed */
-#welcomeScreen.welcome-hide{animation:wsExit .42s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
+#welcomeScreen.welcome-hide{will-change:transform,opacity;animation:wsExit .42s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
 #welcomeScreen.welcome-hide .ws-decor{animation:none}
 .ws-center{position:relative;z-index:2;text-align:center;padding:32px 40px;background:var(--card);border-radius:22px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(38,50,56,.10);opacity:0;animation:wsCard .5s cubic-bezier(.22,1,.36,1) both}
 .ws-star,.ws-title,.ws-sub,.ws-line,.ws-tag{opacity:0;transform:translate3d(0,10px,0);animation:wsUp .5s cubic-bezier(.22,1,.36,1) both}
@@ -701,7 +701,7 @@ nav .brand svg{width:20px;height:20px;color:var(--sage-dark)}
 @media (max-width:420px){.ws-center{padding:26px 22px;border-radius:18px}}
 @keyframes wsCard{from{opacity:0;transform:translate3d(0,14px,0) scale(.97)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
 @keyframes wsUp{to{opacity:1;transform:translate3d(0,0,0)}}
-@keyframes wsExit{to{opacity:0;transform:translate3d(0,-10px,0) scale(1.015)}}
+@keyframes wsExit{to{opacity:0;transform:translate3d(0,-10px,0)}}
 .ws-decor{position:absolute;color:var(--sage);opacity:.28;animation:wsFloat 5.5s ease-in-out infinite}
 .ws-decor svg{width:100%;height:100%}
 .ws-d1{width:52px;height:52px;top:16%;left:14%;animation-delay:.2s}
@@ -3957,30 +3957,184 @@ body.cl-ov-open .toast-host{z-index:9800 !important}
 </div>
 <div id="cseDlgOv" class="hidden" role="presentation"><div id="cseDlg" role="dialog" aria-modal="true" aria-labelledby="cseDlgT"><h3 id="cseDlgT"></h3><p id="cseDlgP"></p><div class="dlg-btns" id="cseDlgB"></div></div></div>
 <div id="cseBusy" class="hidden" role="alert" aria-live="assertive"><i></i><b id="cseBusyT">Logging out…</b></div>
+<style id="loginOptProfileCss">
+/* Optional "Complete your profile" block on the login profile step */
+#loginGate{justify-content:safe center}
+.lg-opt{width:100%;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.lg-opt>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:700;font-size:.9rem;color:var(--text);min-height:44px;display:flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent}
+.lg-opt>summary::-webkit-details-marker{display:none}
+.lg-opt>summary::after{content:"+";margin-left:auto;font-size:1.2rem;font-weight:500;color:var(--muted)}
+.lg-opt[open]>summary::after{content:"\2212"}
+.lg-opt>summary em{font-style:normal;font-weight:500;color:var(--muted);font-size:.8rem}
+.lg-opt-body{display:flex;flex-direction:column;gap:8px;padding:2px 14px 14px}
+.lg-opt-note{margin:0 0 2px;font-size:.78rem;color:var(--muted);text-align:left}
+.lg-opt-l{display:block;font-size:.8rem;color:var(--muted);margin:2px 0 -2px}
+.lg-opt .hm-name-input{width:100%;min-width:0;box-sizing:border-box}
+.lg-opt-ta{resize:vertical;min-height:72px;font:inherit}
+.lg-opt-file{width:100%;font-size:.82rem;color:var(--text)}
+</style>
+<style id="welcomeStunning">
+/* ===== Welcome splash v3 (zero-lag): EVERY animation here is transform/opacity only, so the browser runs it on the GPU compositor
+   and the app's startup JavaScript can no longer stall it. No filters, no blur, no layout-triggering properties, no JS timers. ===== */
+html:root #welcomeScreen{background:var(--bg) !important;color:var(--text);contain:strict;-webkit-tap-highlight-color:transparent}
+.ws2-p{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:var(--sage);opacity:0;pointer-events:none;will-change:transform,opacity;animation:wsxP var(--d) ease-in-out var(--t) infinite}
+.ws2-p:nth-of-type(3n){background:var(--brown)}
+@keyframes wsxP{0%{opacity:0;transform:translate3d(0,0,0)}30%{opacity:.35}100%{opacity:0;transform:translate3d(0,-64px,0)}}
+
+.ws2-stack{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px;max-width:100%}
+.ws2-eyebrow{font-size:.7rem;letter-spacing:.42em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 12px .42em;opacity:0;will-change:transform,opacity;animation:wsxUp .7s cubic-bezier(.22,1,.36,1) .1s both}
+
+/* Typewriter: pure CSS. Each letter fades in at its own delay (--d); its own caret shows until the next letter lands. */
+.ws2-type{position:relative;margin:0;font-family:"Space Grotesk",Inter,system-ui,sans-serif;font-weight:700;line-height:1.05;
+  font-size:clamp(2.9rem,13vw,5.2rem);letter-spacing:.01em;white-space:nowrap;color:var(--brown-dark)}
+.ws2-ch{position:relative;opacity:0;animation:wsxCh .01s linear var(--d) forwards}
+.ws2-ch::after{content:"";position:absolute;top:12%;right:-.06em;width:.07em;height:76%;border-radius:2px;background:var(--brown);opacity:0;animation:wsxCaret var(--g) linear var(--d) forwards}
+.ws2-ch.last::after{animation:wsxCaretEnd 1.6s linear var(--d) forwards}
+@keyframes wsxCh{to{opacity:1}}
+@keyframes wsxCaret{0%,97%{opacity:1}100%{opacity:0}}
+@keyframes wsxCaretEnd{0%,19%{opacity:1}20%,39%{opacity:0}40%,59%{opacity:1}60%,79%{opacity:0}80%,94%{opacity:1}96%,100%{opacity:0}}
+
+.ws2-logo{position:relative;width:min(64vw,310px);margin-top:clamp(14px,4vh,34px)}
+.ws2-logo::before{content:"";position:absolute;inset:-34% -18%;border-radius:50%;pointer-events:none;will-change:transform,opacity;
+  background:radial-gradient(closest-side,rgba(120,110,255,.20),rgba(90,130,255,.07) 55%,transparent 72%);opacity:0;animation:wsxHalo 3.4s ease-in-out 1.6s infinite both}
+@keyframes wsxHalo{0%{opacity:0;transform:scale(.86)}50%{opacity:1;transform:scale(1.06)}100%{opacity:0;transform:scale(.86)}}
+.ws2-breath{position:relative;will-change:transform;animation:wsxBreath 4.2s ease-in-out 2.4s infinite}
+@keyframes wsxBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+/* The infinity is traced along its own path, but WITHOUT main-thread work: the path is pre-cut into small pieces (separate GPU layers) that fade in one after another
+   along the path, timed to the same easing. Opacity-only, so startup JS can never make the trace stutter. */
+.ws2-wipe,.ws2-wipe-in{display:block}
+.ws2-wipe-in{position:relative}
+.ws2-inf{display:block;width:100%;height:auto;overflow:visible}
+.ws2-inf path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ws2-track{stroke:var(--line);stroke-width:1.5}
+.ws2-seg{position:absolute;overflow:hidden;opacity:0;pointer-events:none;will-change:opacity;animation:wsxSeg .14s linear var(--t) forwards}
+.ws2-seg path{fill:none;stroke-linejoin:round}
+.ws2-glowsvg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;opacity:0;pointer-events:none;will-change:opacity;animation:wsxSeg 1.2s ease-in .95s forwards}
+.ws2-glowsvg path{fill:none;stroke:url(#ws2G);stroke-linecap:round;stroke-linejoin:round}
+.ws2-glowsvg .g1{stroke-width:4.2;opacity:.16}.ws2-glowsvg .g2{stroke-width:2.8;opacity:.22}
+.ws2-seg .dr{stroke:url(#ws2G);stroke-width:1.9;stroke-linecap:round}
+@keyframes wsxSeg{to{opacity:1}}
+
+.ws2-brand{margin-top:clamp(16px,3.6vh,28px);font-weight:700;font-size:clamp(.95rem,3.8vw,1.25rem);text-transform:uppercase;color:var(--sage);letter-spacing:.42em;margin-right:-.42em;
+  opacity:0;will-change:transform,opacity;animation:wsxUp 1s cubic-bezier(.22,1,.36,1) 1.75s both}
+.ws2-tag{margin:10px 0 0;font-size:clamp(.82rem,3.2vw,.98rem);color:var(--muted);opacity:0;will-change:transform,opacity;animation:wsxUp .8s cubic-bezier(.22,1,.36,1) 2.15s both}
+.ws2-hint{position:absolute;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom,0px));text-align:center;font-size:.64rem;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);opacity:0;animation:wsxUp .8s ease 2.5s both}
+.ws2-prog{position:absolute;left:0;bottom:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--sage);opacity:.85;will-change:transform;animation:wsxProg 3.8s linear forwards}
+@keyframes wsxProg{to{transform:scaleX(1)}}
+@keyframes wsxUp{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@media (max-height:520px){.ws2-logo{width:min(40vw,220px)}.ws2-hint{display:none}}
+
+/* While the splash is up the app underneath is hidden, so its decorative looping animations are paused: the GPU and main thread stay free for the splash. They resume the moment it is gone. */
+html.ws-on .academic-bg,html.ws-on .academic-bg *,html.ws-on .bg-fx,html.ws-on .bg-fx *,html.ws-on .p2-rain,html.ws-on .p2-rain *,html.ws-on .cn-deco,html.ws-on .cn-deco *,
+html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-net,html.ws-on .mg-net *{animation-play-state:paused !important}
+
+@media (prefers-reduced-motion:reduce){
+  #welcomeScreen *,#welcomeScreen *::before,#welcomeScreen *::after{animation:none !important;transition:none !important}
+  .ws2-eyebrow,.ws2-brand,.ws2-tag,.ws2-hint,.ws2-ch{opacity:1 !important;transform:none !important}
+  .ws2-seg,.ws2-glowsvg{opacity:1 !important}
+  .ws2-prog,.ws2-ch::after{display:none}
+}
+</style>
 <div id="welcomeScreen" aria-hidden="true">
-  <div class="ws-decor ws-d1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-  <div class="ws-decor ws-d2" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-  <div class="ws-decor ws-d3" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5"/></svg></div>
-  <div class="ws-decor ws-d4" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-  <div class="ws-center">
-    <div class="ws-star">✦</div>
-    <h1 class="ws-title">Welcome</h1>
-    <div class="ws-sub" data-sec-label="short">CAMPUS LOOP</div>
-    <div class="ws-line"></div>
-    <div class="ws-tag">Your academic space, all in one place.</div>
+  <i class="ws2-p" style="--x:9%;--y:78%;--s:3px;--d:5.4s;--t:.2s"></i><i class="ws2-p" style="--x:21%;--y:62%;--s:2px;--d:6.2s;--t:1.1s"></i>
+  <i class="ws2-p" style="--x:33%;--y:86%;--s:4px;--d:7s;--t:.6s"></i><i class="ws2-p" style="--x:47%;--y:72%;--s:2px;--d:5.8s;--t:1.7s"></i>
+  <i class="ws2-p" style="--x:58%;--y:90%;--s:3px;--d:6.6s;--t:.3s"></i><i class="ws2-p" style="--x:71%;--y:68%;--s:2px;--d:5.2s;--t:1.4s"></i>
+  <i class="ws2-p" style="--x:83%;--y:82%;--s:4px;--d:6.9s;--t:.9s"></i><i class="ws2-p" style="--x:92%;--y:58%;--s:2px;--d:5.6s;--t:2s"></i>
+  <i class="ws2-p" style="--x:15%;--y:40%;--s:2px;--d:6.4s;--t:1.2s"></i><i class="ws2-p" style="--x:38%;--y:24%;--s:3px;--d:7.2s;--t:.5s"></i>
+  <i class="ws2-p" style="--x:64%;--y:30%;--s:2px;--d:5.9s;--t:1.8s"></i><i class="ws2-p" style="--x:86%;--y:22%;--s:3px;--d:6.7s;--t:.8s"></i>
+  <div class="ws2-stack">
+    <div class="ws2-eyebrow">Hello, student</div>
+    <h1 class="ws2-type" id="ws2Type" aria-label="Welcome"></h1>
+    <div class="ws2-logo">
+      <div class="ws2-breath"><div class="ws2-wipe"><div class="ws2-wipe-in">
+      <svg class="ws2-inf" viewBox="-2 -2 36 20" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="ws2G" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="32" y2="0">
+            <stop offset="0" stop-color="#3F78F0"/><stop offset=".4" stop-color="#5A6CF0"/><stop offset=".72" stop-color="#7A57E6"/><stop offset="1" stop-color="#9B6FF2"/>
+          </linearGradient>
+        </defs>
+        <path class="ws2-track" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/>
+      </svg>
+      <svg class="ws2-glowsvg" viewBox="-2 -2 36 20" aria-hidden="true" focusable="false"><path class="g1" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/><path class="g2" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:40.31%;top:31.41%;width:16.91%;height:31.59%;--t:0.95s" viewBox="12.51 4.28 6.09 6.32" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-0.00" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:37.58%;top:26.25%;width:17.18%;height:31.16%;--t:1.15s" viewBox="11.53 3.25 6.18 6.23" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-2.27" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:34.53%;top:21.68%;width:17.49%;height:30.57%;--t:1.22s" viewBox="10.43 2.34 6.30 6.11" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-4.55" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:31.15%;top:17.97%;width:17.83%;height:29.71%;--t:1.27s" viewBox="9.21 1.59 6.42 5.94" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-6.82" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:27.45%;top:15.45%;width:18.15%;height:28.51%;--t:1.31s" viewBox="7.88 1.09 6.53 5.70" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-9.09" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:23.52%;top:14.50%;width:18.37%;height:26.95%;--t:1.34s" viewBox="6.47 0.90 6.61 5.39" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-11.36" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:19.62%;top:14.50%;width:18.35%;height:27.01%;--t:1.37s" viewBox="5.06 0.90 6.61 5.40" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-13.64" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:16.08%;top:15.51%;width:17.98%;height:29.16%;--t:1.39s" viewBox="3.79 1.10 6.47 5.83" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-15.91" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:13.27%;top:18.67%;width:17.26%;height:30.99%;--t:1.42s" viewBox="2.78 1.73 6.21 6.20" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-18.18" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:11.45%;top:23.66%;width:16.26%;height:32.32%;--t:1.43s" viewBox="2.12 2.73 5.85 6.46" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-20.45" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:10.83%;top:29.98%;width:15.06%;height:33.02%;--t:1.45s" viewBox="1.90 4.00 5.42 6.60" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-22.73" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:10.83%;top:37.00%;width:15.06%;height:33.02%;--t:1.47s" viewBox="1.90 5.40 5.42 6.60" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-25.00" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:11.45%;top:44.02%;width:16.26%;height:32.32%;--t:1.48s" viewBox="2.12 6.80 5.85 6.46" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-27.27" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:13.27%;top:50.34%;width:17.26%;height:30.99%;--t:1.50s" viewBox="2.78 8.07 6.21 6.20" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-29.55" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:16.08%;top:55.33%;width:17.98%;height:29.16%;--t:1.51s" viewBox="3.79 9.07 6.47 5.83" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-31.82" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:19.62%;top:58.49%;width:18.35%;height:27.01%;--t:1.52s" viewBox="5.06 9.70 6.61 5.40" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-34.09" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:23.52%;top:58.55%;width:18.37%;height:26.95%;--t:1.54s" viewBox="6.47 9.71 6.61 5.39" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-36.36" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:27.45%;top:56.03%;width:18.15%;height:28.51%;--t:1.55s" viewBox="7.88 9.21 6.53 5.70" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-38.64" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:31.15%;top:52.32%;width:17.83%;height:29.71%;--t:1.56s" viewBox="9.21 8.46 6.42 5.94" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-40.91" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:34.53%;top:47.75%;width:17.49%;height:30.57%;--t:1.57s" viewBox="10.43 7.55 6.30 6.11" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-43.18" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:37.58%;top:42.59%;width:17.18%;height:31.16%;--t:1.58s" viewBox="11.53 6.52 6.18 6.23" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-45.45" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:40.31%;top:37.00%;width:16.91%;height:31.59%;--t:1.59s" viewBox="12.51 5.40 6.09 6.32" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-47.73" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:42.78%;top:31.41%;width:16.91%;height:31.59%;--t:1.60s" viewBox="13.40 4.28 6.09 6.32" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-50.00" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:45.24%;top:26.25%;width:17.18%;height:31.16%;--t:1.61s" viewBox="14.29 3.25 6.18 6.23" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-52.27" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:47.98%;top:21.68%;width:17.49%;height:30.57%;--t:1.62s" viewBox="15.27 2.34 6.30 6.11" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-54.55" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:51.02%;top:17.97%;width:17.83%;height:29.71%;--t:1.63s" viewBox="16.37 1.59 6.42 5.94" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-56.82" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:54.41%;top:15.45%;width:18.15%;height:28.51%;--t:1.64s" viewBox="17.59 1.09 6.53 5.70" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-59.09" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:58.11%;top:14.50%;width:18.37%;height:26.95%;--t:1.65s" viewBox="18.92 0.90 6.61 5.39" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-61.36" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:62.03%;top:14.50%;width:18.35%;height:27.01%;--t:1.66s" viewBox="20.33 0.90 6.61 5.40" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-63.64" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:65.94%;top:15.51%;width:17.98%;height:29.16%;--t:1.68s" viewBox="21.74 1.10 6.47 5.83" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-65.91" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:69.48%;top:18.67%;width:17.26%;height:30.99%;--t:1.69s" viewBox="23.01 1.73 6.21 6.20" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-68.18" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:72.29%;top:23.66%;width:16.26%;height:32.32%;--t:1.70s" viewBox="24.02 2.73 5.85 6.46" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-70.45" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:74.10%;top:29.98%;width:15.06%;height:33.02%;--t:1.72s" viewBox="24.68 4.00 5.42 6.60" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-72.73" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:74.10%;top:37.00%;width:15.06%;height:33.02%;--t:1.73s" viewBox="24.68 5.40 5.42 6.60" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-75.00" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:72.29%;top:44.02%;width:16.26%;height:32.32%;--t:1.75s" viewBox="24.02 6.80 5.85 6.46" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-77.27" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:69.48%;top:50.34%;width:17.26%;height:30.99%;--t:1.77s" viewBox="23.01 8.07 6.21 6.20" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-79.55" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:65.94%;top:55.33%;width:17.98%;height:29.16%;--t:1.78s" viewBox="21.74 9.07 6.47 5.83" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-81.82" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:62.03%;top:58.49%;width:18.35%;height:27.01%;--t:1.81s" viewBox="20.33 9.70 6.61 5.40" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-84.09" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:58.11%;top:58.55%;width:18.37%;height:26.95%;--t:1.83s" viewBox="18.92 9.71 6.61 5.39" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-86.36" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:54.41%;top:56.03%;width:18.15%;height:28.51%;--t:1.86s" viewBox="17.59 9.21 6.53 5.70" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-88.64" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:51.02%;top:52.32%;width:17.83%;height:29.71%;--t:1.89s" viewBox="16.37 8.46 6.42 5.94" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-90.91" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:47.98%;top:47.75%;width:17.49%;height:30.57%;--t:1.93s" viewBox="15.27 7.55 6.30 6.11" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-93.18" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:45.24%;top:42.59%;width:17.18%;height:31.16%;--t:1.98s" viewBox="14.29 6.52 6.18 6.23" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-95.45" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+<svg class="ws2-seg" style="left:42.78%;top:37.00%;width:16.91%;height:31.59%;--t:2.05s" viewBox="13.40 5.40 6.09 6.32" aria-hidden="true" focusable="false"><path class="dr" pathLength="100" stroke-dasharray="2.62 300" stroke-dashoffset="-97.73" d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>
+      </div></div></div>
+    </div>
+    <div class="ws2-brand" data-sec-label="short">CAMPUS LOOP</div>
+    <div class="ws2-tag">Your academic space, all in one place.</div>
   </div>
+  <div class="ws2-hint">Tap to continue</div>
+  <div class="ws2-prog"></div>
 </div>
 <script>
 (function(){
   var w = document.getElementById('welcomeScreen');
   if(!w || w.__wsInit) return;            // never run twice (double init / re-injection)
   w.__wsInit = true;
+  var root = document.documentElement;
+  root.classList.add('ws-on');            // pauses the decorative animations under the splash (see CSS)
   var reduced = false;
   try{ reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
-  var showFor = reduced ? 300 : 1100;     // entrance finishes at ~0.9s; nothing waits longer than needed
+  var showFor = reduced ? 300 : 3900;     // typing ~1s, infinity draws ~2.2s, brand + tagline settle, then fade
   var fadeFor = reduced ? 0 : 420;
   var closed = false, timer = 0;
-  function remove(){ w.style.display = 'none'; }
+  // Typewriter: built once, right now, then driven entirely by CSS animation delays (no timers, no layout reads, nothing for startup JS to delay).
+  var h = document.getElementById('ws2Type');
+  if(h){
+    var TXT = 'Welcome', t = 0.42, i, s, next, d = [];
+    for(i = 0; i < TXT.length; i++){ d.push(t); t += 0.08 + ((i * 37) % 7) * 0.01 + 0.04; }
+    for(i = 0; i < TXT.length; i++){
+      s = document.createElement('span'); s.className = 'ws2-ch' + (i === TXT.length - 1 ? ' last' : '');
+      s.textContent = TXT.charAt(i);
+      next = (i < TXT.length - 1) ? d[i + 1] : d[i] + 0.1;
+      s.style.setProperty('--d', d[i].toFixed(2) + 's');
+      s.style.setProperty('--g', Math.max(0.05, next - d[i]).toFixed(2) + 's');
+      h.appendChild(s);
+    }
+  }
+  function remove(){ w.style.display = 'none'; root.classList.remove('ws-on'); }
   function hide(){
     if(closed) return; closed = true; clearTimeout(timer);
     w.removeEventListener('click', hide);
@@ -5803,7 +5957,7 @@ function tourShouldAutoStart(){
     const r = tourShouldAutoStart();
     if(r===false) return;
     const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const go = ()=> setTimeout(()=>startTour(r), reduced ? 500 : 2500);   // after the welcome splash has faded
+    const go = ()=> setTimeout(()=>startTour(r), reduced ? 500 : 3600);   // after the welcome splash has faded (splash runs ~4.3s)
     if(window.cseGateOpen && window.cseGateOpen()) window.addEventListener('cse:login-done', go, {once:true});   // first launch: tour starts after login
     else go();
   });
@@ -6820,6 +6974,19 @@ function renderProfileForm(containerId, opts){
   const batchOpts = '<option value="">Select batch</option>' + BATCH_NUMBERS.map(n=>`<option value="${n}" ${currentUser.batch===n?'selected':''}>Batch ${n}</option>`).join('');
   const lab = t => `<label style="display:block;width:100%;text-align:left;font-size:.8rem;color:var(--muted);margin-bottom:-4px">${t}</label>`;
   const acad = (ACAD && !isCR) ? `<div class="pf-acad"><span>${escapeHtml(acadSummary())}</span><button type="button" class="lg-link" id="${p}Acad">Change</button></div>` : (ACAD ? `<div class="pf-acad"><span>${escapeHtml(acadSummary())}</span></div>` : '');
+  // Login screen only: an OPTIONAL "complete your profile" block (collapsed). Skipping it is fine; everything can be added later from Profile.
+  const onGate = (containerId === 'lgStudentForm') && !editing;
+  const optProf = onGate ? `<details class="lg-opt" id="${p}Opt"><summary>✨ Complete your profile <em>(optional)</em></summary>
+      <div class="lg-opt-body">
+        <p class="lg-opt-note">Skip this if you like. You can add or change all of it later from your Profile.</p>
+        <label class="lg-opt-l">Profile photo</label><input type="file" accept="image/*" id="${p}Photo" class="lg-opt-file">
+        <label class="lg-opt-l">Cover image</label><input type="file" accept="image/*" id="${p}Cover" class="lg-opt-file">
+        <label class="lg-opt-l">About you</label><textarea id="${p}Intro" class="hm-name-input lg-opt-ta" rows="3" maxlength="600" placeholder="A line or two about you, your studies and goals"></textarea>
+        <label class="lg-opt-l">Skills (comma separated)</label><input type="text" id="${p}Skills" class="hm-name-input" maxlength="300" placeholder="e.g. Python, Java, Figma">
+        <label class="lg-opt-l">Interests (comma separated)</label><input type="text" id="${p}Ints" class="hm-name-input" maxlength="300" placeholder="e.g. AI, Hackathons, Music">
+        <label class="lg-opt-l">College / university</label><input type="text" id="${p}Col" class="hm-name-input" maxlength="100" placeholder="Your college">
+        <label class="lg-opt-l">Degree / course</label><input type="text" id="${p}Deg" class="hm-name-input" maxlength="100" placeholder="e.g. B.E. Computer Science">
+      </div></details>` : '';
   card.innerHTML = `<div class="hm-name-form" style="width:100%">
       <h3>${editing ? '✏️ Edit Profile' : '👋 Welcome to <svg class="cl-inf" viewBox="0 0 32 16" aria-hidden="true" focusable="false"><path d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>CAMPUS LOOP'}</h3>
       <p>${editing ? 'Change your details — your timetable updates instantly.' : 'Set up your profile'}</p>
@@ -6827,6 +6994,7 @@ function renderProfileForm(containerId, opts){
       ${lab('Name')}<input type="text" id="${p}Name" class="hm-name-input" style="width:100%" placeholder="Enter your name" maxlength="${NAME_MAX_LEN}" value="${escapeHtml(currentUser.name)}" aria-label="Name" autocomplete="given-name">
       ${lab('Section')}<select id="${p}Sec" class="hm-name-input" style="width:100%" aria-label="Section">${secOpts}</select>
       ${lab('Batch Number')}<select id="${p}Batch" class="hm-name-input" style="width:100%" aria-label="Batch number">${batchOpts}</select>
+      ${optProf}
       <div class="hm-name-error hidden" id="${p}Err" role="alert"></div>
       <div style="display:flex;gap:10px;width:100%;flex-wrap:wrap">
         ${opts.onCancel ? `<button type="button" class="btn btn-ghost" id="${p}Cancel" style="flex:1;justify-content:center">Cancel</button>` : ''}
@@ -6842,9 +7010,23 @@ function renderProfileForm(containerId, opts){
     if(!name){ showErr('Please enter your name.'); $('Name').focus(); return; }
     if(!isValidSection(sec)){ showErr(currentUser.year === '1' || currentUser.branch !== 'CSE' ? 'Please select your section.' : 'Please select your section (A–G).'); $('Sec').focus(); return; }
     if(!isValidBatch(batch)){ showErr('Please select your batch number.'); $('Batch').focus(); return; }
-    commitProfile({name, section:sec, batch});
-    toast(editing ? '✅ Profile updated!' : '✅ Profile saved!');
-    if(!editing && window.cseGateOpen && cseGateOpen()) cseLoginDone('student');
+    const finish = () => {
+      commitProfile({name, section:sec, batch});
+      toast(editing ? '✅ Profile updated!' : '✅ Profile saved!');
+      if(!editing && window.cseGateOpen && cseGateOpen()) cseLoginDone('student');
+    };
+    if(!onGate || !window.clShell || !clShell.applyLoginProfile){ finish(); return; }
+    // Optional extras from the login screen: stored FIRST (commitProfile may reload the page), and never block the login if anything goes wrong.
+    const val = id => { const e = $(id); return e ? e.value.trim() : ''; };
+    const list = v => v.split(/[,;\n]/).map(x=>x.trim()).filter(Boolean).slice(0,30);
+    const extra = { name, intro:val('Intro'), skills:list(val('Skills')), interests:list(val('Ints')), college:val('Col'), degree:val('Deg') };
+    const pf = $('Photo') && $('Photo').files && $('Photo').files[0], cf = $('Cover') && $('Cover').files && $('Cover').files[0];
+    const any = extra.intro || extra.skills.length || extra.interests.length || extra.college || pf || cf;
+    if(!any){ finish(); return; }
+    const sb = $('Save'), lbl = sb.textContent; sb.disabled = true; sb.textContent = 'Saving…';
+    const rd = (f, max) => !f ? Promise.resolve('') : new Promise(res => { try{ const r = new FileReader(); r.onerror = ()=>res(''); r.onload = () => { const im = new Image(); im.onerror = ()=>res(''); im.onload = () => { try{ const k = Math.min(1, max/Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.max(1,Math.round(im.width*k)); c.height = Math.max(1,Math.round(im.height*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',.85)); }catch(e){ res(''); } }; im.src = r.result; }; r.readAsDataURL(f); }catch(e){ res(''); } });
+    Promise.all([rd(pf,500), rd(cf,1400)]).then(imgs => { extra.photo = imgs[0]; extra.cover = imgs[1]; return clShell.applyLoginProfile(extra); })
+      .catch(()=>{}).then(()=>{ sb.disabled = false; sb.textContent = lbl; finish(); });
   });
   if(isCR){ const sl=$('Sec'); sl.value=cseRole.section; sl.disabled=true; sl.title='Your section is set by your CR invite'; }
   if(opts.onCancel) $('Cancel').addEventListener('click', opts.onCancel);
@@ -19770,11 +19952,25 @@ function openPeer(p){
   var db=fdb(); if(db&&p.uid) peerUn=db.collection('publicProfiles').doc(p.uid).onSnapshot(function(sn){ if(prof.classList.contains('pf-peer')&&!prof.classList.contains('hidden')&&sn.exists){ var y=prof.scrollTop; paint(sn.data()); prof.scrollTop=y; } },function(){});
   prof.classList.remove('hidden');prof.scrollTop=0;lock();
 }
-window.clShell={openPeer:openPeer,openSettings:openSettings,closeSettings:closeSettings,openProfile:openProfile,closeProfile:closeProfile};
+/* Optional profile details entered on the login screen. Resolves once everything (incl. images) is stored, so a reload right after cannot lose it. */
+function applyLoginProfile(o){
+  o=o||{}; load();
+  var nm=cl(o.name,40); if(nm) D.name=nm;
+  var A=D.about=D.about||{}; if(o.intro) A.intro=cl(o.intro,600);
+  function merge(key,list,mk){ var have=D[key].map(function(x){return String(x.n||x).toLowerCase()}); (list||[]).forEach(function(v){ v=cl(v,40); if(v&&have.indexOf(v.toLowerCase())<0){ D[key].push(mk(v)); have.push(v.toLowerCase()); } }); }
+  merge('skills',o.skills,function(v){return{n:v,h:false}}); merge('interests',o.interests,function(v){return v});
+  if(o.college){ D.education.push({college:cl(o.college,100),degree:cl(o.degree,100),dept:'',year:'',start:'',grad:''}); }
+  var jobs=[];
+  if(o.photo){ IMG.photo=o.photo; jobs.push(idbSet('photo',o.photo)); }
+  if(o.cover){ IMG.cover=o.cover; jobs.push(idbSet('cover',o.cover)); }
+  D._t=Date.now(); lsave(); pfPush();
+  return Promise.all(jobs).then(function(){ try{ if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')) render(); }catch(e){} });
+}
+window.clShell={applyLoginProfile:applyLoginProfile,openPeer:openPeer,openSettings:openSettings,closeSettings:closeSettings,openProfile:openProfile,closeProfile:closeProfile};
 load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover=r[0]||null;IMG.photo=r[1]||null;window.__pfImgOk=1;pfTick()});setInterval(pfTick,3000);
 /* ---- Connect: "Complete your profile" popup under the top-right profile icon ----
    Shown whenever the student is in the Connect section and the Profile completion meter (pct()) is below 100%.
-   Hidden while Settings / Profile / login / tour are open. X hides it for this visit; it comes back the next time Connect is opened. */
+   Hidden while Settings / Profile / login / tour are open. It is shown ONCE per app open (X, Complete, or leaving Connect all end it); it returns only after the app is closed and opened again. */
 (function(){
   var btn=$('profileQuickBtn'); if(!btn) return;
   var st=document.createElement('style'); st.id='pfNudgeCss';
@@ -19794,7 +19990,7 @@ load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover
   var pop=document.createElement('div'); pop.id='pfNudge'; pop.className='hidden'; pop.setAttribute('role','dialog'); pop.setAttribute('aria-label','Complete your profile');
   pop.innerHTML='<span class="pfn-arrow" aria-hidden="true"></span><button type="button" class="pfn-x" aria-label="Dismiss">\u2715</button><b>Complete your profile</b><p></p><button type="button" class="pfn-go">Complete</button>';
   document.body.appendChild(pop);
-  var txt=pop.querySelector('p'), dismissed=false, wasConnect=false, raf=0;
+  var txt=pop.querySelector('p'), dismissed=false, wasConnect=false, raf=0, shownThisOpen=false;   // shownThisOpen: the popup appears once per app open, never again until the app is closed and reopened
   function inConnect(){ try{ return !!(window.cseSection && cseSection.current()==='connect'); }catch(e){ return false; } }
   function blocked(){
     if(document.hidden||window.__tourActive) return true;
@@ -19814,12 +20010,13 @@ load();Promise.all([idbGet('cover'),idbGet('photo')]).then(function(r){IMG.cover
   function hide(){ if(!pop.classList.contains('hidden')) pop.classList.add('hidden'); btn.classList.remove('pfn-hl'); }
   function sync(){
     var conn=inConnect();
-    if(conn!==wasConnect){ wasConnect=conn; dismissed=false; }                    // entering Connect again = show again
+    if(conn!==wasConnect){ wasConnect=conn; }
     var miss=[]; try{ miss=pct().c.filter(function(x){return !x[1]}).map(function(x){return x[0].toLowerCase()}); }catch(e){ miss=[]; }
+    if(shownThisOpen){ hide(); return; }                                         // already shown during this app open
     if(!conn||dismissed||blocked()||!window.__pfImgOk||!miss.length){ hide(); return; }
     var t='Add your '+miss.slice(0,2).join(', ')+(miss.length>2?' +'+(miss.length-2)+' more':'')+'.';
     if(txt.textContent!==t) txt.textContent=t;
-    if(pop.classList.contains('hidden')){ pop.classList.remove('hidden'); btn.classList.add('pfn-hl'); }
+    if(pop.classList.contains('hidden')){ pop.classList.remove('hidden'); btn.classList.add('pfn-hl'); shownThisOpen=true; }
     place();
   }
   pop.querySelector('.pfn-x').addEventListener('click',function(){ dismissed=true; hide(); });
@@ -20379,6 +20576,305 @@ body[data-section] #welcomeScreen .ws-center{background:var(--card) !important;b
 .mt-role-box .cn-sel{width:100%}
 .mt-role-cu{display:flex;gap:8px;align-items:center}.mt-role-cu.hidden{display:none}
 .mt-role-cu input{flex:1;min-width:0}
+</style>
+<style id="smoothUiCss">
+/* ===== Smooth UI layer: shared easing, press feedback, tap latency, reduced-motion safe ===== */
+:root{--sm-ease:cubic-bezier(.22,1,.36,1);--sm-ease-io:cubic-bezier(.65,0,.35,1);--sm-fast:.18s;--sm-med:.28s}
+html{-webkit-tap-highlight-color:transparent}
+/* No 300ms tap delay / double-tap-zoom wait on anything tappable */
+:where(a,button,[role="button"],[role="tab"],summary,label,select,input,.mode-btn,.sec-btn,.cn-tab){touch-action:manipulation}
+/* Zero-specificity base: only fills in where an element has no transition of its own, never overrides existing ones */
+:where(button,[role="button"],[role="tab"],a,.mode-btn,.sec-btn,.cn-tab){
+  transition:background-color var(--sm-fast) ease,color var(--sm-fast) ease,border-color var(--sm-fast) ease,
+             box-shadow var(--sm-med) var(--sm-ease),opacity var(--sm-fast) ease,transform var(--sm-med) var(--sm-ease),scale .16s var(--sm-ease);
+}
+/* Press feedback via the independent `scale` property, so it composes with any existing transform */
+@media (hover:hover){
+  :where(button:not(:disabled),[role="button"],[role="tab"],.mode-btn,.sec-btn,.cn-tab):active{scale:.97}
+}
+@media (hover:none){
+  :where(button:not(:disabled),[role="button"],[role="tab"],.mode-btn,.sec-btn,.cn-tab):active{scale:.96}
+}
+/* Native smooth scrolling for anchors, no rubber-band jank between nested scrollers */
+html{scroll-behavior:smooth}
+:where(.cn-scroll,.at-modal-body,.mobile-menu){overscroll-behavior:contain}
+/* Keep images from popping in */
+img{transition:opacity .3s ease}
+@media (prefers-reduced-motion:reduce){
+  :where(button,[role="button"],[role="tab"],a,.mode-btn,.sec-btn,.cn-tab):active{scale:1}
+}
+</style>
+<script id="smoothUiJs">
+/* Smooth UI layer. Adds enter animations for every page / tab / pane / modal that appears, without touching the
+   app's own logic: it only observes the `hidden` class and wraps setMode() for Campus tab changes.
+   Opt out per element with data-no-motion. Honors prefers-reduced-motion. */
+(function(){
+  'use strict';
+  if(!document.documentElement.animate) return;
+  var EASE = 'cubic-bezier(.22,1,.36,1)', ready = false, queue = [], raf = 0;
+  var SKIP_ID = {mainPanel:1, homeMode:1, sectionConnect:1};
+  function reduced(){ try{ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
+  function arm(){ setTimeout(function(){ ready = true; }, 900); }   // no fade-in storm while the app is booting
+  if(document.readyState === 'complete') arm(); else window.addEventListener('load', arm, {once:true});
+
+  function isModeEl(el){
+    if(SKIP_ID[el.id]) return true;
+    try{ if(typeof MODE_EL !== 'undefined') for(var k in MODE_EL) if(MODE_EL[k] === el) return true; }catch(e){}
+    return false;
+  }
+  function play(el){
+    if(!el.isConnected || el.classList.contains('hidden') || !el.getClientRects().length) return;
+    if(isModeEl(el) || el.closest('[data-no-motion]')) return;
+    var r = el.getBoundingClientRect();
+    if(r.width < 160 || r.height < 48) return;                       // chips, badges, icons: leave alone
+    var cs = getComputedStyle(el);
+    if(cs.animationName && cs.animationName !== 'none') return;      // element already animates itself
+    if(el.getAnimations && el.getAnimations().length) return;
+    try{
+      if(cs.position === 'fixed'){                                    // modal / overlay / sheet
+        el.animate([{opacity:0},{opacity:1}], {duration:220, easing:'ease-out'});
+        var card = el.firstElementChild;
+        if(card && getComputedStyle(card).position !== 'fixed' && !(card.getAnimations && card.getAnimations().length))
+          card.animate([{opacity:0, transform:'translateY(18px) scale(.97)'},{opacity:1, transform:'none'}], {duration:340, easing:EASE});
+      }else{                                                          // tab pane / section / card block
+        el.animate([{opacity:0, transform:'translateY(12px)'},{opacity:1, transform:'none'}], {duration:340, easing:EASE});
+      }
+    }catch(e){}
+  }
+  function flush(){
+    raf = 0; var list = queue; queue = [];
+    if(list.length > 8) return;                                       // a filter/list reshuffle, not a page change
+    list.forEach(play);
+  }
+  new MutationObserver(function(recs){
+    if(!ready || reduced()) return;
+    for(var i = 0; i < recs.length; i++){
+      var r = recs[i], el = r.target, old = ' ' + (r.oldValue || '') + ' ';
+      if(old.indexOf(' hidden ') < 0 || el.classList.contains('hidden')) continue;
+      if(queue.indexOf(el) < 0) queue.push(el);
+    }
+    if(queue.length && !raf) raf = requestAnimationFrame(flush);
+  }).observe(document.documentElement, {attributes:true, attributeFilter:['class'], attributeOldValue:true, subtree:true});
+
+  // Campus tab changes by tap/link (swipes already slide, Home/Connect already fade in the section layer)
+  function cur(){ try{ return typeof currentMode === 'string' ? currentMode : ''; }catch(e){ return ''; } }
+  try{
+    if(typeof window.setMode === 'function' && !window.__smWrapped){
+      window.__smWrapped = true;
+      var orig = window.setMode;
+      window.setMode = function(m, opts){
+        var prev = cur(), res = orig.apply(this, arguments), now = cur();
+        try{
+          if(ready && !reduced() && !(opts && opts.swipe) && prev && now && prev !== now && prev !== 'home' && now !== 'home'){
+            var el = (typeof MODE_EL !== 'undefined') && MODE_EL[now];
+            if(el && el.animate) el.animate([{opacity:0, transform:'translateY(14px)'},{opacity:1, transform:'none'}], {duration:380, easing:EASE});
+          }
+        }catch(e){}
+        return res;
+      };
+    }
+  }catch(e){ console.warn('[Smooth] setMode hook skipped', e); }
+})();
+</script>
+<style id="smoothTeamsCss">
+/* ===== Teams section polish (Connect → Teams: Find People, Find Teams, Requests, Connections, MY TEAM, popups) ===== */
+html{scrollbar-gutter:stable}                                   /* opening a popup no longer shifts the page sideways on desktop */
+/* Controls: one shared feel. `scale` is the press-in property from the base layer, so it is listed here too. */
+.cn-btn{transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .25s var(--sm-ease),transform .2s var(--sm-ease),scale .16s var(--sm-ease),filter .18s ease,opacity .2s ease}
+.cn-chip,.mt-sg,.mt-chip-x,.mt-st,.mt-x,.cn-link,.cn-act{transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .25s var(--sm-ease),transform .2s var(--sm-ease),scale .16s var(--sm-ease),opacity .2s ease}
+.cn-in{transition:border-color .2s ease,box-shadow .28s var(--sm-ease),background-color .2s ease}
+.cn-in:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 22%,transparent)}
+/* Controls that already press in via transform: don't double up with the base layer's scale */
+.cn-tab:active,.mt-create:active,.cn-create:active,.mt-card .cn-btn:active,.mt-form .cn-btn:active,.mt-req .cn-btn:active{scale:1}
+.mt-create,.mt-card .cn-btn,.mt-form .cn-btn,.mt-req .cn-btn{transition:transform .2s var(--sm-ease),scale .16s var(--sm-ease),box-shadow .25s var(--sm-ease),background-color .18s ease,border-color .18s ease,filter .18s ease}
+/* Cards: soft lift on hover (mouse only), state changes (accepted / rejected / closed) fade instead of snapping */
+.cn-card{transition:transform .3s var(--sm-ease),box-shadow .3s var(--sm-ease),border-color .2s ease,background-color .3s ease,opacity .35s ease}
+@media (hover:hover){
+  .cn-grid>.cn-card:hover{transform:translateY(-3px);box-shadow:0 20px 36px -22px rgba(16,42,69,.5)}
+  .cn-grid>.mt-card:hover{transform:translateY(-3px)}
+}
+.rq-card,.mt-req{transition:opacity .35s ease,background-color .35s ease,border-color .35s ease,transform .3s var(--sm-ease),box-shadow .3s var(--sm-ease)}
+.mt-bar i{transition:width .7s var(--sm-ease)}
+.cn-toast{animation:cnIn .32s var(--sm-ease)}
+/* Popups also animate OUT: they stay rendered but invisible for the length of the fade, then stop catching taps */
+#mtModal,#cnPostModal{transition:opacity .22s ease,visibility 0s}
+#mtModal.hidden,#cnPostModal.hidden{display:flex!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility 0s linear .2s}
+#mtModal.hidden .cn-card,#cnPostModal.hidden .cn-card{transform:translateY(16px) scale(.97);opacity:0;transition:transform .2s ease,opacity .18s ease}
+@media (max-width:560px){#mtModal.hidden .cn-card{transform:translateY(40px)}}
+@media (prefers-reduced-motion:reduce){
+  #mtModal,#cnPostModal,#mtModal.hidden,#cnPostModal.hidden,#mtModal.hidden .cn-card,#cnPostModal.hidden .cn-card{transition:none}
+  .cn-grid>.cn-card:hover,.cn-grid>.mt-card:hover{transform:none}
+}
+</style>
+<script id="smoothTeamsJs">
+/* Teams smoother. The Teams lists re-draw with innerHTML on every Firestore update, filter change and search keystroke,
+   which rebuilds every card (flash, lost hover, progress bars restarting, images reloading).
+   For those containers only, innerHTML is applied as a diff: unchanged cards stay, changed text/attributes update in place,
+   brand-new cards rise in with a short stagger. Everything else, and the app's own render code, is untouched. */
+(function(){
+  'use strict';
+  var EASE = 'cubic-bezier(.22,1,.36,1)', ready = false;
+  var TARGET = {cnMyTeam:1, cnTgrid:1, cnTsum:1, cnTempty:1, cnTreq:1, cnTconn:1, cnPgrid:1, cnPsum:1, cnPempty:1};
+  function reduced(){ try{ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
+  function arm(){ setTimeout(function(){ ready = true; }, 900); }
+  if(document.readyState === 'complete') arm(); else window.addEventListener('load', arm, {once:true});
+
+  // Identity of a card: its id, or the first meaningful data-* value inside it (team / request / person id)
+  function keyOf(n){
+    if(!n || n.nodeType !== 1) return null;
+    if(n.id) return '#' + n.id;
+    var k = n.getAttribute('data-key'); if(k) return 'k:' + k;
+    if(!/(^|\s)(cn-card|cn-urow|mt-card|rq-card|mt-req|cn-ucard|cn-person)(\s|$)/.test(n.className || '') && n.nodeName !== 'ARTICLE') return null;
+    var els = n.querySelectorAll('*'), lim = Math.min(els.length, 40);
+    for(var i = 0; i < lim; i++){
+      var at = els[i].attributes;
+      for(var j = 0; j < at.length; j++){
+        if(at[j].name.indexOf('data-') === 0 && at[j].value.length > 2 && at[j].value !== 'true') return n.nodeName + ':' + at[j].value;
+      }
+    }
+    return null;
+  }
+  function sameKind(a, b){ return a.nodeType === b.nodeType && (a.nodeType !== 1 || a.nodeName === b.nodeName); }
+  function syncAttrs(a, b){
+    var i, n;
+    for(i = a.attributes.length - 1; i >= 0; i--){
+      n = a.attributes[i].name;
+      if(!b.hasAttribute(n)){
+        if(n === 'class' && /(^|\s)mt-in(\s|$)/.test(a.getAttribute('class') || '')) continue;   // let the card's own entrance finish
+        a.removeAttribute(n);
+      }
+    }
+    for(i = 0; i < b.attributes.length; i++){
+      var at = b.attributes[i], cur = a.getAttribute(at.name), val = at.value;
+      if(at.name === 'class' && /(^|\s)mt-in(\s|$)/.test(cur || '') && !/(^|\s)mt-in(\s|$)/.test(val)) val = val + ' mt-in';
+      if(cur !== val) a.setAttribute(at.name, val);
+    }
+  }
+  function morphNode(a, b, fresh){
+    if(a.nodeType === 3 || a.nodeType === 8){ if(a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; return; }
+    if(a.nodeType !== 1) return;
+    syncAttrs(a, b);
+    var tag = a.nodeName;
+    if((tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') && a !== document.activeElement){
+      try{ if(a.type === 'checkbox' || a.type === 'radio') a.checked = b.checked; else if(a.value !== b.value && b.hasAttribute('value')) a.value = b.value; }catch(e){}
+    }
+    patchChildren(a, b, fresh);
+  }
+  function patchChildren(a, b, fresh){
+    var oldKids = [].slice.call(a.childNodes), map = {}, claimed = new Set(), pos = 0;
+    oldKids.forEach(function(n){ var k = keyOf(n); if(k && !(k in map)) map[k] = n; });
+    var isGrid = a.classList && a.classList.contains('cn-grid');
+    [].slice.call(b.childNodes).forEach(function(y){
+      var k = keyOf(y), x = null, ref = a.childNodes[pos] || null;
+      if(k && map[k] && !claimed.has(map[k])) x = map[k];
+      else if(!k && ref && !keyOf(ref) && !claimed.has(ref) && sameKind(ref, y)) x = ref;
+      if(x){ if(x !== ref) a.insertBefore(x, ref); morphNode(x, y, fresh); claimed.add(x); }
+      else { a.insertBefore(y, ref); claimed.add(y); if(isGrid && y.nodeType === 1) fresh.push(y); }
+      pos++;
+    });
+    while(a.childNodes.length > pos) a.removeChild(a.lastChild);
+  }
+  function morph(el, html){
+    var t = document.createElement('template'); t.innerHTML = html;
+    var fresh = [];
+    patchChildren(el, t.content, fresh);
+    if(fresh.length && ready && !reduced()){
+      requestAnimationFrame(function(){
+        if(!el.getClientRects().length) return;                       // hidden pane: it fades in as a whole when shown
+        fresh.slice(0, 8).forEach(function(c, i){
+          if(!c.isConnected || !c.animate) return;
+          var an = getComputedStyle(c).animationName; if(an && an !== 'none') return;   // card has its own entrance (mt-in)
+          try{ c.animate([{opacity:0, transform:'translateY(14px) scale(.985)'},{opacity:1, transform:'none'}], {duration:380, delay:i * 40, easing:EASE, fill:'backwards'}); }catch(e){}
+        });
+      });
+    }
+  }
+
+  var desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML'), mtTimer = 0;
+  if(desc && desc.set && desc.get){
+    Object.defineProperty(Element.prototype, 'innerHTML', {
+      configurable:true, enumerable:desc.enumerable, get:desc.get,
+      set:function(v){
+        var id = this.id;
+        if(id && TARGET[id] && typeof v === 'string' && v && this.firstChild){
+          try{ morph(this, v); return; }catch(e){ console.warn('[Smooth] diff render skipped', e); }
+        }
+        if(id === 'mtModal'){
+          if(mtTimer){ clearTimeout(mtTimer); mtTimer = 0; }
+          if(v === '' && this.classList.contains('hidden') && this.firstChild){   // keep the content while the popup fades out
+            var self = this; mtTimer = setTimeout(function(){ mtTimer = 0; if(self.classList.contains('hidden')) desc.set.call(self, ''); }, 260);
+            return;
+          }
+        }
+        desc.set.call(this, v);
+      }
+    });
+  }
+
+  // Overlays the Teams code appends to <body> (Team Chat, Manage popups) rise in too
+  try{
+    new MutationObserver(function(recs){
+      if(!ready || reduced()) return;
+      recs.forEach(function(r){ [].forEach.call(r.addedNodes, function(n){
+        if(n.nodeType !== 1 || !(n.id === 'tcOv' || n.id === 'mhOv' || (n.classList && n.classList.contains('tc-ov')))) return;
+        var an = getComputedStyle(n).animationName; if(an && an !== 'none') return;
+        try{
+          n.animate([{opacity:0},{opacity:1}], {duration:220, easing:'ease-out'});
+          var c = n.firstElementChild; if(c && c.animate) c.animate([{opacity:0, transform:'translateY(18px) scale(.97)'},{opacity:1, transform:'none'}], {duration:340, easing:EASE});
+        }catch(e){}
+      }); });
+    }).observe(document.body, {childList:true});
+  }catch(e){}
+})();
+</script>
+<style id="glassEventsCss">
+/* ===== Events → "All events | Saved" toggle and the All / Offline / Online / Hybrid / … bar =====
+   Brighter, lighter glass. Selected pill uses the Connect gradient (--cn-grad), same recipe as the Connect primary buttons. */
+#sectionConnect :is(#cnEview,#cnEmode).cn-seg{
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.90) 0%,rgba(255,255,255,.72) 100%),
+    linear-gradient(135deg,rgba(167,139,250,.14),rgba(121,80,217,.06));
+  border:1px solid rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(8px) saturate(130%);backdrop-filter:blur(8px) saturate(130%);
+  box-shadow:0 1px 0 #fff inset,0 0 0 1px rgba(139,101,232,.16),0 10px 22px -16px rgba(94,60,180,.32);
+}
+#sectionConnect :is(#cnEview,#cnEmode).cn-seg button{
+  position:relative;color:var(--cn-ink,#5A3BB8);background:transparent;
+  transition:background-color .22s ease,box-shadow .28s var(--sm-ease,ease),color .2s ease,scale .16s var(--sm-ease,ease);
+}
+@media (hover:hover){
+  #sectionConnect :is(#cnEview,#cnEmode).cn-seg button[aria-pressed="false"]:hover{
+    background:linear-gradient(135deg,rgba(167,139,250,.20),rgba(121,80,217,.10));color:var(--cn-ink-h,#4A2FA0);
+  }
+}
+/* Selected = the Connect gradient, solid and bright */
+#sectionConnect :is(#cnEview,#cnEmode).cn-seg button[aria-pressed="true"]{
+  color:#fff;text-shadow:0 1px 1px rgba(60,20,140,.25);
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 55%),var(--cn-grad,linear-gradient(135deg,#A78BFA 0%,#8B65E8 48%,#7950D9 100%));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 14px -8px var(--gl-active-glow,rgba(121,80,217,.4));
+}
+#sectionConnect :is(#cnEview,#cnEmode).cn-seg .n{opacity:.8}
+#sectionConnect #cnEmode.cn-areas{scrollbar-color:rgba(139,101,232,.5) transparent}
+
+/* Dark */
+[data-theme="dark"] #sectionConnect :is(#cnEview,#cnEmode).cn-seg{
+  background:
+    linear-gradient(135deg,rgba(92,72,150,.62) 0%,rgba(52,40,96,.50) 100%),
+    linear-gradient(135deg,rgba(167,139,250,.14),rgba(121,80,217,.05));
+  border:1px solid rgba(196,168,246,.32);
+  box-shadow:0 1px 0 rgba(255,255,255,.16) inset,0 12px 24px -16px rgba(0,0,0,.55);
+}
+[data-theme="dark"] #sectionConnect :is(#cnEview,#cnEmode).cn-seg button{color:var(--cn-ink,#D9CCF7)}
+@media (hover:hover){
+  [data-theme="dark"] #sectionConnect :is(#cnEview,#cnEmode).cn-seg button[aria-pressed="false"]:hover{
+    background:linear-gradient(135deg,rgba(167,139,250,.26),rgba(121,80,217,.14));color:var(--cn-ink-h,#F1EAFF);
+  }
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  #sectionConnect :is(#cnEview,#cnEmode).cn-seg{background:rgba(250,248,255,.96)}
+  [data-theme="dark"] #sectionConnect :is(#cnEview,#cnEmode).cn-seg{background:rgba(56,44,100,.94)}
+}
+@media (prefers-reduced-motion:reduce){#sectionConnect :is(#cnEview,#cnEmode).cn-seg button{transition:none}}
 </style>
 </body>
 </html>
