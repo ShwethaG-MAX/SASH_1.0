@@ -4,13 +4,15 @@
    every write goes through the callables below. */
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { setGlobalOptions } = require('firebase-functions/v2');
-const admin = require('firebase-admin');
+// Modular firebase-admin imports: work on firebase-admin 12, 13 and 14+ (the old `admin.firestore()` namespace API was removed in v13).
+const { initializeApp } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const core = require('./lib/core');
 
 setGlobalOptions({ region: 'asia-south1', maxInstances: 10, memory: '256MiB', timeoutSeconds: 30 });
-admin.initializeApp();
-const db = admin.firestore();
-const FV = admin.firestore.FieldValue;
+initializeApp();
+const db = getFirestore();
+const FV = FieldValue;
 
 const student = (req) => {
   if (!req.auth) throw new HttpsError('unauthenticated', 'Please sign in to use Teams.');
