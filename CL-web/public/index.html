@@ -15031,7 +15031,7 @@ window.odAdminsRender = function(b){
         '<input id="adEmail" type="email" class="hm-name-input" placeholder="Their account email, e.g. name@gmail.com" autocapitalize="none" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn btn-primary" id="adGive"' + (st.busy ? ' disabled' : '') + '>' + (st.busy ? 'Please wait…' : 'Give admin access') + '</button>' +
         '<small>The account must already exist in Campus Loop and its email must be verified (signing in with Google counts). They get admin access the next time they log in or reopen the app.</small></div>';
-    } else if(st.list){
+    } else if(st.list && !st.err){
       h += '<small>Only the main admin can give or remove admin access.</small>';
     }
     if(st.err) h += '<div class="auth-error" role="alert" style="margin:8px 0">' + esc(st.err) + '</div>';
