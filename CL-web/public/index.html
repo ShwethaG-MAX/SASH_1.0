@@ -6960,12 +6960,12 @@ function profileSectionChoices(){
 }
 // Second-year branches without academic content (CSE AIML, ISE): name only. Their quiz group comes from year+branch in userProfiles.
 function renderQuizOnlyProfile(card, opts){
-  const wantU = !!(window.cseUname && cseUname.eligible());
+  const wantU = !opts.guest && !!window.cseUname && (cseUname.eligible() || (card.id === 'lgStudentForm' && !opts.editing));
   const p = 'pq' + card.id, br = (SY_BRANCHES.find(b=>b.id === ACAD.branch) || {}).name || ACAD.branch, saved = !!currentUser.name;
   card.innerHTML = `<div class="hm-name-form" style="width:100%"><h3>${saved ? '✏️ Your profile' : '👋 Welcome to <svg class="cl-inf" viewBox="0 0 32 16" aria-hidden="true" focusable="false"><path d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>CAMPUS LOOP'}</h3>
     <div class="pf-acad"><span>${escapeHtml(acadSummary())}</span><button type="button" class="lg-link" id="${p}Acad">Change</button></div>
     <input type="text" id="${p}Name" class="hm-name-input" style="width:100%" placeholder="Enter your name" maxlength="${NAME_MAX_LEN}" value="${escapeHtml(currentUser.name)}" aria-label="Name">
-    ${wantU ? `<input type="text" id="${p}User" class="hm-name-input" style="width:100%" placeholder="Choose a unique username, e.g. john_v" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" value="${escapeHtml(cseUname.get())}" aria-label="Username"><small style="display:block;width:100%;text-align:left;color:var(--muted)">3–20 letters, numbers or _ · starts with a letter · others can find you by it</small>` : ''}
+    ${wantU ? `<input type="text" id="${p}User" class="hm-name-input" style="width:100%" placeholder="Choose a unique username, e.g. arjun_k21" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" value="${escapeHtml(cseUname.get())}" aria-label="Username"><small style="display:block;width:100%;text-align:left;color:var(--muted)">3–20 letters, numbers or _ · starts with a letter · others can find you by it</small>` : ''}
     <div class="hm-name-error hidden" id="${p}Err" role="alert"></div>
     <button type="button" class="btn btn-primary" id="${p}Save" style="width:100%;justify-content:center">${saved ? 'Update' : 'Save Profile'}</button></div>`;
   document.getElementById(p + 'Acad').addEventListener('click', acadOpenSwitcher);
@@ -7003,8 +7003,8 @@ function renderProfileForm(containerId, opts){
   const acad = (ACAD && !isCR) ? `<div class="pf-acad"><span>${escapeHtml(acadSummary())}</span><button type="button" class="lg-link" id="${p}Acad">Change</button></div>` : (ACAD ? `<div class="pf-acad"><span>${escapeHtml(acadSummary())}</span></div>` : '');
   // Login screen only: an OPTIONAL "complete your profile" block (collapsed). Skipping it is fine; everything can be added later from Profile.
   const onGate = (containerId === 'lgStudentForm') && !editing;
-  const wantU = !isCR && !!(window.cseUname && cseUname.eligible());
-  const userField = wantU ? lab('Username') + `<input type="text" id="${p}User" class="hm-name-input" style="width:100%" placeholder="Choose a unique username, e.g. john_v" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" value="${escapeHtml(cseUname.get())}" aria-label="Username"><small style="display:block;width:100%;text-align:left;color:var(--muted);margin-top:-4px">3–20 letters, numbers or _ · starts with a letter · others can find you by it</small>` : '';
+  const wantU = !isCR && !opts.guest && !!window.cseUname && (cseUname.eligible() || onGate);   // always on the login screen's account form (the account session may still be restoring when it is drawn); never for guests
+  const userField = wantU ? lab('Username') + `<input type="text" id="${p}User" class="hm-name-input" style="width:100%" placeholder="Choose a unique username, e.g. arjun_k21" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" value="${escapeHtml(cseUname.get())}" aria-label="Username"><small style="display:block;width:100%;text-align:left;color:var(--muted);margin-top:-4px">3–20 letters, numbers or _ · starts with a letter · others can find you by it</small>` : '';
   const optProf = onGate ? `<details class="lg-opt" id="${p}Opt"><summary>✨ Complete your profile <em>(optional)</em></summary>
       <div class="lg-opt-body">
         <p class="lg-opt-note">Skip this if you like. You can add or change all of it later from your Profile.</p>
@@ -13949,7 +13949,7 @@ html.chat-open #commChatPanel .chat-list{scroll-behavior:auto;overflow-anchor:au
     window.dispatchEvent(new Event('cse:login-done')); };
   window.cseCrFail=function(m){ var e=$('lgErr'); e.textContent=m; e.classList.remove('hidden'); $('lgSubmit').disabled=false; $('lgSubmit').textContent='Login'; };
   g.addEventListener('click',function(e){ if(e.target.closest('[data-lgback]')) panel('lgHome'); });
-  function guestStart(){ if(!ACAD){ showAcademic('guest'); return; } panel('lgStudentPanel'); renderProfileForm('lgStudentForm'); }   // Continue as Guest = the original anonymous student flow
+  function guestStart(){ if(!ACAD){ showAcademic('guest'); return; } panel('lgStudentPanel'); renderProfileForm('lgStudentForm',{guest:true}); }   // Continue as Guest = the original anonymous student flow
   $('lgStudent').addEventListener('click',guestStart);
   $('lgAdmin').addEventListener('click',function(){ openOwnerLogin(); });
   $('lgCR').addEventListener('click',function(){ $('lgErr').classList.add('hidden'); panel('lgCRPanel'); });
@@ -14049,7 +14049,7 @@ html.chat-open #commChatPanel .chat-list{scroll-behavior:auto;overflow-anchor:au
           if(sec) localStorage.setItem('classHubUserProfile',JSON.stringify({name:(!changed&&p&&p.name)||'',section:sec,batch:(!changed&&p&&p.batch)||'',year:a.year,branch:a.branch,sem:a.sem,cycle:a.cycle||''})); }catch(e){}
           if(next){ try{ sessionStorage.setItem('cse_gate_next',next); }catch(e){} }
           location.reload(); return; }
-      if(next==='guest'){ panel('lgStudentPanel'); renderProfileForm('lgStudentForm'); return; }
+      if(next==='guest'){ panel('lgStudentPanel'); renderProfileForm('lgStudentForm',{guest:true}); return; }
       if(next==='account' && window.cseAcct){ cseAcct.resumeOnboarding(); return; }
       panel('lgHome'); refreshAcadLine(); }});
   }
@@ -15112,7 +15112,7 @@ function dialog(forced){
     '<div style="font-size:2rem">@</div><h3 style="margin:0">' + (had ? 'Change your username' : 'Choose your username') + '</h3>' +
     '<p style="margin:0;color:var(--muted,#666);font-size:.9rem">' + (forced ? 'Every Campus Loop account has a unique username. Other students can find you in People by searching it.' : had ? 'Your username is <b>@' + cur.name + '</b>. You can change it once every ' + COOL_DAYS + ' days.' : 'Pick a unique username so people can find you in People. You can change it later, once every ' + COOL_DAYS + ' days.') + '</p>' +
     (wait ? '<div class="hm-name-error" role="alert">You changed your username recently. You can change it again on ' + fmtDate(nextChange()) + '.</div>' : '') +
-    '<input type="text" id="unameIn" class="hm-name-input" style="width:100%" placeholder="e.g. john_v" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Username" value="' + (had ? cur.name : '') + '"' + (wait ? ' disabled' : '') + '>' +
+    '<input type="text" id="unameIn" class="hm-name-input" style="width:100%" placeholder="e.g. arjun_k21" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Username" value="' + (had ? cur.name : '') + '"' + (wait ? ' disabled' : '') + '>' +
     '<small style="color:var(--muted,#666)">3–20 letters, numbers or _ · starts with a letter</small>' +
     '<div class="hm-name-error hidden" id="unameErr" role="alert"></div>' +
     '<div style="display:flex;gap:10px"><button type="button" class="btn btn-primary" id="unameGo" style="flex:1;justify-content:center"' + (wait ? ' disabled' : '') + '>Save username</button>' + (forced ? '' : '<button type="button" class="btn btn-ghost" id="unameNo" style="flex:1;justify-content:center">' + (wait ? 'Close' : 'Cancel') + '</button>') + '</div></div>';
