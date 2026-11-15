@@ -1,0 +1,12 @@
+{
+  "name": "student-centro-account-functions",
+  "private": true,
+  "description": "Permanent account deletion for Student Centro / Campus Loop (removes all of a student's data, then the Auth user)",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": { "test": "node test.js", "deploy": "firebase deploy --only functions:account", "logs": "firebase functions:log" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

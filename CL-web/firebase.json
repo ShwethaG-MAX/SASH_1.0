@@ -25,6 +25,7 @@
     "indexes": "firestore.indexes.json"
   },
   "functions": [
+    { "source": "functions-account", "codebase": "account", "ignore": ["node_modules", ".git", "*.log", "test.js"] },
     { "source": "functions-quiz", "codebase": "quiz", "ignore": ["node_modules", ".git", "*.log", "test-notify.js", "test"] },
     { "source": "functions-syllabus", "codebase": "syllabus", "ignore": ["node_modules", ".git", "*.log", "test.js"] },
     { "source": "functions-test", "codebase": "test", "ignore": ["node_modules", ".git", "*.log", "test.js", "test"] },

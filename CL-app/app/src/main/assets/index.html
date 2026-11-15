@@ -13832,6 +13832,7 @@ html[data-theme="dark"] .logout-btn{color:#ff8a80!important;border-color:rgba(25
 @media(max-width:440px){nav .nav-actions .logout-btn{width:36px!important;height:36px}}
 .acct-line{font-size:.9rem;color:var(--text);margin:2px 0 10px;overflow-wrap:anywhere}.acct-sub{font-size:.8rem;color:var(--muted);margin:0 0 10px}
 .acct-actions{display:flex;flex-wrap:wrap;gap:8px}.acct-actions .btn{min-height:44px}
+.acct-actions .btn-danger{background:transparent;color:#b3261e;border:1px solid #b3261e;margin-left:auto}.acct-actions .btn-danger:hover{background:#b3261e;color:#fff}
 .acct-sync{font-size:.8rem;color:var(--muted);margin-top:10px}
 #cseDlgOv{position:fixed;inset:0;z-index:1300;background:rgba(16,26,33,.55);display:flex;align-items:center;justify-content:center;padding:20px}#cseDlgOv.hidden{display:none}
 #cseDlg{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:18px;max-width:420px;width:100%;padding:20px;box-shadow:0 24px 60px -20px rgba(0,0,0,.5);max-height:90vh;overflow:auto}
@@ -14488,6 +14489,88 @@ function logout(){
   }).catch(function(e){ loggingOut=false; logoutBusy=false; busy(false); console.error('[Logout]',e); toast('Could not log out. Please try again.'); });
 }
 
+/* ============================================================== DELETE ACCOUNT ==============================================================
+   Permanent. Flow: warning + type DELETE (+ password for email accounts) -> re-authenticate (Firebase requires a recent sign-in)
+   -> stop every client write -> `accountDelete` Cloud Function (codebase "account", asia-south1) removes all data and the Auth user
+   -> wipe this device -> back to the login screen. If the server fails part-way nothing is lost: the Auth user is kept and the student can retry. */
+var delBusy=false;
+function delFns(){ return new Promise(function(res,rej){ if(firebase.functions) return res(); var s=document.createElement('script'); s.src='https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js'; s.onload=function(){ firebase.functions?res():rej({code:'network'}); }; s.onerror=function(){ rej({code:'network'}); }; document.head.appendChild(s); }); }
+function delGoogleToken(){
+  return new Promise(function(res,rej){
+    var native=false; try{ native=!!window.AndroidBridge && typeof window.AndroidBridge.googleSignIn!=='undefined'; }catch(e){}
+    if(!native) return rej({code:'web'});
+    var t=setTimeout(function(){ window.__delReauth=null; rej({code:'timeout'}); },120000);
+    window.__delReauth={ resolve:function(tok){ clearTimeout(t); res(tok); }, reject:function(c){ clearTimeout(t); rej({code:c||'failed'}); } };
+    try{ window.AndroidBridge.googleSignIn(); }catch(x){ clearTimeout(t); window.__delReauth=null; rej({code:'failed'}); }
+  });
+}
+function delReauth(u,pw){
+  var provs=provList(u);
+  if(provs.indexOf('password')>-1 && u.email) return u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,pw));
+  return delGoogleToken().then(function(tok){ return u.reauthenticateWithCredential(firebase.auth.GoogleAuthProvider.credential(tok)); },function(e){
+    if(e&&e.code==='web') return u.reauthenticateWithPopup(googleProvider());
+    throw e;
+  });
+}
+function delMsg(e){
+  var c=(e&&e.code)||'';
+  if(c==='auth/wrong-password'||c==='auth/invalid-credential'||c==='auth/invalid-login-credentials') return 'That password is not correct.';
+  if(c==='auth/too-many-requests') return 'Too many attempts. Wait a few minutes and try again.';
+  if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'||c==='cancelled') return 'Cancelled. Your account was not deleted.';
+  if(c==='auth/popup-blocked') return 'Pop-up blocked. Allow pop-ups for this site and try again.';
+  if(c==='web'||c==='auth/operation-not-supported-in-this-environment') return 'Google confirmation is not available in this browser. Open the site in Chrome or Safari, or update the app.';
+  if(c==='auth/network-request-failed'||c==='network'||c==='timeout'||/unavailable|deadline/.test(c)) return NET;
+  if(c==='functions/unauthenticated') return 'For your security please sign in again, then retry.';
+  if(c==='functions/permission-denied') return 'This account cannot be deleted here.';
+  var m=String((e&&e.message)||''); return (m&&!/^[A-Z_ ]+$/.test(m)&&m.length<200)?m:'Could not delete your account. Nothing was changed. Please try again.';
+}
+function deleteAccount(){
+  if(delBusy) return;
+  var u=cu(); if(!u||u.isAnonymous){ toast('Create an account first, or just log out to erase guest data.'); return; }
+  if(!navigator.onLine){ toast('You appear to be offline. Connect to the internet and try again.'); return; }
+  var needPw=provList(u).indexOf('password')>-1&&!!u.email;
+  delBusy=true;
+  var ask=dlg('Delete your account permanently?',
+    'This erases your account and ALL your data from Campus Loop on every device: profile, tasks, attendance, notes, saved items, quiz and test results, XP and leaderboard entries, chat messages, shared links and materials, connections and team memberships (teams you lead pass to another member, or are removed if you are the only one).\n\nThis cannot be undone and cannot be recovered.\n\nType DELETE below to confirm'+(needPw?', and enter your password':'')+'.',
+    [{id:'go',t:'Delete my account forever',cls:'btn-danger'},{id:'cancel',t:'Cancel'}],{noDismiss:false});
+  var p=$('cseDlgP'), wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-direction:column;gap:8px;margin:-4px 0 14px';
+  var inp=document.createElement('input'); inp.type='text'; inp.setAttribute('autocomplete','off'); inp.setAttribute('autocapitalize','characters'); inp.setAttribute('aria-label','Type DELETE to confirm'); inp.placeholder='Type DELETE';
+  var pwi=null; wrap.appendChild(inp);
+  if(needPw){ pwi=document.createElement('input'); pwi.type='password'; pwi.setAttribute('autocomplete','current-password'); pwi.setAttribute('aria-label','Your password'); pwi.placeholder='Your password'; wrap.appendChild(pwi); }
+  [inp,pwi].forEach(function(i){ if(i) i.style.cssText='width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);font:inherit;box-sizing:border-box'; });
+  p.parentNode.insertBefore(wrap,$('cseDlgB'));
+  var goBtn=$('cseDlgB').querySelector('button'); goBtn.disabled=true; goBtn.style.opacity='.5';
+  function chk(){ var ok=inp.value.trim()==='DELETE' && (!pwi||pwi.value.length>0); goBtn.disabled=!ok; goBtn.style.opacity=ok?'1':'.5'; }
+  inp.addEventListener('input',chk); if(pwi) pwi.addEventListener('input',chk); try{ inp.focus(); }catch(e){}
+  var pw='';
+  ask.then(function(c){
+    pw=pwi?pwi.value:''; try{ wrap.remove(); }catch(e){}
+    if(c!=='go'){ delBusy=false; return 'stop'; }
+    busy(true,'Confirming it is you…');
+    return delReauth(u,pw).then(function(){ return u.getIdToken(true); }).then(function(){
+      // From here on nothing in this page may write to Firestore (presence / sync would recreate deleted documents).
+      busy(true,'Deleting your account…'); loggingOut=true; try{ stopSync(); }catch(e){}
+      return Promise.resolve().then(function(){ return fbDb.terminate(); }).catch(function(){}).then(delFns);
+    }).then(function(){
+      return firebase.app().functions('asia-south1').httpsCallable('accountDelete',{timeout:540000})({confirm:'DELETE'});
+    }).then(function(){
+      try{ firebase.auth().signOut().catch(function(){}); }catch(e){}
+      try{ roleCacheClear(); setOwner(false); }catch(e){}
+      try{ if(window.AndroidBridge && typeof window.AndroidBridge.googleSignOut!=='undefined') window.AndroidBridge.googleSignOut(); }catch(e){}
+      wipeUserData();
+      return race(Promise.resolve().then(function(){ return fbDb.clearPersistence(); }),2500).catch(function(){});
+    }).then(function(){
+      busy(false);
+      return dlg('Your account has been deleted','All your data has been removed. You can create a new account any time.',[{id:'ok',t:'OK',cls:'btn-primary'}],{noDismiss:true});
+    }).then(function(){ location.replace(location.pathname); },function(e){
+      console.error('[DeleteAccount]',e); busy(false); toast(delMsg(e));
+      // Firestore was shut down for the attempt: reload so listeners and sync come back. Nothing was deleted from the account if we got here before the server finished.
+      if(loggingOut) setTimeout(function(){ location.reload(); },1800);
+      delBusy=false;
+    });
+  });
+}
+
 /* ============================================================== EMAIL / GOOGLE UI ============================================================== */
 var em={mode:'signin',busy:false,pending:null,upgrade:false};
 var NET='Network error. Check your connection and try again.';
@@ -14745,6 +14828,11 @@ function googleGo(fromSettings){
 // Called by the Android app after native Google sign-in: idToken = Google ID token, err = '' | 'cancelled' | 'failed'.
 window.__onNativeGoogle=function(idToken,err){
   clearTimeout(window.__nativeGT);
+  if(window.__delReauth){   // "Delete account" asked Google to confirm identity: hand the token back to that flow only
+    var dr=window.__delReauth; window.__delReauth=null;
+    if(typeof idToken!=='string' || idToken==='null' || idToken==='undefined' || idToken.length<20) return dr.reject(err==='cancelled'?'cancelled':'failed');
+    return dr.resolve(idToken);
+  }
   var fs=!!window.__nativeGFromSettings; window.__nativeGFromSettings=false;
   if(typeof idToken!=='string' || idToken==='null' || idToken==='undefined' || idToken.length<20) idToken='';   // a bridge that stringifies null/undefined must count as "no token"
   console.log('[Google] native result', idToken?'token received':('no token: '+err));
@@ -14839,6 +14927,7 @@ function renderAccountCard(){
   if(pw && u.email) act.appendChild(btn('Send password reset email','btn-ghost',function(){ firebase.auth().sendPasswordResetEmail(u.email).then(function(){ toast('Password reset email sent.'); }).catch(function(e){ toast(mapErr(e)); }); }));
   act.appendChild(btn('Sync now','btn-ghost',function(){ toast('Syncing…'); syncNow().then(updateStatus); }));
   act.appendChild(btn('Log out','btn-ghost',logout));
+  act.appendChild(btn('Delete account','btn-danger',deleteAccount));
   updateStatus();
 }
 window.addEventListener('cse:role-changed',renderAccountCard);
@@ -18286,7 +18375,7 @@ function mutTxt(u){ var m = MU[u]; return m && m.length ? ' · ' + m.length + ' 
 function connStop(){ cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS = {uid:'', out:{}, inc:{}, conn:{}, outL:[], incL:[], connL:[], notifs:[], ok:{}, busy:{}, ask:''}; MU = {}; SUG = null; SUGn = -1; paintConn(); }
 function connStart(uid){
   var db = fb(); if(!db) return; CS.uid = uid;
-  function lis(key, q, fn){ cUn.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; paintConn(); }, function(e){ console.warn('[Connections] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); CS.err = 1; paintConn(); })); }
+  function lis(key, q, fn){ cUn.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; if(CS.errs){ delete CS.errs[key]; if(!Object.keys(CS.errs).length) CS.err = 0; } paintConn(); }, function(e){ console.warn('[Connections] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); CS.err = 1; (CS.errs = CS.errs || {})[key] = String(e && e.code || 'error'); paintConn(); })); }
   lis('inc', db.collection('connectionRequests').where('to', '==', uid), function(s){
     CS.inc = {}; CS.incL = []; s.docs.forEach(function(d){ var x = d.data(); if(x.status === 'pending'){ CS.inc[x.from] = 1; CS.incL.push({u:x.from, name:x.fromName, at:tms(x.createdAt)}); } });
     CS.incL.sort(function(a, b){ return b.at - a.at; }); });
@@ -18301,6 +18390,7 @@ function connStart(uid){
     if(!first) s.docChanges().forEach(function(c){ if(c.type !== 'added' || c.doc.metadata.hasPendingWrites) return; var n = c.doc.data();
       toast(n.type === 'request' ? n.fromName + ' sent you a connection request' : n.type === 'accepted' ? n.fromName + ' accepted your connection request' : n.fromName + ' declined your connection request'); }); });
 }
+function connRetry(){ var u = CS.uid; cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS.ok = {}; CS.errs = {}; CS.err = 0; if(u) connStart(u); paintConn(); }
 function connTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id && id === CS.uid && CS.ok.conn && (wantPeople() || connVisible()) && Date.now() - SUGt > 60000) loadSug(); if(id === CS.uid) return; connStop(); if(id) connStart(id); }
 function unreadN(){ return CS.notifs.filter(function(n){ return !n.read && n.type !== 'request'; }).length; }
 function connVisible(){ return active() && st.tab === 'teams' && st.tsub === 'connections'; }
@@ -18353,7 +18443,9 @@ function drawConn(){
   [].forEach.call(root.querySelectorAll('[data-ccon]'), function(b){ var k = b.dataset.ccon, on = k === cTab, n = $('.rq-n', b); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); setBadge(n, k === 'received' ? D.received : 0); });
   var uids = CS.incL.concat(CS.outL, CS.connL).map(function(x){ return x.u; }); loadMutuals(uids);
   var h = '', dis = function(u){ return CS.busy[u] ? ' disabled' : ''; };
-  if(CS.err && !CS.ok.inc) h = empty('⚠️', 'Could not load connections', 'Check your connection and reopen this tab.');
+  var ek = cTab === 'received' ? 'inc' : cTab === 'sent' ? 'out' : 'conn', ec = CS.errs && CS.errs[ek];
+  if(ec && !CS.ok[ek]) h = empty('⚠️', ec === 'permission-denied' ? 'Connections are unavailable right now' : 'Could not load connections', ec === 'permission-denied' ? 'We could not open your connections. Please try again in a moment.' : 'Check your connection and try again.', '<button class="cn-btn pri" type="button" data-cretry="1">Try again</button>');
+  else if(CS.uid && !CS.ok[ek]) h = '<div class="cn-ulist" aria-busy="true" aria-label="Loading">' + [0, 1, 2].map(function(){ return '<div class="cn-urow mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i></div>'; }).join('') + '</div>';
   else if(!CS.uid) h = empty('🔒', 'Sign in to connect', 'Connections are available to signed-in students. Guests cannot send or receive requests.');
   else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
       return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i); }).join('') + '</div>'
@@ -18379,6 +18471,7 @@ function initConn(){
   drawConn();
   root.addEventListener('click', function(e){
     var b = e.target.closest('button'); if(!b) return; var d = b.dataset;
+    if(d.cretry) return connRetry();
     if(d.ccon){ cTab = d.ccon; CS.ask = ''; return drawConn(); }
     if(d.cacc) return cAct('connRespond', {from:d.cacc, accept:true}, 'Connected');
     if(d.crej) return cAct('connRespond', {from:d.crej, accept:false}, 'Request rejected');
@@ -20956,6 +21049,7 @@ html{scrollbar-gutter:stable}                                   /* opening a pop
 /* Loading skeletons for Find Teams / My Team while the first data arrives */
 .mt-skel{display:grid;gap:12px;align-content:start;min-height:200px;pointer-events:none;overflow:hidden}
 .mt-skel i{display:block;height:12px;border-radius:8px;background:linear-gradient(90deg,color-mix(in srgb,var(--cyan) 8%,transparent) 25%,color-mix(in srgb,var(--cyan) 20%,transparent) 50%,color-mix(in srgb,var(--cyan) 8%,transparent) 75%);background-size:200% 100%;animation:mtShimmer 1.3s linear infinite}
+.cn-urow.mt-skel{display:grid;min-height:0;gap:10px;padding:16px}
 .mt-skel i.l{width:55%;height:18px}.mt-skel i.m{width:82%}.mt-skel i.s{width:38%}.mt-skel i.c{height:36px;border-radius:12px;margin-top:6px}
 @keyframes mtShimmer{to{background-position:-200% 0}}
 /* Phone: grab handle for the swipe-down sheet */
