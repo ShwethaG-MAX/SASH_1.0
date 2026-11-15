@@ -129,7 +129,7 @@ async function deleteAccount(ctx, uid, token, data) {
     ['teams', teams], ['connections', connections], ['chat', chat], ['examChat', examChat], ['discover', discover], ['quizBoards', quizBoards],
     ['uid-docs', (c, u) => byField(c, BY_UID, 'uid', u)], ['posted', (c, u) => byField(c, BY_ANON, 'anonymousId', u)],
     ['trees', async (c, u) => { for (const t of TREE_IS_UID) await rdel(c.db, c.db.collection(t).doc(u)); }],
-    ['storage', (c, u) => c.deleteFiles(`chatMedia/${u}/`)],
+    ['storage', (c, u) => (async () => { await c.deleteFiles(`chatMedia/${u}/`); await c.deleteFiles(`profileImages/${u}/`); })()],
     ['profile-docs', async (c, u) => { for (const t of DOC_IS_UID) await c.db.collection(t).doc(u).delete(); }],   // profile last among data: it carries the section / year the other steps never need
   ];
   const failed = [];

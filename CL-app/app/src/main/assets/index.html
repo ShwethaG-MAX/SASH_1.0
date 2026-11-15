@@ -19990,8 +19990,9 @@ function fdb(){try{return firebase.apps.length?firebase.firestore():null}catch(e
 function fuser(){try{var u=firebase.auth().currentUser;return u&&!u.isAnonymous?u:null}catch(e){return null}}
 function cl(v,n){return String(v==null?'':v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').trim().slice(0,n)}
 var pfTm=0,pfThumbSrc=null,pfThumb='';
-function pfPush(){clearTimeout(pfTm);pfTm=setTimeout(pfWrite,700)}
-function thumbOf(src,cb){if(!src)return cb('');if(src===pfThumbSrc)return cb(pfThumb);var im=new Image();im.onload=function(){var k=Math.min(1,160/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);var t='';try{t=c.toDataURL('image/jpeg',.7)}catch(e){} if(t.length>28000)t='';pfThumbSrc=src;pfThumb=t;cb(t)};im.onerror=function(){cb('')};im.src=src}
+function pfPush(){clearTimeout(pfTm);pfTm=setTimeout(pfWrite,150)}
+window.addEventListener('online',function(){pfPush();imgPush()});
+function thumbOf(src,cb){if(!src)return cb('');if(src===pfThumbSrc||String(src).slice(0,5)!=='data:')return cb(pfThumb);var im=new Image();im.onload=function(){var k=Math.min(1,160/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);var t='';try{t=c.toDataURL('image/jpeg',.7)}catch(e){} if(t.length>28000)t='';pfThumbSrc=src;pfThumb=t;cb(t)};im.onerror=function(){cb('')};im.src=src}
 function pfDoc(photo){var A=D.about||{};
   return{name:cl(D.name,40),headline:cl(D.headline,100),college:cl(D.college,100),course:cl(D.course,100),yearLabel:cl(D.year,30),location:cl(D.location,80),bio:cl(D.bio,400),
    about:{intro:cl(A.intro,600),academic:cl(A.academic,600),goals:cl(A.goals,600),interests:cl(A.interests,600),looking:cl(A.looking,600)},
@@ -20000,9 +20001,11 @@ function pfDoc(photo){var A=D.about||{};
    projects:D.projects.slice(0,20).map(function(p){return{title:cl(p.title,100),desc:cl(p.desc,500),tech:cl(p.tech,150),cat:cl(p.cat,30),link:cl(p.link,300),gh:cl(p.gh,300),date:cl(p.date,60)}}),
    education:D.education.slice(0,10).map(function(e){return{college:cl(e.college,100),degree:cl(e.degree,100),dept:cl(e.dept,100),year:cl(e.year,30),start:cl(e.start,8),grad:cl(e.grad,8)}}),
    exp:D.exp.slice(0,30).map(function(e){return{type:cl(e.type,30),title:cl(e.title,100),org:cl(e.org,100),date:cl(e.date,60),desc:cl(e.desc,500)}}),
-   photo:photo||'',pt:D._t||Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()}}
+   photo:photo||'',photoUrl:IMU.photo.u,photoPath:IMU.photo.p,coverUrl:IMU.cover.u,coverPath:IMU.cover.p,pt:D._t||Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()}}
 function pfWrite(){var u=fuser(),db=fdb();if(!u||!db||!String(D.name||'').trim())return;
-  thumbOf(IMG.photo,function(t){db.collection('publicProfiles').doc(u.uid).set(pfDoc(t),{merge:true}).catch(function(e){console.warn('[Profile] save failed',e&&e.code);toastMsg('Saved on this device. Could not sync to your account yet.')})})}
+  thumbOf(IMG.photo,function(t){db.collection('publicProfiles').doc(u.uid).set(pfDoc(t),{merge:true})
+  .then(function(){pfFail=0},function(e){console.warn('[Profile] save failed, retrying',e&&e.code);if(++pfFail===2)toastMsg('Saved on this device. Syncing to your account will retry automatically.');if(pfFail<8)setTimeout(pfPush,Math.min(30000,1500*pfFail))})})}
+var pfFail=0;
 function fromDoc(x){var o=JSON.parse(JSON.stringify(DEF));
   ['name','headline','college','course','location','bio'].forEach(function(k){o[k]=x[k]||''});o.year=x.yearLabel||'';
   o.about=Object.assign({intro:'',academic:'',goals:'',interests:'',looking:''},x.about||{});
@@ -20010,12 +20013,13 @@ function fromDoc(x){var o=JSON.parse(JSON.stringify(DEF));
   var keep=D.projects||[];o.projects=(x.projects||[]).map(function(p,i){var q=Object.assign({},p);if(keep[i]&&keep[i].img&&keep[i].title===p.title)q.img=keep[i].img;return q});
   o.education=(x.education||[]).slice();o.exp=(x.exp||[]).slice();o._t=+x.pt||0;return o}
 var pfUid='',pfUn=null;
+var LST=window.clListen||function(q,n,f){return q.onSnapshot(n,function(e){f&&f(e,1)})};
 function pfTick(){var u=fuser(),id=u?u.uid:'';if(id===pfUid)return;if(pfUn){try{pfUn()}catch(e){}pfUn=null}pfUid=id;if(!id)return;var db=fdb();if(!db){pfUid='';return}
-  pfUn=db.collection('publicProfiles').doc(id).onSnapshot(function(sn){
-    if(sn.metadata.hasPendingWrites)return;var x=sn.exists?sn.data():null;
+  pfUn=LST(db.collection('publicProfiles').doc(id),function(sn){
+    if(sn.metadata.hasPendingWrites)return;var x=sn.exists?sn.data():null;imAdopt(x);
     if(x&&x.pt&&x.pt>(D._t||0)){D=fromDoc(x);load2();lsave();if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')&&!document.querySelector('.pf-modal'))render()}
     else if(!x||(D._t||0)>(x.pt||0)||(!x.pt&&String(D.name||'').trim())){if(String(D.name||'').trim()){if(!D._t)D._t=Date.now();pfPush()}}
-  },function(e){console.warn('[Profile] listener',e&&e.code)})}
+  },function(e,n){console.warn('[Profile] listener',n,e&&e.code)})}
 function load2(){D.about=D.about||{};['skills','interests','projects','education','exp'].forEach(function(k){D[k]=Array.isArray(D[k])?D[k]:[]});if(!D.name)D.name=accName()}
 function toastMsg(m){try{ if(typeof toast==='function') toast(m); }catch(e){}}
 /* images in IndexedDB */
@@ -20023,8 +20027,43 @@ var idb;function db(){return idb||(idb=new Promise(function(res,rej){var r=index
 function idbSet(k,v){return db().then(function(d){return new Promise(function(r){var t=d.transaction('i','readwrite');v==null?t.objectStore('i').delete(k):t.objectStore('i').put(v,k);t.oncomplete=r;t.onerror=r})}).catch(function(){})}
 function idbGet(k){return db().then(function(d){return new Promise(function(r){var q=d.transaction('i').objectStore('i').get(k);q.onsuccess=function(){r(q.result)};q.onerror=function(){r()}})}).catch(function(){})}
 var IMG={cover:null,photo:null};
+/* Profile photo + cover are uploaded to Firebase Storage (profileImages/{uid}/{photo|cover}_<ms>.jpg, see storage rules) and their URLs/paths are
+   stored on publicProfiles/{uid} (photoUrl, photoPath, coverUrl, coverPath), so every device and every student gets them from the same live doc.
+   IMG.* keeps the local copy (IndexedDB) for instant display. Newest change wins (pt vs IMT). */
+var IMT=0,IMU={photo:{u:'',p:''},cover:{u:'',p:''}},DIRTY={},STURL=/^https:\/\/(firebasestorage\.googleapis\.com|[a-z0-9.-]+\.firebasestorage\.app)\//;
+try{IMT=+localStorage.getItem('csec_profile_img_t')||0}catch(e){}
+try{var _m=JSON.parse(localStorage.getItem('csec_profile_img_meta'));if(_m&&_m.photo&&_m.cover)IMU=_m}catch(e){}
+function saveIM(){try{localStorage.setItem('csec_profile_img_t',String(IMT));localStorage.setItem('csec_profile_img_meta',JSON.stringify(IMU))}catch(e){}}
+function imRender(){if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')&&!document.querySelector('.pf-modal'))render()}
+function stReady(){return new Promise(function(res,rej){if(firebase.storage)return res(firebase.storage());var s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js';s.onload=function(){firebase.storage?res(firebase.storage()):rej({code:'storage'})};s.onerror=function(){rej({code:'network'})};document.head.appendChild(s)})}
+function toBlob(src,max,q){return new Promise(function(res){var im=new Image();im.onload=function(){var k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);try{c.toBlob(function(b){res(b)},'image/jpeg',q)}catch(e){res(null)}};im.onerror=function(){res(null)};im.src=src})}
+var imTm=0,imBusy=false,imAgain=0,imFail=0;
+function imgPush(){clearTimeout(imTm);imTm=setTimeout(imgRun,80)}
+function upOne(uid,k){
+  var src=IMG[k],old=IMU[k].p;
+  if(!src){IMU[k]={u:'',p:''};delete DIRTY[k];saveIM();return old?stReady().then(function(st){st.ref(old).delete().catch(function(){})},function(){}):Promise.resolve()}
+  return toBlob(src,k==='cover'?1400:512,k==='cover'?.82:.85).then(function(b){if(!b)throw{code:'encode'};
+    return stReady().then(function(st){var path='profileImages/'+uid+'/'+k+'_'+Date.now()+'.jpg';
+      return st.ref(path).put(b,{contentType:'image/jpeg'}).then(function(t){return t.ref.getDownloadURL()}).then(function(url){
+        IMU[k]={u:url,p:path};if(IMG[k]===src)delete DIRTY[k];saveIM();if(old)st.ref(old).delete().catch(function(){})})})})}
+function imgRun(){var u=fuser();if(!u||!fdb())return;if(imBusy){imAgain=1;return}
+  var ws=['photo','cover'].filter(function(k){return DIRTY[k]});if(!ws.length)return;imBusy=true;
+  var ch=Promise.resolve();ws.forEach(function(k){ch=ch.then(function(){return upOne(u.uid,k)})});
+  ch.then(function(){imFail=0;pfPush();if(DIRTY.photo||DIRTY.cover)imAgain=1},function(e){console.warn('[Profile] image upload failed, retrying',e&&e.code);if(++imFail===2)toastMsg('Image saved on this device. Syncing will retry automatically.');if(imFail<8)setTimeout(imgPush,Math.min(30000,1500*imFail))})
+   .then(function(){imBusy=false;if(imAgain){imAgain=0;imgPush()}})}
+function imgChanged(k){var t=Date.now();D._t=t;IMT=t;DIRTY[k]=1;saveIM();lsave();pfPush();imgPush()}
+/* a change made on another device (or a first-time migration of images that only existed on this one) */
+function imAdopt(x){
+  if(!x)return;
+  if(x.photoPath===undefined&&x.coverPath===undefined){['photo','cover'].forEach(function(k){if(IMG[k]&&String(IMG[k]).slice(0,5)==='data:'&&!IMU[k].p)DIRTY[k]=1});if(DIRTY.photo||DIRTY.cover)imgPush();return}
+  if(DIRTY.photo||DIRTY.cover||imBusy)return;
+  var chg=false;
+  [['photo','photoUrl','photoPath'],['cover','coverUrl','coverPath']].forEach(function(a){var k=a[0],url=STURL.test(x[a[1]]||'')?x[a[1]]:'',path=String(x[a[2]]||'');
+    if(path!==IMU[k].p&&+x.pt>=IMT){IMU[k]={u:url,p:path};IMG[k]=url||null;idbSet(k,url||null);if(k==='photo'){pfThumbSrc=url;pfThumb=safePhoto(x.photo)}chg=true}});
+  if(chg){saveIM();imRender()}}
+window.addEventListener('online',function(){imgPush()});
 function applyImgs(){var c=prof.querySelector('.pf-cover'),a=prof.querySelector('.pf-av');
-  if(c) c.style.backgroundImage=IMG.cover?'url('+IMG.cover+')':''; if(a){a.style.backgroundImage=IMG.photo?'url('+IMG.photo+')':''; a.firstChild.textContent=IMG.photo?'':(D.name||'?').trim().charAt(0).toUpperCase()}}
+  if(c) c.style.backgroundImage=IMG.cover?'url("'+IMG.cover+'")':''; if(a){a.style.backgroundImage=IMG.photo?'url("'+IMG.photo+'")':''; a.firstChild.textContent=IMG.photo?'':(D.name||'?').trim().charAt(0).toUpperCase()}}
 function readImg(f,max,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.85))};im.src=r.result};r.readAsDataURL(f)}
 /* ---- modal / form ---- */
 function modal(title,inner,onOk,okLabel){
@@ -20077,7 +20116,7 @@ function pct(){var c=[['Profile photo',!!IMG.photo],['Cover image',!!IMG.cover],
 function connCount(){try{return window.cnConn&&window.cnConn.count?window.cnConn.count():0}catch(e){return 0}}
 function myPosts(){try{var a=window.cseConnect&&window.cseConnect.myPosts&&window.cseConnect.myPosts();return Array.isArray(a)?a:[]}catch(e){return[]}}
 function render(){
-  var P=pct(),posts=myPosts();
+  var posts=myPosts();
   var h='<div class="pf-card pf-top"><div class="pf-cover"><button class="pf-btn sm pf-cbtn" data-img="cover">📷 '+(IMG.cover?'Change':'Upload')+' cover</button></div>'+
    '<div class="pf-head"><div class="pf-av"><span></span><button class="pf-btn pf-abtn" data-img="photo" title="Change photo">📷</button></div>'+
    '<button class="pf-btn pri pf-edit" data-basic>✏️ Edit Profile</button>'+
@@ -20086,7 +20125,6 @@ function render(){
    (D.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(D.bio)+'</p>':'')+
    (IMG.photo||IMG.cover?'<div class="pf-row">'+(IMG.photo?'<button class="pf-btn sm dng" data-rmimg="photo">Remove photo</button>':'')+(IMG.cover?'<button class="pf-btn sm dng" data-rmimg="cover">Remove cover</button>':'')+'</div>':'')+
    '<div class="pf-stats"><div class="pf-stat"><b>'+connCount()+'</b><span>Connections</span></div><div class="pf-stat"><b>'+posts.length+'</b><span>Posts</span></div><div class="pf-stat"><b>'+D.skills.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+D.projects.length+'</b><span>Projects</span></div></div></div></div>';
-  h+='<div class="pf-card"><h3>Profile completion<span class="pf-sp"></span><b style="color:var(--po)">'+P.p+'%</b></h3><div class="pf-prog"><i style="width:'+P.p+'%"></i></div><div class="pf-chk">'+P.c.map(function(x){return'<span class="'+(x[1]?'ok':'')+'">'+(x[1]?'✓':'○')+' '+x[0]+'</span>'}).join('')+'</div></div>';
   var A=D.about,ab=[['Introduction',A.intro],['Academic background',A.academic],['Career goals',A.goals],['Areas of interest',A.interests],['Looking for',A.looking]].filter(function(x){return x[1]});
   h+='<div class="pf-card"><h3>About<span class="pf-sp"></span><button class="pf-btn sm" data-about>Edit</button></h3>'+(ab.length?ab.map(function(x){return'<div style="margin-bottom:10px"><div class="pf-sm"><b>'+x[0]+'</b></div><div>'+esc(x[1])+'</div></div>'}).join(''):'<div class="pf-empty">Tell others about yourself.</div>')+'</div>';
   h+=chipsSec('Skills','skills',true)+chipsSec('Interests','interests',false);
@@ -20100,7 +20138,7 @@ var CFG={projects:PROJ,education:EDU,exp:EXP};
 $('pfBody').addEventListener('click',function(e){
   var t=e.target.closest('button,span[data-ed]');if(!t)return;var d=t.dataset;
   if(d.img){pick(d.img)}
-  else if(d.rmimg){IMG[d.rmimg]=null;idbSet(d.rmimg,null);render();if(d.rmimg==='photo'){D._t=Date.now();lsave();pfPush()}}
+  else if(d.rmimg){IMG[d.rmimg]=null;idbSet(d.rmimg,null);render();imgChanged(d.rmimg)}
   else if(d.basic!==undefined) form('Edit Profile',BASIC,D,function(o){Object.assign(D,o)});
   else if(d.about!==undefined) form('Edit About',ABOUT,D.about,function(o){D.about=o});
   else if(d.add) form('Add',CFG[d.add],{},function(o){D[d.add].push(o)},'Add');
@@ -20118,7 +20156,7 @@ $('pfBody').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.
 var fi=$('pfFile');
 function pick(which){fi.value='';fi.onchange=function(){var f=fi.files[0];if(!f)return;
   readImg(f,which==='cover'?1400:500,function(u){var im=document.createElement('img');im.src=u;im.className='pf-prev';var w=document.createElement('div');w.appendChild(im);
-    modal('Preview '+(which==='cover'?'cover image':'profile photo'),w,function(){IMG[which]=u;idbSet(which,u);render();if(which==='photo'){D._t=Date.now();lsave();pfPush()}},'Apply')})};fi.click()}
+    modal('Preview '+(which==='cover'?'cover image':'profile photo'),w,function(){IMG[which]=u;idbSet(which,u);render();imgChanged(which)},'Apply')})};fi.click()}
 /* ---- Profile open/close ---- */
 function openProfile(){peerStop();prof.classList.remove('pf-peer');prof.querySelector('.cl-ovbar b').textContent='Profile';closeSettings();state.sy=window.pageYOffset||0;load();render();prof.classList.remove('hidden');prof.scrollTop=0;lock()}
 function closeProfile(silent){peerStop();if(prof.classList.contains('hidden'))return;prof.classList.add('hidden');lock();if(!silent){try{window.scrollTo(0,state.sy)}catch(e){}}}
@@ -20141,12 +20179,12 @@ function openPeer(p){
   var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null;
   function chips(a,c){return a.length?'<div class="pf-chips">'+a.map(function(x){return'<span class="pf-chip'+(c?' hi':'')+'" style="padding:6px 12px">'+esc(x)+'</span>'}).join('')+'</div>':'<div class="pf-empty">Not shared yet.</div>'}
   function paint(x){
-    x=x||{};var nm=x.name||p.name, ph=safePhoto(x.photo), A=x.about||{};
+    x=x||{};var nm=x.name||p.name, ph=(STURL.test(x.photoUrl||'')?x.photoUrl:'')||safePhoto(x.photo), cv=STURL.test(x.coverUrl||'')?x.coverUrl:'', A=x.about||{};
     var sk=(x.skills||[]).map(function(a){return a.n||a}), hi=(x.skills||[]).filter(function(a){return a.h}).map(function(a){return a.n}),
         it=x.interests||[], pr=x.projects||[], ed=x.education||[], ex=x.exp||[];
     var meta=[x.college,x.course,x.yearLabel||p.year,x.location].filter(Boolean).map(esc).join(' · ')||esc([p.year,p.branch].filter(Boolean).join(' · ')||'Campus Loop student');
     var ab=[['Introduction',A.intro],['Academic background',A.academic],['Career goals',A.goals],['Areas of interest',A.interests],['Looking for',A.looking]].filter(function(r){return r[1]});
-    $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"></div><div class="pf-head"><div class="pf-av"'+(ph?' style="background-image:url('+ph+')"':'')+'><span>'+(ph?'':esc((nm||'?').trim().charAt(0).toUpperCase()))+'</span></div>'+
+    $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"'+(cv?' style="background-image:url(&quot;'+esc(cv)+'&quot;)"':'')+'></div><div class="pf-head"><div class="pf-av"'+(ph?' style="background-image:url(&quot;'+esc(ph)+'&quot;)"':'')+'><span>'+(ph?'':esc((nm||'?').trim().charAt(0).toUpperCase()))+'</span></div>'+
      '<button class="pf-btn pri pf-edit" id="pfConn">'+(rc?rc.label(p.uid):(sent?'✓ Request sent':'Connect'))+'</button>'+
      '<div class="pf-nm">'+esc(nm)+'</div>'+(x.headline?'<div class="pf-hl">'+esc(x.headline)+'</div>':'')+'<div class="pf-meta">'+meta+'</div>'+(x.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(x.bio)+'</p>':'')+
      '<div class="pf-stats"><div class="pf-stat"><b>'+sk.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+it.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+pr.length+'</b><span>Projects</span></div><div class="pf-stat"><b>'+ex.length+'</b><span>Achievements</span></div></div></div></div>'+
@@ -20161,7 +20199,7 @@ function openPeer(p){
   }
   paint(window.cnPeerDoc&&p.uid?window.cnPeerDoc(p.uid):null); prof.classList.add('pf-peer');
   if(rc)rc.watch(function(){var b=$('pfConn');if(b&&prof.classList.contains('pf-peer'))b.textContent=rc.label(p.uid)});
-  var db=fdb(); if(db&&p.uid) peerUn=db.collection('publicProfiles').doc(p.uid).onSnapshot(function(sn){ if(prof.classList.contains('pf-peer')&&!prof.classList.contains('hidden')&&sn.exists){ var y=prof.scrollTop; paint(sn.data()); prof.scrollTop=y; } },function(){});
+  var db=fdb(); if(db&&p.uid) peerUn=LST(db.collection('publicProfiles').doc(p.uid),function(sn){ if(prof.classList.contains('pf-peer')&&!prof.classList.contains('hidden')&&sn.exists){ var y=prof.scrollTop; paint(sn.data()); prof.scrollTop=y; } },function(){});
   prof.classList.remove('hidden');prof.scrollTop=0;lock();
 }
 /* Optional profile details entered on the login screen. Resolves once everything (incl. images) is stored, so a reload right after cannot lose it. */
@@ -20175,7 +20213,7 @@ function applyLoginProfile(o){
   var jobs=[];
   if(o.photo){ IMG.photo=o.photo; jobs.push(idbSet('photo',o.photo)); }
   if(o.cover){ IMG.cover=o.cover; jobs.push(idbSet('cover',o.cover)); }
-  D._t=Date.now(); lsave(); pfPush();
+  D._t=Date.now(); lsave(); pfPush(); if(o.photo||o.cover){ IMT=D._t; if(o.photo) DIRTY.photo=1; if(o.cover) DIRTY.cover=1; saveIM(); imgPush(); }
   return Promise.all(jobs).then(function(){ try{ if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')) render(); }catch(e){} });
 }
 window.clShell={applyLoginProfile:applyLoginProfile,openPeer:openPeer,openSettings:openSettings,closeSettings:closeSettings,openProfile:openProfile,closeProfile:closeProfile};

@@ -217,8 +217,12 @@ service cloud.firestore{
     match /publicProfiles/{uid}{
       function ppStr(d,k,n){ return !(k in d) || (d[k] is string && d[k].size()<=n); }
       function ppList(d,k,n){ return !(k in d) || (d[k] is list && d[k].size()<=n); }
+      function ppImg(d,u,p,kind,uid){
+        return (!(u in d) || (d[u] is string && (d[u]=='' || (d[u].size()<=800 && d[u].matches('^https://(firebasestorage[.]googleapis[.]com|[a-z0-9.-]+[.]firebasestorage[.]app)/.*')))))
+          && (!(p in d) || (d[p] is string && (d[p]=='' || d[p].matches('^profileImages/' + uid + '/' + kind + '_[0-9]{10,15}[.](jpg|png|webp)$'))));
+      }
       function ppOk(d){
-        return d.keys().hasOnly(['name','year','branch','updatedAt','headline','college','course','yearLabel','location','bio','about','skills','interests','projects','education','exp','photo','pt'])
+        return d.keys().hasOnly(['name','year','branch','updatedAt','headline','college','course','yearLabel','location','bio','about','skills','interests','projects','education','exp','photo','pt','photoUrl','photoPath','coverUrl','coverPath'])
           && d.name is string && d.name.size()>=1 && d.name.size()<=40
           && (!('year' in d) || d.year in ['1','2'])
           && (!('branch' in d) || d.branch in ['CSE','CSEAIML','ISE','ECE','EEE','EI','CV','IP','ENV','BT','CTM','ME','PST','CSBS'])
@@ -229,6 +233,8 @@ service cloud.firestore{
           && ppList(d,'skills',30) && ppList(d,'interests',30) && ppList(d,'projects',20) && ppList(d,'education',10) && ppList(d,'exp',30)
           && (!('photo' in d) || (d.photo is string && d.photo.size()<=30000 && (d.photo=='' || d.photo.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$'))))
           && (!('pt' in d) || d.pt is number)
+          // Profile photo / cover live in Firebase Storage (profileImages/{uid}/photo_<ms>.jpg | cover_<ms>.jpg, see the storage rules). The doc keeps the download URL + path.
+          && ppImg(d,'photoUrl','photoPath','photo',uid) && ppImg(d,'coverUrl','coverPath','cover',uid)
           && d.updatedAt==request.time;
       }
       // Any signed-in (non-guest) student can read profiles (People list + full profile, live). Only the owner can write their own.
