@@ -3914,6 +3914,8 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
    While Settings (or Profile) is open, lift those popups above it. */
 body.cl-ov-open .at-modal-overlay,body.cl-ov-open .me-modal-overlay{z-index:9600 !important}
 body.cl-ov-open #loginGate{z-index:9650 !important}
+/* Admin Login popup is opened FROM the login screen, so it must sit above it (it was hidden behind it at 9600) */
+body.cl-ov-open #ownerLoginOverlay{z-index:9660 !important}
 body.cl-ov-open #confirmModalOverlay{z-index:9700 !important}
 body.cl-ov-open #cseDlgOv{z-index:9750 !important}
 body.cl-ov-open #cseBusy{z-index:9760 !important}
