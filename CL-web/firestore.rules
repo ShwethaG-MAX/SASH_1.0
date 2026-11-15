@@ -15,11 +15,11 @@ service cloud.firestore{
       || clientVer() >= get(/databases/$(db)/documents/appConfig/version).data.minimumSupportedVersionCode; }
     function okClient(){ return request.auth!=null && (isOwner() || cfgOk()); }
     // ===================== COMMUNITY CHAT — two isolated rooms (LinkLearn, StudyChat) =====================
-    // MERGE: replace the existing `match /communityChat/{id}`, `match /chatReactions/{rid}` and `match /chatViews/{vid}` blocks
+    // MERGE: replace the existing 'match /communityChat/{id}', 'match /chatReactions/{rid}' and 'match /chatViews/{vid}' blocks
     // (and their comments) in firestore.rules with this whole text. Put the three helper functions next to isOwner()/okClient().
     // Room isolation is in the PATH: every exists() below is built from the same {room} wildcard, so a message / reaction / reply
     // can never reference, or be written into, the other room.
-    // Rooms: 'linklearn' = Global Chat (everyone), 'year1' / 'year2' = First / Second Year Community.
+    // Rooms: 'linklearn' = Common Chat (everyone), 'year1' / 'year2' = First / Second Year Community.
     // A year room is open ONLY to students whose stored year matches (qzGroup() reads userProfiles/{uid}.year); the admin may open both.
     function chatRoomOk(room){
       return room == 'linklearn'
@@ -391,7 +391,7 @@ service cloud.firestore{
     match /syllabusXpLedger/{id}{ allow read: if isOwner() || (request.auth!=null && resource.data.uid==request.auth.uid); allow write: if false; }
 
     // ================= TEST (replaces Syllabus Test) — see API-CONTRACT.md section A =================
-    // Each submitted test awards XP. Scoring, attempts, XP and the leaderboards are written ONLY by the `test` / `quiz` Cloud Functions.
+    // Each submitted test awards XP. Scoring, attempts, XP and the leaderboards are written ONLY by the 'test' / 'quiz' Cloud Functions.
     function tOkLetter(v){ return v in ['','A','B','C','D','E','F']; }
     match /tests/{id}{
       allow read: if isOwner() || (request.auth!=null && resource.data.status=='published');
@@ -491,7 +491,7 @@ service cloud.firestore{
 
     // ===================== TEAM BUILDING (Connect > Teams) =====================
     // Read-only for clients. EVERY write (create / edit / delete team, join requests, accept / reject, remove / leave, notifications) is made by the
-    // `teams` Cloud Functions codebase (Admin SDK, transactional), so capacity, membership and request status cannot be forged from the browser.
+    // 'teams' Cloud Functions codebase (Admin SDK, transactional), so capacity, membership and request status cannot be forged from the browser.
     function isStudent(){ return request.auth!=null && request.auth.token.firebase.sign_in_provider!='anonymous'; }
     function isTeamMember(teamId){ return request.auth!=null && request.auth.uid in get(/databases/$(db)/documents/teams/$(teamId)).data.memberUids; }
     // Team cards are public to signed-in students (that is what Find Teams lists).
@@ -503,7 +503,7 @@ service cloud.firestore{
         allow read: if isStudent() && isTeamMember(teamId) || isOwner();
         allow write: if false;
       }
-      // Members-only extras: the team's WhatsApp group link (`private/info`). Never put it on the public team doc above.
+      // Members-only extras: the team's WhatsApp group link ('private/info'). Never put it on the public team doc above.
       match /private/{doc}{
         allow read: if isStudent() && isTeamMember(teamId) || isOwner();
         allow write: if false;
@@ -517,6 +517,27 @@ service cloud.firestore{
     }
     // Per-student notification feed. Created only by functions; the owner may mark read or delete their own.
     match /teamNotifs/{uid}/items/{id}{
+      allow read: if request.auth!=null && request.auth.uid==uid;
+      allow update: if request.auth!=null && request.auth.uid==uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']) && request.resource.data.read==true;
+      allow delete: if request.auth!=null && request.auth.uid==uid;
+      allow create: if false;
+    }
+
+    // ===================== CONNECTIONS (Connect > Connections: Received / Sent / My Connections) =====================
+    // Read-only for clients. Sending, answering, cancelling and removing go through the 'connections' Cloud Functions (Admin SDK).
+    // A request is visible only to the student who sent it and the student it was sent to.
+    match /connectionRequests/{id}{
+      allow read: if request.auth!=null && (resource.data.from==request.auth.uid || resource.data.to==request.auth.uid);
+      allow write: if false;
+    }
+    // An accepted connection (users: [uidA, uidB]) is visible only to those two students.
+    match /connections/{id}{
+      allow read: if request.auth!=null && request.auth.uid in resource.data.users;
+      allow write: if false;
+    }
+    // Per-student connection activity feed. Created by functions; the owner may mark items read or delete them.
+    match /connNotifs/{uid}/items/{id}{
       allow read: if request.auth!=null && request.auth.uid==uid;
       allow update: if request.auth!=null && request.auth.uid==uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']) && request.resource.data.read==true;

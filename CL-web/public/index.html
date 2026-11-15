@@ -18286,7 +18286,7 @@ function mutTxt(u){ var m = MU[u]; return m && m.length ? ' · ' + m.length + ' 
 function connStop(){ cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS = {uid:'', out:{}, inc:{}, conn:{}, outL:[], incL:[], connL:[], notifs:[], ok:{}, busy:{}, ask:''}; MU = {}; SUG = null; SUGn = -1; paintConn(); }
 function connStart(uid){
   var db = fb(); if(!db) return; CS.uid = uid;
-  function lis(key, q, fn){ cUn.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; paintConn(); }, function(e){ console.warn('[Connections] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); CS.err = 1; paintConn(); })); }
+  function lis(key, q, fn){ cUn.push(q.onSnapshot(function(s){ try{ fn(s); }catch(e){ console.warn('[Connections]', e); } CS.ok[key] = 1; if(CS.errs){ delete CS.errs[key]; if(!Object.keys(CS.errs).length) CS.err = 0; } paintConn(); }, function(e){ console.warn('[Connections] ' + key + ' listener failed (are the Firestore rules deployed?)', e && e.code); CS.err = 1; (CS.errs = CS.errs || {})[key] = String(e && e.code || 'error'); paintConn(); })); }
   lis('inc', db.collection('connectionRequests').where('to', '==', uid), function(s){
     CS.inc = {}; CS.incL = []; s.docs.forEach(function(d){ var x = d.data(); if(x.status === 'pending'){ CS.inc[x.from] = 1; CS.incL.push({u:x.from, name:x.fromName, at:tms(x.createdAt)}); } });
     CS.incL.sort(function(a, b){ return b.at - a.at; }); });
@@ -18301,6 +18301,7 @@ function connStart(uid){
     if(!first) s.docChanges().forEach(function(c){ if(c.type !== 'added' || c.doc.metadata.hasPendingWrites) return; var n = c.doc.data();
       toast(n.type === 'request' ? n.fromName + ' sent you a connection request' : n.type === 'accepted' ? n.fromName + ' accepted your connection request' : n.fromName + ' declined your connection request'); }); });
 }
+function connRetry(){ var u = CS.uid; cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS.ok = {}; CS.errs = {}; CS.err = 0; if(u) connStart(u); paintConn(); }
 function connTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id && id === CS.uid && CS.ok.conn && (wantPeople() || connVisible()) && Date.now() - SUGt > 60000) loadSug(); if(id === CS.uid) return; connStop(); if(id) connStart(id); }
 function unreadN(){ return CS.notifs.filter(function(n){ return !n.read && n.type !== 'request'; }).length; }
 function connVisible(){ return active() && st.tab === 'teams' && st.tsub === 'connections'; }
@@ -18353,7 +18354,9 @@ function drawConn(){
   [].forEach.call(root.querySelectorAll('[data-ccon]'), function(b){ var k = b.dataset.ccon, on = k === cTab, n = $('.rq-n', b); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); setBadge(n, k === 'received' ? D.received : 0); });
   var uids = CS.incL.concat(CS.outL, CS.connL).map(function(x){ return x.u; }); loadMutuals(uids);
   var h = '', dis = function(u){ return CS.busy[u] ? ' disabled' : ''; };
-  if(CS.err && !CS.ok.inc) h = empty('⚠️', 'Could not load connections', 'Check your connection and reopen this tab.');
+  var ek = cTab === 'received' ? 'inc' : cTab === 'sent' ? 'out' : 'conn', ec = CS.errs && CS.errs[ek];
+  if(ec && !CS.ok[ek]) h = empty('⚠️', ec === 'permission-denied' ? 'Connections are unavailable right now' : 'Could not load connections', ec === 'permission-denied' ? 'We could not open your connections. Please try again in a moment.' : 'Check your connection and try again.', '<button class="cn-btn pri" type="button" data-cretry="1">Try again</button>');
+  else if(CS.uid && !CS.ok[ek]) h = '<div class="cn-ulist" aria-busy="true" aria-label="Loading">' + [0, 1, 2].map(function(){ return '<div class="cn-urow mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i></div>'; }).join('') + '</div>';
   else if(!CS.uid) h = empty('🔒', 'Sign in to connect', 'Connections are available to signed-in students. Guests cannot send or receive requests.');
   else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
       return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i); }).join('') + '</div>'
@@ -18379,6 +18382,7 @@ function initConn(){
   drawConn();
   root.addEventListener('click', function(e){
     var b = e.target.closest('button'); if(!b) return; var d = b.dataset;
+    if(d.cretry) return connRetry();
     if(d.ccon){ cTab = d.ccon; CS.ask = ''; return drawConn(); }
     if(d.cacc) return cAct('connRespond', {from:d.cacc, accept:true}, 'Connected');
     if(d.crej) return cAct('connRespond', {from:d.crej, accept:false}, 'Request rejected');
@@ -20956,6 +20960,7 @@ html{scrollbar-gutter:stable}                                   /* opening a pop
 /* Loading skeletons for Find Teams / My Team while the first data arrives */
 .mt-skel{display:grid;gap:12px;align-content:start;min-height:200px;pointer-events:none;overflow:hidden}
 .mt-skel i{display:block;height:12px;border-radius:8px;background:linear-gradient(90deg,color-mix(in srgb,var(--cyan) 8%,transparent) 25%,color-mix(in srgb,var(--cyan) 20%,transparent) 50%,color-mix(in srgb,var(--cyan) 8%,transparent) 75%);background-size:200% 100%;animation:mtShimmer 1.3s linear infinite}
+.cn-urow.mt-skel{display:grid;min-height:0;gap:10px;padding:16px}
 .mt-skel i.l{width:55%;height:18px}.mt-skel i.m{width:82%}.mt-skel i.s{width:38%}.mt-skel i.c{height:36px;border-radius:12px;margin-top:6px}
 @keyframes mtShimmer{to{background-position:-200% 0}}
 /* Phone: grab handle for the swipe-down sheet */
