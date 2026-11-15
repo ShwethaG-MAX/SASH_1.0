@@ -39,3 +39,20 @@ exports.teamRemoveMember = call(core.removeMember);
 exports.teamSetRole = call(core.setMemberRole);
 exports.teamLeave = call(core.leaveTeam);
 exports.teamTransfer = call(core.transferLeader);
+
+
+/* Follower count shown on another student's profile (Connect > People > View profile).
+   Connections are private to the two students involved (firestore.rules), so the browser cannot count another student's connections itself.
+   This returns ONLY the number, never who they are. A connection is mutual, so followers = number of connections. */
+exports.peerFollowers = onCall({ cors: true }, async (req) => {
+  student(req);
+  const uid = req.data && req.data.uid;
+  if (typeof uid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(uid)) throw new HttpsError('invalid-argument', 'Invalid student.');
+  try {
+    const snap = await db.collection('connections').where('users', 'array-contains', uid).count().get();
+    return { count: snap.data().count };
+  } catch (e) {
+    console.error('peerFollowers failed', e);
+    throw new HttpsError('internal', 'Could not load followers right now.');
+  }
+});

@@ -2547,6 +2547,8 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-subtabs.hidden{display:none!important}
 .cn-av{background:color-mix(in srgb,var(--c) 20%,var(--card));color:var(--text);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
 .cn-av.sm{width:28px;height:28px;font-size:.62rem}
+.cn-av.has-img{padding:0;overflow:hidden;background:var(--card)}
+.cn-av.has-img img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
 .cn-ic{width:17px;height:17px;flex:none}
 .cn-hero{margin:0 0 14px;padding:18px 20px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--cyan) 7%,var(--card))}
 .cn-hero h2{margin:0 0 4px;font-size:1.35rem;color:var(--text)}
@@ -2576,8 +2578,6 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-flt>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:10px}
 .cn-sum{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:32px;font-size:.84rem;color:var(--muted);margin:0 2px 8px}
 .cn-link{border:0;background:none;color:var(--text);font:inherit;font-weight:600;font-size:.84rem;text-decoration:underline;cursor:pointer;min-height:32px;padding:0 4px}
-.cn-ring{--p:0;flex:none;margin-left:auto;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--cyan) calc(var(--p)*1%),var(--line) 0);font-weight:800;font-size:.72rem;color:var(--text)}
-.cn-ring::after{content:attr(data-v);position:absolute;inset:5px;border-radius:50%;background:var(--card);display:grid;place-items:center}
 .cn-cta{display:flex;gap:8px;margin-top:auto}.cn-cta .cn-btn{flex:1}
 .cn-logo{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:1.5rem;background:color-mix(in srgb,var(--c) 18%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
 .cn-stack{display:flex}.cn-stack .cn-av{margin-left:-8px;border:2px solid var(--card)}.cn-stack .cn-av:first-child{margin-left:0}
@@ -2603,7 +2603,6 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-umain small{color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cn-uname{border:0;background:none;padding:0;min-height:28px;text-align:left;font:inherit;font-weight:700;color:var(--text);cursor:pointer;justify-self:start}
 .cn-uname:hover{text-decoration:underline}.cn-uname:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
-.cn-ring.sm{width:42px;height:42px;font-size:.66rem;margin-left:0}.cn-ring.sm::after{inset:4px}
 .cn-urow .cn-btn{flex:none;min-width:92px}
 .cn-ev .cn-ban{display:block;height:156px;font-size:inherit;background:linear-gradient(135deg,var(--sage),color-mix(in srgb,var(--cyan) 75%,var(--sage)));border-bottom:0;overflow:hidden}
 .cn-ev .cn-ban::before,.cn-modal .cn-ban::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.14) 1px,transparent 1px);background-size:14px 14px;pointer-events:none}
@@ -3703,6 +3702,8 @@ body[data-section="home"] #clProfile{--pa:var(--accent);--po:var(--accent);--pd:
 .pf-mbox h3{margin:0 0 4px}
 .pf-mact{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .pf-prev{width:100%;max-height:200px;object-fit:cover;border-radius:14px;margin-top:8px}
+.pf-stats.pf-5{grid-template-columns:repeat(5,1fr)}
+@media(max-width:600px){.pf-stats.pf-5{grid-template-columns:repeat(2,1fr)}.pf-stats.pf-5 .pf-stat:first-child{grid-column:1/-1}}
 @media(max-width:600px){.pf-stats{grid-template-columns:repeat(2,1fr)}.pf-cover{height:140px}.pf-av{width:96px;height:96px;margin-top:-48px;font-size:2rem}.pf-edit{position:static;margin-top:10px}}
 </style>
 
@@ -17942,7 +17943,19 @@ var root = document.getElementById('sectionConnect'); if(!root) return;
 function $(s, r){ return (r || root).querySelector(s); }
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 var COL = ['var(--sage)','var(--cyan)','var(--violet,var(--sage))','var(--brown-dark,var(--sage))'];
-function av(n, i, sz){ var t = String(n).split(/\s+/).map(function(w){ return w.charAt(0); }).slice(0,2).join('').toUpperCase(); return '<span class="cn-av' + (sz ? ' ' + sz : '') + '" style="--c:' + COL[(i || 0) % COL.length] + '" aria-hidden="true">' + esc(t) + '</span>'; }
+function av(n, i, sz, ph){ ph = safeImg(ph); var t = String(n).split(/\s+/).map(function(w){ return w.charAt(0); }).slice(0,2).join('').toUpperCase(); return '<span class="cn-av' + (sz ? ' ' + sz : '') + (ph ? ' has-img' : '') + '" style="--c:' + COL[(i || 0) % COL.length] + '" aria-hidden="true">' + (ph ? '<img src="' + esc(ph) + '" alt="" loading="lazy" decoding="async" draggable="false" data-i="' + esc(t) + '">' : esc(t)) + '</span>'; }
+var STU = /^https:\/\/(firebasestorage\.googleapis\.com|[a-z0-9.-]+\.firebasestorage\.app)\//, B64 = /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/;
+function safeImg(u){ u = String(u || ''); return (STU.test(u) || (B64.test(u) && u.length < 30000)) ? u : ''; }
+/* publicProfiles/{uid} keeps a small thumbnail (photo) and the full picture (photoUrl). Lists use the thumbnail (already loaded, instant); big=1 prefers the full picture. */
+function peerPhoto(x, big){ x = x || {}; var a = safeImg(x.photoUrl), b = safeImg(x.photo); return big ? (a || b) : (b || a); }
+document.addEventListener('error', function(e){ var im = e.target; if(!im || im.tagName !== 'IMG' || !im.closest) return; var h = im.closest('.cn-av'); if(!h) return; h.classList.remove('has-img'); h.textContent = im.getAttribute('data-i') || ''; }, true);   /* picture failed to load -> back to the letters */
+/* Sound played when a connection request is sent (synthesised with Web Audio, so no audio file is needed). */
+var SND = (function(){
+  var ctx = null;
+  function ac(){ try{ var C = window.AudioContext || window.webkitAudioContext; if(!C) return null; if(!ctx) ctx = new C(); if(ctx.state === 'suspended') ctx.resume(); return ctx; }catch(e){ return null; } }
+  function note(c, f, t, d, v){ var o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + 0.05); }
+  return { sent: function(){ var c = ac(); if(!c) return; try{ var t = c.currentTime + 0.01; note(c, 659.25, t, 0.22, 0.16); note(c, 987.77, t + 0.09, 0.3, 0.16); note(c, 1318.51, t + 0.18, 0.42, 0.09); }catch(e){} } };
+})();
 function me(){ var n = ''; try{ n = (typeof currentUser !== 'undefined' && currentUser.name) || ''; }catch(e){} if(!n){ try{ n = JSON.parse(localStorage.getItem('csec_username')) || ''; }catch(e){} } return String(n || 'You'); }
 function ago(t){ var m = Math.floor((Date.now() - t) / 6e4); return m < 1 ? 'Just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.floor(m / 60) + 'h ago' : Math.floor(m / 1440) + 'd ago'; }
 function toast(m, kind){ [].forEach.call(document.querySelectorAll('.cn-toast'), function(x){ x.remove(); }); var t = document.createElement('div'); t.className = 'cn-toast' + (kind === 'err' ? ' err' : ''); t.setAttribute('role', kind === 'err' ? 'alert' : 'status'); t.textContent = m; document.body.appendChild(t); setTimeout(function(){ t.classList.add('out'); }, kind === 'err' ? 3800 : 2400); setTimeout(function(){ t.remove(); }, kind === 'err' ? 4100 : 2700); }
@@ -17985,7 +17998,7 @@ var HK_INFO = {
 EV.forEach(function(x){ var h = HK_INFO[x.t]; if(h) for(var k in h) if(x[k] == null || k === 'org' || k === 'loc') x[k] = h[k]; });
 /* Closing soon = registration closes within SOON days (shown in red). */
 var SOON = 7;
-var PF = [];   /* [name, branch, year, skills, interests, bio, project, uid], filled from Firestore publicProfiles */
+var PF = [];   /* [name, branch, year, skills, interests, bio, project, uid, photo], filled from Firestore publicProfiles */
 var EKINDS = ['Hackathon','Coding Competition','Competition','Workshop','Seminar','Webinar','Tech Fest','Ideathon','Conference','College Event'];
 function fd(off){ return new Date(now + off * D).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }
 
@@ -18391,7 +18404,7 @@ function loadPeople(){
     PD = {};
     PF = snap.docs.map(function(d){ var x = d.data() || {}, n = String(x.name || '').trim(); if(!n) return null; PD[d.id] = x;
       var sk = (x.skills || []).map(function(a){ return String(a && a.n || a || ''); }).filter(Boolean), pr = (x.projects || [])[0];
-      return [n, x.branch || '', +x.year || 0, sk, (x.interests || []).map(String), String(x.bio || x.headline || ''), pr && pr.title ? String(pr.title) : '', d.id]; }).filter(Boolean);
+      return [n, x.branch || '', +x.year || 0, sk, (x.interests || []).map(String), String(x.bio || x.headline || ''), pr && pr.title ? String(pr.title) : '', d.id, peerPhoto(x)]; }).filter(Boolean);
     PT = Date.now(); PS = 'ok'; drawPeople();
   }, function(e, n){ console.warn('[Connect] students listener failed, retrying (' + n + ')', e && e.code); if(PS !== 'ok' && n >= 4){ PS = 'err'; drawPeople(); } });   /* keeps the list on screen and reconnects by itself */
 }
@@ -18459,21 +18472,23 @@ function loadSug(){
 function sugHtml(){
   if(!SUG) return ''; var rows = SUG.filter(function(s){ return !cState(s.uid); }).slice(0, 5); if(!rows.length) return '';
   return '<section class="cn-sug" aria-label="People you may know"><h3>People you may know</h3><div class="cn-ulist">' + rows.map(function(s, i){
-    return '<article class="cn-urow">' + av(s.name, i) + '<div class="cn-umain"><span class="cn-uname">' + esc(s.name) + '</span><small>' + [yl(+s.year), esc(s.branch)].filter(Boolean).join(' · ') + (s.mutual ? ' · ' + s.mutual + ' mutual connection' + (s.mutual > 1 ? 's' : '') : '') + '</small></div>' +
+    return '<article class="cn-urow">' + av(s.name, i, '', photoOf(s.uid)) + '<div class="cn-umain"><span class="cn-uname">' + esc(s.name) + '</span><small>' + [yl(+s.year), esc(s.branch)].filter(Boolean).join(' · ') + (s.mutual ? ' · ' + s.mutual + ' mutual connection' + (s.mutual > 1 ? 's' : '') : '') + '</small></div>' +
      '<button class="cn-btn pri" type="button" data-sgc="' + esc(s.uid) + '"' + (CS.busy[s.uid] ? ' disabled' : '') + '>Connect</button></article>'; }).join('') + '</div></section>';
 }
 function drawSug(){ var h = (P.q || P.skills.length) ? '' : sugHtml(), a = $('#cnPsug'), b = $('#cnConSug'); if(a) a.innerHTML = h; if(b) b.innerHTML = sugHtml(); }
 function doConnect(u){
   var uu = fbUser(); if(!uu || uu.isAnonymous) return toast('Sign in with your student account to connect', 'err');
   if(!u || CS.busy[u]) return; var s = cState(u); if(s === 'conn') return; if(s === 'inc'){ closeM(); return go('teams', 'connections'); }
+  if(s !== 'out') SND.sent();
   CS.busy[u] = 1; paintConn();
   (s === 'out' ? cCall('connCancel', {to:u}).then(function(){ delete CS.out[u]; CS.outL = CS.outL.filter(function(x){ return x.u !== u; }); toast('Request withdrawn'); })
     : cCall('connSend', {to:u}).then(function(){ CS.out[u] = 'pending'; toast('Connection request sent'); }))
    .catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); reshow(); });
 }
-function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.busy[u]) return; CS.busy[u] = 1; CS.ask = ''; paintConn();
+function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.busy[u]) return; if(fn === 'connSend') SND.sent(); CS.busy[u] = 1; CS.ask = ''; paintConn();
   cCall(fn, data).then(function(){ toast(ok); }).catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); }); }
-function crow(name, sub, acts, i){ return '<article class="cn-urow">' + av(name, i) + '<div class="cn-umain"><span class="cn-uname">' + esc(name) + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
+function photoOf(u){ return u && PD[u] ? peerPhoto(PD[u]) : ''; }
+function crow(name, sub, acts, i, u){ return '<article class="cn-urow">' + av(name, i, '', photoOf(u)) + '<div class="cn-umain"><span class="cn-uname">' + esc(name) + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
 function drawConn(){
   var body = $('#cnConBody'); if(!body) return; var D = {received:CS.incL.length, sent:CS.outL.length, mine:CS.connL.length};
   [].forEach.call(root.querySelectorAll('[data-ccon]'), function(b){ var k = b.dataset.ccon, on = k === cTab, n = $('.rq-n', b); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); setBadge(n, k === 'received' ? D.received : 0); });
@@ -18484,13 +18499,13 @@ function drawConn(){
   else if(CS.uid && !CS.ok[ek]) h = '<div class="cn-ulist" aria-busy="true" aria-label="Loading">' + [0, 1, 2].map(function(){ return '<div class="cn-urow mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i></div>'; }).join('') + '</div>';
   else if(!CS.uid) h = empty('🔒', 'Sign in to connect', 'Connections are available to signed-in students. Guests cannot send or receive requests.');
   else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
-      return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i); }).join('') + '</div>'
+      return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i, r.u); }).join('') + '</div>'
     : empty('📥', 'No received requests', 'When a student sends you a connection request it appears here.');
   else if(cTab === 'sent') h = CS.outL.length ? '<div class="cn-ulist">' + CS.outL.map(function(r, i){ var u = esc(r.u);
-      return crow(r.name, [pinfo(r.u), r.st === 'rejected' ? 'Not accepted' : 'Pending', ago(r.at)].filter(Boolean).join(' · '), r.st === 'rejected' ? '<button class="cn-btn pri" type="button" data-cagain="' + u + '"' + dis(r.u) + '>Send again</button>' : '<button class="cn-btn" type="button" data-ccan="' + u + '"' + dis(r.u) + '>Cancel request</button>', i); }).join('') + '</div>'
+      return crow(r.name, [pinfo(r.u), r.st === 'rejected' ? 'Not accepted' : 'Pending', ago(r.at)].filter(Boolean).join(' · '), r.st === 'rejected' ? '<button class="cn-btn pri" type="button" data-cagain="' + u + '"' + dis(r.u) + '>Send again</button>' : '<button class="cn-btn" type="button" data-ccan="' + u + '"' + dis(r.u) + '>Cancel request</button>', i, r.u); }).join('') + '</div>'
     : empty('📤', 'No sent requests', 'Requests you send from Find people show up here until they are answered.');
   else h = CS.connL.length ? '<div class="cn-ulist">' + CS.connL.map(function(r, i){ var u = esc(r.u);
-      return crow(r.name, [pinfo(r.u), 'Connected ' + ago(r.at) + mutTxt(r.u)].filter(Boolean).join(' · '), CS.ask === r.u ? '<button class="cn-btn mt-btn-danger pri" type="button" data-crmok="' + u + '"' + dis(r.u) + '>Confirm remove</button><button class="cn-btn" type="button" data-crmno="1">Keep</button>' : '<button class="cn-btn" type="button" data-crm="' + u + '">Remove</button>', i); }).join('') + '</div>'
+      return crow(r.name, [pinfo(r.u), 'Connected ' + ago(r.at) + mutTxt(r.u)].filter(Boolean).join(' · '), CS.ask === r.u ? '<button class="cn-btn mt-btn-danger pri" type="button" data-crmok="' + u + '"' + dis(r.u) + '>Confirm remove</button><button class="cn-btn" type="button" data-crmno="1">Keep</button>' : '<button class="cn-btn" type="button" data-crm="' + u + '">Remove</button>', i, r.u); }).join('') + '</div>'
     : empty('🤝', 'No connections yet', 'Accepted requests become connections. Find students in Find people and tap Connect.');
   body.innerHTML = h;
   var act = $('#cnConAct'); if(act) act.innerHTML = CS.notifs.length ? '<section class="cn-recent"><h3 class="cn-sub">Recent activity</h3><ul style="list-style:none;margin:0;padding:0">' + CS.notifs.slice(0, 8).map(function(n){
@@ -18523,7 +18538,15 @@ function connOpened(){ drawConn(); markRead(); loadSug(); }
 /* Small bridge so the separate peer-profile overlay uses the same real connection state. */
 var cnWatch = null;
 window.cnPeerDoc = function(u){ return PD[u] || null; };
+var FOL = {};   /* uid -> {n, t, p}: follower (= connection) counts of other students, cached for 30 s */
+function followers(u, force){
+  var c = FOL[u]; if(c && c.p) return c.p; if(c && !force && c.n != null && Date.now() - c.t < 30000) return Promise.resolve(c.n);
+  var p = cCall('peerFollowers', {uid:u}).then(function(r){ var n = r && +r.count; n = n >= 0 ? n : null; FOL[u] = {n:n, t:Date.now()}; return n; },
+    function(e){ delete FOL[u]; console.warn('[Connections] follower count', e && e.code); return null; });
+  FOL[u] = {n:c ? c.n : null, t:0, p:p}; return p;
+}
 window.cnConn = {
+  followers:followers,
   count:function(){ return CS.connL.length; },
   label:function(u){ var q = cState(u); return q === 'conn' ? '\u2713 Connected' : q === 'out' ? '\u2713 Request sent' : q === 'inc' ? 'Accept request' : 'Connect'; },
   act:function(u){ if(cState(u) === 'conn') return; if(cState(u) === 'inc') return cAct('connRespond', {from:u, accept:true}, 'Connected'); doConnect(u); },
@@ -18538,10 +18561,10 @@ function connBtn(k, attr){ var u = pkey(k), q = cState(u);
   return '<button class="cn-btn pri" type="button" ' + attr + '="' + k + '"' + (CS.busy[u] ? ' disabled' : '') + '>Connect</button>'; }
 function pct(x){ return P.skills.length ? Math.round(100 * x.hit.length / P.skills.length) : Math.min(100, Math.round(x.p[3].length * 20)); }
 function personCard(x){
-  var p = x.p, k = x.k, v = pct(x), w = P.skills, mine = !!p[7] && p[7] === myUid();
+  var p = x.p, k = x.k, w = P.skills, mine = !!p[7] && p[7] === myUid();
   var meta = [yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
-  return '<article class="cn-urow">' + av(p[0], k) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
-   (p[3].length ? '<div class="cn-ring sm" style="--p:' + v + '" data-v="' + v + '%" role="img" title="' + (w.length ? 'Share of the selected skills they have' : 'Skills listed (out of 5)') + '" aria-label="' + v + ' percent skills"></div>' : '') + (mine ? '' : connBtn(k, 'data-k')) + '</article>';
+  return '<article class="cn-urow">' + av(p[0], k, '', p[8]) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
+   (mine ? '' : connBtn(k, 'data-k')) + '</article>';
 }
 var pSkSig = null;
 function fltN(id, n){ var e = document.getElementById(id); if(e) e.textContent = n ? n + ' active' : ''; }
@@ -18569,7 +18592,7 @@ function drawPeople0(){
 function personModal(k){
   var p = PF[k]; if(!p) return closeM();
   var meta = [esc(p[1]), yl(p[2])].filter(Boolean).join(' \u00b7 '), mine = !!p[7] && p[7] === myUid();
-  openM('<div class="cn-evb"><div class="cn-ph">' + av(p[0], k, 'lg') + '<div><b>' + esc(p[0]) + (mine ? ' (you)' : '') + '</b>' + (meta ? '<small>' + meta + '</small>' : '') + '</div></div>' + (p[5] ? '<p>' + esc(p[5]) + '</p>' : '') +
+  openM('<div class="cn-evb"><div class="cn-ph">' + av(p[0], k, 'lg', peerPhoto(PD[p[7]], 1) || p[8]) + '<div><b>' + esc(p[0]) + (mine ? ' (you)' : '') + '</b>' + (meta ? '<small>' + meta + '</small>' : '') + '</div></div>' + (p[5] ? '<p>' + esc(p[5]) + '</p>' : '') +
    (p[3].length ? '<div><div class="cn-sub">Skills</div><div class="cn-chips">' + p[3].map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
    (p[4].length ? '<div><div class="cn-sub">Interests</div><div class="cn-chips">' + p[4].map(function(s){ return '<span class="cn-chip alt">' + esc(s) + '</span>'; }).join('') + '</div></div>' : '') +
    (p[6] && p[6] !== '?' && p[6] !== '\u2014' ? '<div class="cn-meta"><div>' + ic('users') + '<span><b>Working on:</b> ' + esc(p[6]) + '</span></div></div>' : '') +
@@ -20168,7 +20191,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();e.stopImmediatePropagation();
   var m=$('mobileMenu');if(m)m.classList.remove('open');
   (a.getAttribute('href')==='#profile'||a.id==='profileQuickBtn')?openProfile():openSettings()},true);
-var peerUn=null;
+var peerUn=null,peerGen=0;
 function safeUrl(u){u=String(u||'');return /^https?:\/\/[^\s"'<>]+$/i.test(u)?u:''}
 function safePhoto(u){u=String(u||'');return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(u)&&u.length<30000?u:''}
 function peerStop(){if(peerUn){try{peerUn()}catch(e){}peerUn=null}}
@@ -20176,7 +20199,7 @@ function openPeer(p){
   if(p.mine){ peerStop(); openProfile(); return; }
   peerStop(); closeSettings(); state.sy=window.pageYOffset||0;
   var ck='csec_peer_conn',cn={};try{cn=JSON.parse(localStorage.getItem(ck))||{}}catch(e){}
-  var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null;
+  var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null, fc=null, gen=++peerGen;
   function chips(a,c){return a.length?'<div class="pf-chips">'+a.map(function(x){return'<span class="pf-chip'+(c?' hi':'')+'" style="padding:6px 12px">'+esc(x)+'</span>'}).join('')+'</div>':'<div class="pf-empty">Not shared yet.</div>'}
   function paint(x){
     x=x||{};var nm=x.name||p.name, ph=(STURL.test(x.photoUrl||'')?x.photoUrl:'')||safePhoto(x.photo), cv=STURL.test(x.coverUrl||'')?x.coverUrl:'', A=x.about||{};
@@ -20187,7 +20210,7 @@ function openPeer(p){
     $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"'+(cv?' style="background-image:url(&quot;'+esc(cv)+'&quot;)"':'')+'></div><div class="pf-head"><div class="pf-av"'+(ph?' style="background-image:url(&quot;'+esc(ph)+'&quot;)"':'')+'><span>'+(ph?'':esc((nm||'?').trim().charAt(0).toUpperCase()))+'</span></div>'+
      '<button class="pf-btn pri pf-edit" id="pfConn">'+(rc?rc.label(p.uid):(sent?'✓ Request sent':'Connect'))+'</button>'+
      '<div class="pf-nm">'+esc(nm)+'</div>'+(x.headline?'<div class="pf-hl">'+esc(x.headline)+'</div>':'')+'<div class="pf-meta">'+meta+'</div>'+(x.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(x.bio)+'</p>':'')+
-     '<div class="pf-stats"><div class="pf-stat"><b>'+sk.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+it.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+pr.length+'</b><span>Projects</span></div><div class="pf-stat"><b>'+ex.length+'</b><span>Achievements</span></div></div></div></div>'+
+     '<div class="pf-stats pf-5"><div class="pf-stat"><b id="pfFol">'+(fc==null?'–':fc)+'</b><span>Followers</span></div><div class="pf-stat"><b>'+sk.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+it.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+pr.length+'</b><span>Projects</span></div><div class="pf-stat"><b>'+ex.length+'</b><span>Achievements</span></div></div></div></div>'+
      '<div class="pf-card"><h3>About</h3>'+(ab.length?ab.map(function(r){return'<div style="margin-bottom:10px"><div class="pf-sm"><b>'+r[0]+'</b></div><div>'+esc(r[1])+'</div></div>'}).join(''):'<div class="pf-empty">This student has not added an About section yet.</div>')+'</div>'+
      '<div class="pf-card"><h3>Skills</h3>'+chips(sk,0).replace(/class="pf-chip"/g,'class="pf-chip"')+(hi.length?'<div class="pf-sm" style="margin-top:8px">Highlighted: '+hi.map(esc).join(', ')+'</div>':'')+'</div>'+
      '<div class="pf-card"><h3>Interests</h3>'+chips(it)+'</div>'+
@@ -20198,6 +20221,7 @@ function openPeer(p){
     $('pfConn').onclick=function(){if(rc){rc.act(p.uid);return}sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'✓ Request sent':'Connect'};
   }
   paint(window.cnPeerDoc&&p.uid?window.cnPeerDoc(p.uid):null); prof.classList.add('pf-peer');
+  if(rc&&rc.followers)rc.followers(p.uid).then(function(n){ if(gen!==peerGen)return; fc=n; var e=$('pfFol'); if(e)e.textContent=(n==null?'–':n); });
   if(rc)rc.watch(function(){var b=$('pfConn');if(b&&prof.classList.contains('pf-peer'))b.textContent=rc.label(p.uid)});
   var db=fdb(); if(db&&p.uid) peerUn=LST(db.collection('publicProfiles').doc(p.uid),function(sn){ if(prof.classList.contains('pf-peer')&&!prof.classList.contains('hidden')&&sn.exists){ var y=prof.scrollTop; paint(sn.data()); prof.scrollTop=y; } },function(){});
   prof.classList.remove('hidden');prof.scrollTop=0;lock();
