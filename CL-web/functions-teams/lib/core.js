@@ -4,7 +4,7 @@
    transactions so capacity, membership and request status can never get out of step. */
 
 const LIM = { MAX_MEMBERS_MIN: 2, MAX_MEMBERS_MAX: 20, LEAD_MAX: 5, JOIN_MAX: 10, PENDING_OUT_MAX: 10, RETRY_AFTER_REJECT_MS: 3600 * 1000,
-  NAME_MIN: 3, NAME_MAX: 50, PROJECT_MAX: 80, DESC_MAX: 600, RULES_MAX: 600, ELIG_MAX: 150, MSG_MAX: 200, SKILLS_MAX: 12, SKILL_LEN: 30 };
+  NAME_MIN: 3, NAME_MAX: 50, PROJECT_MAX: 80, DESC_MAX: 600, RULES_MAX: 600, ELIG_MAX: 150, MSG_MAX: 200, SKILLS_MAX: 12, SKILL_LEN: 30, ROLE_MAX: 30 };
 
 class CoreError extends Error { constructor(code, message) { super(message); this.code = code; } }   // index.js maps to HttpsError
 const E = (code, msg) => new CoreError(code, msg);
@@ -190,6 +190,20 @@ async function removeMember(ctx, uid, data) {
   return { ok: true };
 }
 
+/* The leader gives a member (or themselves) a working role such as "Frontend Developer" or a custom one. Empty text clears it.
+   Stored as `title` on the member doc; the existing `role` field (leader / member) is untouched. */
+async function setMemberRole(ctx, uid, data) {
+  const { db, FV } = ctx; data = data || {};
+  if (!validId(data.member)) throw E('invalid-argument', 'Unknown member.');
+  const title = clean(data.title, LIM.ROLE_MAX);
+  await db.runTransaction(async (tx) => {
+    const { ref, t } = await mustTeam(tx, db, data.teamId); mustLead(t, uid);
+    if (!t.memberUids.includes(data.member)) throw E('not-found', 'That student is not in this team.');
+    tx.update(ref.collection('members').doc(data.member), { title });
+  });
+  return { ok: true, title };
+}
+
 async function leaveTeam(ctx, uid, data) {
   const { db, FV } = ctx; data = data || {};
   const me = await profileOf(db, uid);
@@ -224,4 +238,4 @@ async function transferLeader(ctx, uid, data) {
   return { ok: true };
 }
 
-module.exports = { LIM, CoreError, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, leaveTeam, transferLeader, reqId };
+module.exports = { LIM, CoreError, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, setMemberRole, leaveTeam, transferLeader, reqId };

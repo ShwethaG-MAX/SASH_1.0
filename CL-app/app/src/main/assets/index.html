@@ -4824,6 +4824,8 @@ const AVAILABLE_SEMESTERS = { '1': { '1': true, '2': false }, '2': { '3': true, 
 const ACADEMIC_YEARS = [
   { id: '1', name: 'First Year',  sems: ['1', '2'] },
   { id: '2', name: 'Second Year', sems: ['3', '4'] },
+  { id: '3', name: 'Third Year',  sems: ['5', '6'], soon: true },   // not open yet: shown greyed out on the year step
+  { id: '4', name: 'Fourth Year', sems: ['7', '8'], soon: true },
 ];
 const FY_CYCLES = { C: 'Chemistry Cycle (C Cycle)', P: 'Physics Cycle (P Cycle)' };
 
@@ -6273,12 +6275,12 @@ function acadWizard(host, opts){
   const st = {step:'year', year:init.year || '', branch:init.branch || '', sem:init.sem || '', cycle:init.cycle || '', msg:''};
   const order = () => { const o = st.year === '1' ? ['year','branch','sem','cycle'] : ['year','branch','sem']; if(opts.withSection) o.push('section'); return o; };   // login flow adds a Section step
   const card = (ic, title, sub, attrs, cls) => `<button type="button" class="lg-card ${cls || ''}" ${attrs}><span class="ic">${ic}</span><span><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span></button>`;
-  function render(){
+  function render(dir){
     const i = order().indexOf(st.step), back = i > 0 ? `<button type="button" class="lg-back" data-aw="back">← Back</button>` : (opts.onCancel ? `<button type="button" class="lg-back" data-aw="cancel">← Cancel</button>` : '');
     let title = '', body = '';
     if(st.step === 'year'){
       title = 'Select your year';
-      body = ACADEMIC_YEARS.map(y=>card(y.id === '1' ? '🌱' : '🎓', y.name, y.sems.map(s=>'Sem ' + s).join(' · '), `data-aw="year" data-v="${y.id}"`)).join('');
+      body = ACADEMIC_YEARS.map(y=>y.soon ? card('🔒', y.name, 'Available in future', `aria-disabled="true" tabindex="-1"`, 'lg-soon lg-locked') : card(y.id === '1' ? '🌱' : '🎓', y.name, y.sems.map(s=>'Sem ' + s).join(' · '), `data-aw="year" data-v="${y.id}"`)).join('');
     } else if(st.step === 'branch'){
       title = 'Select your branch';
       body = (st.year === '1' ? FY_BRANCHES : SY_BRANCHES).map(b=>{ const p = b.name.split(' – '); return card('📘', escapeHtml(p[0]), escapeHtml(p.slice(1).join(' – ')), `data-aw="branch" data-v="${b.id}"`); }).join('');
@@ -6296,12 +6298,21 @@ function acadWizard(host, opts){
       body = ['P','C'].map(c=>card(c === 'P' ? '🔭' : '⚗️', c + ' Cycle', (c === 'P' ? 'Physics Cycle' : 'Chemistry Cycle') + (cyc.has(c) ? ' · official timetable available' : ' · no official timetable for your branch'), `data-aw="cycle" data-v="${c}"`)).join('');
     }
     host.innerHTML = `${back}<h3 style="margin:6px 0 0;text-align:center">${title}</h3><div class="lg-sub" style="text-align:center">Step ${i + 1} of ${order().length}</div><div class="lg-cards acad-cards">${body}</div><div class="acad-msg${st.msg ? '' : ' hidden'}" role="alert">${st.msg}</div>`;
+    host.classList.remove('aw-fwd', 'aw-back'); void host.offsetWidth; host.classList.add(dir === 'back' ? 'aw-back' : 'aw-fwd');   // new step slides in from the right (left when going back)
   }
+  let busy = false, reduced = false;
+  try{ reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
   host.onclick = e=>{
-    const b = e.target.closest('[data-aw]'); if(!b || !host.contains(b)) return;
+    const b = e.target.closest('[data-aw]'); if(!b || !host.contains(b) || busy) return;
+    const a = b.dataset.aw;
+    if(a === 'back' || a === 'cancel' || reduced) return step(b);
+    busy = true; b.classList.add('lg-picked');                       // brief press feedback so a tap feels acknowledged before the next step slides in
+    setTimeout(()=>{ busy = false; step(b); }, 150);
+  };
+  function step(b){
     const a = b.dataset.aw, v = b.dataset.v, o = order();
     st.msg = '';
-    if(a === 'back'){ st.step = o[Math.max(0, o.indexOf(st.step) - 1)]; }
+    if(a === 'back'){ st.step = o[Math.max(0, o.indexOf(st.step) - 1)]; render('back'); return; }
     else if(a === 'cancel'){ if(opts.onCancel) opts.onCancel(); return; }
     else if(a === 'year'){ if(st.year !== v){ st.branch = ''; st.sem = ''; st.cycle = ''; } st.year = v; st.step = 'branch'; }
     else if(a === 'branch'){ st.branch = v; st.step = 'sem'; }
@@ -6313,7 +6324,7 @@ function acadWizard(host, opts){
     else if(a === 'cycle'){ st.cycle = v; if(opts.withSection){ st.step = 'section'; } else return opts.onDone && opts.onDone({year:st.year, branch:st.branch, sem:st.sem, cycle:st.cycle}); }
     else if(a === 'section'){ return opts.onDone && opts.onDone({year:st.year, branch:st.branch, sem:st.sem, cycle:st.year === '1' ? st.cycle : ''}, v); }
     render();
-  };
+  }
   render();
 }
 // Switch academic profile after login (Settings / Edit profile). Section is kept only if it is still valid for the new branch.
@@ -18863,6 +18874,7 @@ function tmBuild(){
   Object.keys(ids).forEach(function(id){
     var d = ids[id], t = {id: id, name: d.name || 'Team', project: d.project || '', desc: d.desc || '', skills: d.skills || [], max: d.maxMembers || 2, elig: d.eligibility || '', rules: d.rules || '', owner: d.leaderName || 'Student', ownerUid: d.leaderUid, open: d.open !== false, count: d.memberCount || 1, uids: d.memberUids || [], created: tms(d.createdAt), members: [], requests: []};
     if(TM.mem[id]) t.members = TM.mem[id].filter(function(m){ return m.uid !== t.ownerUid; });
+    t.ownerTitle = ''; (TM.mem[id] || []).forEach(function(m){ if(m.uid === t.ownerUid) t.ownerTitle = m.title || ''; });
     if(t.ownerUid === TM.uid) t.requests = TM.inc.filter(function(r){ return r.teamId === id && MT_ST[r.status]; });
     else t.requests = TM.out.filter(function(r){ return r.teamId === id && MT_ST[r.status]; }).map(function(r){ r.dismissed = !!dis[r.id]; return r; });
     out.push(t);
@@ -18876,8 +18888,8 @@ function tmPaint(){
   tmT = setTimeout(function(){
     tmT = 0; tmBuild(); drawMyTeam(); drawTeams(); tmBadge();
     if(mtDash && mtM && !mtM.classList.contains('hidden')){
-      var t = tById(mtDash.id), ed = document.activeElement && document.activeElement.closest && document.activeElement.closest('#mtEdit');
-      if(!t || !isOwner(t)) mtClose(); else if(!(mtDash.tab === 'det' && ed)) dashRefresh();
+      var t = tById(mtDash.id), ed = document.activeElement && document.activeElement.closest && document.activeElement.closest('#mtEdit,.mt-role-cu');
+      if(!t || !isOwner(t)) mtClose(); else if(!ed) dashRefresh();
     }
   }, 40);
 }
@@ -18887,7 +18899,7 @@ function tmSyncMembers(db){
   Object.keys(TM.mine).forEach(function(id){
     if(TM.mun[id]) return;
     TM.mun[id] = db.collection('teams').doc(id).collection('members').onSnapshot(function(s){
-      TM.mem[id] = s.docs.map(function(d){ var x = d.data(); return {uid: d.id, name: x.name || 'Student', branch: x.branch || '', year: x.year || '', role: x.role, sem: '', section: '', skills: [], joined: tms(x.joinedAt) || Date.now()}; }); tmPaint();
+      TM.mem[id] = s.docs.map(function(d){ var x = d.data(); return {uid: d.id, name: x.name || 'Student', branch: x.branch || '', year: x.year || '', role: x.role, title: String(x.title || ''), sem: '', section: '', skills: [], joined: tms(x.joinedAt) || Date.now()}; }); tmPaint();
     }, function(e){ console.warn('[Teams] members listener', e && e.code); });
   });
 }
@@ -18949,7 +18961,6 @@ function drawMyTeam(){
     if(rq.length) html += h('clock', 'My join requests', rq.length) + '<div class="cn-grid">' + rq.map(function(t){ return mtReqCard(t, myTeams.indexOf(t)); }).join('') + '</div>';
   }
   mtc.innerHTML = html;
-  [].forEach.call(mtc.querySelectorAll('.mt-card[data-tid]'), function(c){ var t = tById(c.getAttribute('data-tid')), cta = c.querySelector('.cn-cta'); if(t && cta && (isOwner(t) || isMem(t)) && !cta.querySelector('[data-tchat]')) cta.insertAdjacentHTML('afterbegin', '<button class="cn-btn pri" type="button" data-tchat="' + esc(t.id) + '">💬 Team Chat</button>'); });
 }
 /* ---- Team Chat (frontend only, localStorage "csec_teamchat_<id>"). Only the leader and accepted members can open it. ---- */
 function tcMsgs(id){ try{ var a = JSON.parse(localStorage.getItem('csec_teamchat_' + id)); return Array.isArray(a) ? a : []; }catch(e){ return []; } }
@@ -19040,8 +19051,8 @@ function mtSubmit(){
 function mtView(id){
   mtLoad(); var t = tById(id); if(!t) return; var i = myTeams.indexOf(t);
   var sec = function(l, b){ return b ? '<div><div class="cn-sub">' + l + '</div><p>' + esc(b) + '</p></div>' : ''; };
-  var people = '<div>' + av(t.owner, i, 'sm') + '<span><b>' + esc(t.owner) + '</b></span><span class="mt-badge">' + ic('crown') + 'Team Leader</span></div>' +
-    t.members.map(function(m, j){ return '<div>' + av(m.name, i + j + 1, 'sm') + '<span><b>' + esc(m.name) + '</b></span></div>'; }).join('');
+  var people = '<div>' + av(t.owner, i, 'sm') + '<span><b>' + esc(t.owner) + '</b></span><span class="mt-badge">' + ic('crown') + 'Team Leader</span>' + roleChip(t.ownerTitle) + '</div>' +
+    t.members.map(function(m, j){ return '<div>' + av(m.name, i + j + 1, 'sm') + '<span><b>' + esc(m.name) + '</b></span>' + roleChip(m.title) + '</div>'; }).join('');
   mtShow('<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(t.project) + '</p><div class="mt-sum"><span class="mt-pill">' + cnt(t) + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span></div><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
     '<div class="mt-dl">' + sec('About', t.desc) +
     '<div><div class="cn-sub">Required skills</div>' + mtChips(t.skills) + '</div>' +
@@ -19172,10 +19183,28 @@ function dReq(t, r, i){
     '<small class="mt-cap" style="margin:0">Requested ' + ago(r.at) + (r.at2 ? ' · ' + r.status + ' ' + ago(r.at2) : '') + '</small>' +
     (ok ? (mtAskR === r.id ? '<p class="mt-warn" role="alert">Reject ' + esc(r.name) + '’s request? They will see it as rejected.</p><div class="cn-row"><button class="cn-btn mt-btn-danger pri" type="button" data-mt-rejok="' + rid + '">Confirm reject</button><button class="cn-btn" type="button" data-mt-rejno="1">Keep pending</button></div>' : '<div class="cn-row"><button class="cn-btn pri" type="button" data-mt-acc="' + rid + '"' + (full(t) ? ' disabled title="The team is full"' : '') + '>Accept</button><button class="cn-btn mt-btn-danger" type="button" data-mt-rej="' + rid + '">Reject</button></div>') + (full(t) ? '<p class="mt-help" style="margin:0">The team is full. Remove a member or raise the member limit in Details to accept more people.</p>' : '') : '') + '</div>';
 }
+/* ---- Member roles: the leader picks a ready-made role or types a custom one; saved with the `teamSetRole` callable ---- */
+var MT_ROLES = ['Frontend Developer', 'Backend Developer', 'Full-Stack Developer', 'UI/UX Designer', 'Mobile App Developer', 'ML / AI Engineer', 'Data Analyst', 'Hardware / IoT Engineer', 'Project Manager', 'QA / Tester', 'Documentation & Report', 'Presenter / Pitch'];
+function roleChip(title){ return title ? '<span class="mt-role-chip">' + esc(title) + '</span>' : ''; }
+function roleBox(t, uid, title){
+  var customs = [], seen = {}; MT_ROLES.forEach(function(r){ seen[r.toLowerCase()] = 1; });
+  [t.ownerTitle].concat(t.members.map(function(m){ return m.title; })).forEach(function(x){ if(x && !seen[x.toLowerCase()]){ seen[x.toLowerCase()] = 1; customs.push(x); } });
+  var all = MT_ROLES.concat(customs), k = esc(uid);
+  return '<div class="mt-role-box"><label class="cn-sub" for="mtRole_' + k + '">Role in team</label><select class="cn-in cn-sel" id="mtRole_' + k + '" data-mt-role="' + k + '">' +
+    '<option value=""' + (title ? '' : ' selected') + '>No role yet</option>' +
+    all.map(function(r){ return '<option value="' + esc(r) + '"' + (r === title ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') +
+    '<option value="__custom">+ Custom role…</option></select>' +
+    '<div class="mt-role-cu hidden"><input class="cn-in" maxlength="30" data-mt-rolein="' + k + '" placeholder="e.g. Video Editor" aria-label="Custom role name"><button type="button" class="cn-btn pri" data-mt-roleset="' + k + '">Set role</button></div></div>';
+}
+function setRole(uid, title){
+  var id = mtDash && mtDash.id, t = id && tById(id); if(!t || !isOwner(t)){ toast('Only the Team Leader can assign roles.', 'err'); return; }
+  title = String(title || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+  tAct('teamSetRole', {teamId: id, member: uid, title: title}, title ? 'Role set to ' + title + '.' : 'Role cleared.').then(function(r){ if(!r) dashRefresh(); else tmPaint(); });
+}
 function dMem(t, m, j){
   var k = esc(m.uid), ask = mtAskM === m.uid;
-  return '<div class="mt-req"><div class="mt-ph">' + av(m.name, j + 1, 'sm') + '<div><b>' + esc(m.name) + '</b><small>' + pLine(m) + '</small></div></div>' +
-    ((m.skills && m.skills.length) ? '<div><div class="cn-sub">Skills</div>' + mtChips(m.skills) + '</div>' : '') +
+  return '<div class="mt-req"><div class="mt-ph">' + av(m.name, j + 1, 'sm') + '<div><b>' + esc(m.name) + '</b><small>' + pLine(m) + '</small></div>' + roleChip(m.title) + '</div>' +
+    ((m.skills && m.skills.length) ? '<div><div class="cn-sub">Skills</div>' + mtChips(m.skills) + '</div>' : '') + roleBox(t, m.uid, m.title) +
     '<div class="cn-row">' + (ask ? '<button class="cn-btn mt-btn-danger pri" type="button" data-mt-rmmok="' + k + '">Confirm remove</button><button class="cn-btn" type="button" data-mt-rmmno="1">Keep</button>' : '<button class="cn-btn mt-btn-danger" type="button" data-mt-rmm="' + k + '" aria-label="Remove ' + k + ' from the team">Remove from team</button>') + '</div>' +
     '<small class="mt-cap" style="margin:0">Joined ' + ago(m.joined || Date.now()) + '</small></div>';
 }
@@ -19193,7 +19222,7 @@ function dashHTML(t){
     else body = (pend_.length ? '<div><div class="cn-sub">Pending · ' + pend_.length + '</div><div class="mt-list">' + pend_.map(function(r, i){ return dReq(t, r, i); }).join('') + '</div></div>' : '<p class="mt-help" style="margin:0">No pending requests.</p>') +
       (done.length ? '<div><div class="cn-sub">Reviewed · ' + done.length + '</div><div class="mt-list">' + done.map(function(r, i){ return dReq(t, r, i); }).join('') + '</div></div>' : '');
   } else if(tab === 'mem'){
-    body = '<div class="mt-list"><div class="mt-req"><div class="mt-ph">' + av(t.owner, 0, 'sm') + '<div><b>' + esc(t.owner) + '</b><small>Creator of this team</small></div><span class="mt-badge">' + ic('crown') + 'Team Leader</span></div></div>' +
+    body = '<div class="mt-list"><div class="mt-req"><div class="mt-ph">' + av(t.owner, 0, 'sm') + '<div><b>' + esc(t.owner) + '</b><small>Creator of this team</small></div><span class="mt-badge">' + ic('crown') + 'Team Leader</span>' + roleChip(t.ownerTitle) + '</div>' + roleBox(t, t.ownerUid, t.ownerTitle) + '</div>' +
       t.members.map(function(m, j){ return dMem(t, m, j); }).join('') + '</div>' +
       (t.members.length ? '' : '<p class="mt-help" style="margin:0">No other members yet. Students you accept appear here.</p>');
   } else {
@@ -19282,10 +19311,13 @@ function initMyTeam(){
     else if(d.mtRmm){ mtAskM = d.mtRmm; dashRefresh(); }
     else if(d.mtRmmno){ mtAskM = ''; dashRefresh(); }
     else if(d.mtRmmok) removeMem(d.mtRmmok);
+    else if(d.mtRoleset){ var ri = b.parentNode.querySelector('input'); if(ri && ri.value.trim()) setRole(d.mtRoleset, ri.value); else if(ri) ri.focus(); }
     else onAct(b);
   });
   mtM.addEventListener('submit', function(e){ e.preventDefault(); var id = e.target.id; if(id === 'mtForm') mtSubmit(); else if(id === 'mtReq') mtSendReq(); else if(id === 'mtEdit') mtSaveEdit(); });
-  mtM.addEventListener('change', function(e){ var t = e.target; if(t.id === 'mtAgree'){ var s = $('#mtReq button[type=submit]'); if(s) s.disabled = !t.checked; if(t.checked) mtErr('mtAgree', ''); } });
+  mtM.addEventListener('change', function(e){ var t = e.target;
+    if(t.dataset && t.dataset.mtRole != null){ if(t.value === '__custom'){ var cu = t.parentNode.querySelector('.mt-role-cu'); if(cu){ cu.classList.remove('hidden'); var ci = cu.querySelector('input'); if(ci) ci.focus(); } } else setRole(t.dataset.mtRole, t.value); return; }
+    if(t.id === 'mtAgree'){ var s = $('#mtReq button[type=submit]'); if(s) s.disabled = !t.checked; if(t.checked) mtErr('mtAgree', ''); } });
   mtM.addEventListener('input', function(e){
     var t = e.target; if(!t.id) return;
     if(t.id === 'mtDesc'){ var c = $('#mtDescCnt'); if(c) c.textContent = t.value.length + ' / 600'; }
@@ -19294,7 +19326,8 @@ function initMyTeam(){
   });
   mtM.addEventListener('keydown', function(e){
     var t = e.target;
-    if(e.key === 'Enter' && t.id === 'mtSkIn'){ e.preventDefault(); if(mtAddSk(t.value)) t.value = ''; }
+    if(e.key === 'Enter' && t.dataset && t.dataset.mtRolein != null){ e.preventDefault(); if(t.value.trim()) setRole(t.dataset.mtRolein, t.value); }
+    else if(e.key === 'Enter' && t.id === 'mtSkIn'){ e.preventDefault(); if(mtAddSk(t.value)) t.value = ''; }
     else if(e.key === 'Backspace' && t.id === 'mtSkIn' && !t.value && mtSk.length){ mtSk.pop(); mtDrawSk(); }
     else if(e.key === 'Tab'){
       var f = [].filter.call(mtM.querySelectorAll('button,input,textarea,select,[href],[tabindex="0"]'), function(x){ return !x.disabled && x.offsetParent !== null; }); if(!f.length) return;
@@ -20321,6 +20354,31 @@ body[data-section] #welcomeScreen .ws-center{background:var(--card) !important;b
 #welcomeScreen .ws-line{background:var(--sage)}
 #welcomeScreen .ws-decor{color:var(--sage)}
 #welcomeScreen .ws-d2,#welcomeScreen .ws-d4{color:var(--brown)}
+</style>
+<style id="loginSmoothCss">
+/* Login / academic wizard: smoother, more fluid steps */
+.aw-fwd>h3,.aw-fwd>.lg-sub,.aw-back>h3,.aw-back>.lg-sub{animation:awFade .28s ease both}
+.aw-fwd .acad-cards>.lg-card{animation:awInR .36s cubic-bezier(.22,.8,.3,1) both}
+.aw-back .acad-cards>.lg-card{animation:awInL .36s cubic-bezier(.22,.8,.3,1) both}
+.acad-cards>.lg-card:nth-child(2){animation-delay:.04s}.acad-cards>.lg-card:nth-child(3){animation-delay:.08s}.acad-cards>.lg-card:nth-child(4){animation-delay:.12s}.acad-cards>.lg-card:nth-child(5){animation-delay:.16s}.acad-cards>.lg-card:nth-child(n+6){animation-delay:.2s}
+.lg-card{transition:transform .2s cubic-bezier(.22,.8,.3,1),border-color .2s ease,box-shadow .2s ease,background-color .2s ease,opacity .2s ease}
+.lg-card:hover{box-shadow:0 8px 20px -12px rgba(16,42,69,.35)}
+.lg-card.lg-picked{transform:scale(.97);border-color:var(--cyan);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 28%,transparent)}
+.lg-card.lg-locked,.lg-card.lg-locked:hover,.lg-card.lg-locked:active{filter:grayscale(1);cursor:not-allowed;transform:none;border-color:var(--line);box-shadow:none;background:color-mix(in srgb,var(--line) 40%,var(--card))}
+.lg-card.lg-locked>*{opacity:.5}
+.lg-card.lg-locked small{font-style:italic}
+@keyframes awInR{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes awInL{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
+@keyframes awFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.aw-fwd>*,.aw-back>*,.aw-fwd .acad-cards>.lg-card,.aw-back .acad-cards>.lg-card{animation:none!important}.lg-card{transition:none}}
+</style>
+<style id="teamRolesCss">
+.mt-role-chip{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:.7rem;font-weight:700;white-space:nowrap;background:color-mix(in srgb,var(--cyan) 12%,transparent);color:var(--text);border:1px solid color-mix(in srgb,var(--cyan) 40%,var(--line))}
+.mt-role-box{display:grid;gap:6px;margin-top:2px}
+.mt-role-box .cn-sub{margin:0}
+.mt-role-box .cn-sel{width:100%}
+.mt-role-cu{display:flex;gap:8px;align-items:center}.mt-role-cu.hidden{display:none}
+.mt-role-cu input{flex:1;min-width:0}
 </style>
 </body>
 </html>

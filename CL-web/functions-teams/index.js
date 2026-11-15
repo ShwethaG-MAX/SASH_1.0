@@ -34,5 +34,6 @@ exports.teamRequestSend = call(core.sendRequest);
 exports.teamRequestCancel = call(core.cancelRequest);
 exports.teamRequestDecide = call(core.decideRequest);
 exports.teamRemoveMember = call(core.removeMember);
+exports.teamSetRole = call(core.setMemberRole);
 exports.teamLeave = call(core.leaveTeam);
 exports.teamTransfer = call(core.transferLeader);
