@@ -208,11 +208,18 @@ service cloud.firestore{
         && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size()>=1 && request.resource.data.name.size()<=40))
         && (!('batch' in request.resource.data) || request.resource.data.batch in ['1','2'])
         && (!('annReadAt' in request.resource.data) || request.resource.data.annReadAt is timestamp)
-        // username: only a name this account has claimed in /usernames (the claim is written in the SAME batch), or the one it already has
+        // username: only a name this account has claimed in /usernames (the claim is written in the SAME batch), or the one it already has.
+        // The FIRST username is free. Changing it later is allowed once every 30 days: the write must stamp usernameChangedAt == request.time.
         && (!('username' in request.resource.data) || (request.resource.data.username is string && request.resource.data.username.matches('^[a-z][a-z0-9_]{2,19}$')
             && ((resource!=null && resource.data.get('username','')==request.resource.data.username)
                 || (existsAfter(/databases/$(db)/documents/usernames/$(request.resource.data.username))
-                    && getAfter(/databases/$(db)/documents/usernames/$(request.resource.data.username)).data.uid==uid))))
+                    && getAfter(/databases/$(db)/documents/usernames/$(request.resource.data.username)).data.uid==uid
+                    && (resource==null || resource.data.get('username','')==''
+                        || ((!('usernameChangedAt' in resource.data) || resource.data.usernameChangedAt + duration.value(30,'d') <= request.time)
+                            && request.resource.data.get('usernameChangedAt',null)==request.time))))))
+        && (!('usernameChangedAt' in request.resource.data)
+            || (resource!=null && resource.data.get('usernameChangedAt',null)==request.resource.data.usernameChangedAt)
+            || request.resource.data.usernameChangedAt==request.time)
         // a CR's section can never differ from the one on their crAccounts doc (checked after the batch, so signup is covered too)
         && (!existsAfter(/databases/$(db)/documents/crAccounts/$(uid)) || !('section' in request.resource.data)
             || request.resource.data.section==getAfter(/databases/$(db)/documents/crAccounts/$(uid)).data.section);

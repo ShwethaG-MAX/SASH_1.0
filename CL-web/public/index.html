@@ -3657,6 +3657,7 @@ body[data-section="home"] #clProfile{--pa:var(--accent);--po:var(--accent);--pd:
 .pf-av{width:124px;height:124px;border-radius:50%;border:4px solid var(--card);background:linear-gradient(135deg,var(--pm),var(--po));margin-top:-62px;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;font-size:2.6rem;font-weight:700;font-family:"Space Grotesk";background-size:cover;background-position:center;box-shadow:0 6px 18px -6px rgba(0,0,0,.3)}
 .pf-av .pf-abtn{position:absolute;right:-2px;bottom:2px;width:34px;height:34px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .pf-nm{font-family:"Space Grotesk";font-size:1.5rem;font-weight:700;margin:10px 0 2px}
+.pf-un{color:var(--muted);font-weight:600;font-size:.95rem;margin:0 0 4px}.pf-un-edit{border:0;background:none;color:var(--accent,#1B3A8C);font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;padding:0 0 0 6px;text-decoration:underline}
 .pf-hl{color:var(--text);opacity:.85}
 .pf-meta{color:var(--muted);font-size:.88rem;margin-top:4px}
 .pf-edit{position:absolute;right:22px;top:12px}
@@ -4583,6 +4584,7 @@ html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-n
       </div>
       <div class="hm-card" id="accountCard" style="margin-top:16px">
         <div class="settings-section-title">🔐 Account</div>
+        <div class="theme-row hidden" id="unameRow"><span class="theme-label">@ Username<small id="unameCur" style="display:block;color:var(--muted);font-weight:400">Loading…</small></span><button type="button" class="btn btn-ghost" id="unameBtn">Set</button></div>
         <div class="acct-line" id="acLine">Checking account…</div>
         <div class="acct-sub" id="acSub"></div>
         <div class="acct-actions" id="acActions"></div>
@@ -15030,15 +15032,17 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 <script id="unameJs">
 /* ===== Unique usernames. A username (3-20 chars: a-z 0-9 _ , starts with a letter, stored lowercase) belongs to ONE account.
    usernames/{name} = {uid, username, createdAt} is written in the same batch as userProfiles/{uid}.username, and Firestore rules refuse a second claim,
-   so two students can never get the same name (even if they press Save at the same moment). Guests have no username; admins and CRs do not need one. ===== */
+   so two accounts can never get the same name. The first username is free; changing it later is allowed once every 30 days (enforced by the rules too).
+   Guests have none. Students are asked once (cannot skip); admins and CRs set theirs from Settings -> Account. ===== */
 (function(){
 'use strict';
-var RE = /^[a-z][a-z0-9_]{2,19}$/;
+var RE = /^[a-z][a-z0-9_]{2,19}$/, COOL_DAYS = 30, COOL_MS = COOL_DAYS * 86400000;
 var RESERVED = ['admin','administrator','owner','root','support','help','moderator','mod','official','system','campusloop','campus_loop','cr','staff','null','undefined','anonymous','guest'];
-var cur = {uid:'', name:''};
+var cur = {uid:'', name:'', at:0}, loading = '';
 function authUser(){ try{ return firebase.auth().currentUser || null; }catch(e){ return null; } }
 function dbh(){ try{ return (typeof fbDb !== 'undefined' && fbDb) ? fbDb : null; }catch(e){ return null; } }
 function norm(s){ return String(s == null ? '' : s).trim().replace(/^@+/, '').toLowerCase(); }
+function ping(){ try{ window.dispatchEvent(new Event('cse:username')); }catch(e){} paintRow(); }
 function format(raw){
   var n = norm(raw);
   if(!n) return 'Please choose a username.';
@@ -15049,68 +15053,107 @@ function format(raw){
   if(RESERVED.indexOf(n) > -1) return 'That username is reserved. Try another.';
   return '';
 }
-function eligible(){
-  var u = authUser(); if(!u || u.isAnonymous) return false;
-  try{ var r = window.cseRole && cseRole.role; if(r === 'admin' || r === 'cr') return false; }catch(e){}
-  return true;
+function eligible(){ var u = authUser(); return !!(u && !u.isAnonymous); }                       // everyone with an account: students, CRs and admins
+function isStaff(){ try{ var r = window.cseRole && cseRole.role; return r === 'admin' || r === 'cr'; }catch(e){ return false; } }
+function ms(t){ return t && typeof t.toMillis === 'function' ? t.toMillis() : (typeof t === 'number' ? t : 0); }
+function get(){
+  var u = authUser(); if(!u || u.isAnonymous) return '';
+  if(cur.uid !== u.uid){ cur = {uid:u.uid, name:'', at:0}; refresh(); }
+  return cur.name;
 }
-function get(){ var u = authUser(); return (u && cur.uid === u.uid) ? cur.name : ''; }
-function seen(u, x){ if(u && x && typeof x.username === 'string' && x.username){ cur = {uid:u.uid, name:x.username}; } else if(u && cur.uid !== u.uid) cur = {uid:u.uid, name:''}; }
+function seen(u, x){ if(u && x){ cur = {uid:u.uid, name:typeof x.username === 'string' ? x.username : '', at:ms(x.usernameChangedAt)}; ping(); } }
+/* Reads this account's username from the server (admins / CRs / any account that did not pass through the student sign-in). */
+function refresh(){
+  var d = dbh(), u = authUser(); if(!d || !u || u.isAnonymous || loading === u.uid) return Promise.resolve();
+  loading = u.uid;
+  return d.collection('userProfiles').doc(u.uid).get().then(function(s){
+    var x = s.exists ? s.data() : {}; if(authUser() && authUser().uid === u.uid){ cur = {uid:u.uid, name:typeof x.username === 'string' ? x.username : '', at:ms(x.usernameChangedAt)}; }
+  }).catch(function(){}).then(function(){ loading = ''; ping(); });
+}
+function nextChange(){ return cur.name && cur.at ? cur.at + COOL_MS : 0; }
+function fmtDate(t){ try{ return new Date(t).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }catch(e){ return ''; } }
 
 function claim(raw, displayName){
   var n = norm(raw), m = format(n);
   if(m) return Promise.resolve({ok:false, msg:m});
   var d = dbh(), u = authUser();
   if(!d || !u || u.isAnonymous) return Promise.resolve({ok:false, msg:'Sign in with an account to choose a username.'});
-  if(cur.uid === u.uid && cur.name === n) return Promise.resolve({ok:true, name:n});
+  if(cur.uid !== u.uid) cur = {uid:u.uid, name:'', at:0};
+  if(cur.name === n) return Promise.resolve({ok:true, name:n});
+  var old = cur.name;
+  if(old && nextChange() > Date.now()) return Promise.resolve({ok:false, msg:'You can change your username again on ' + fmtDate(nextChange()) + '.'});
   var TS = firebase.firestore.FieldValue.serverTimestamp(), ref = d.collection('usernames').doc(n);
   return ref.get({source:'server'}).then(function(s){
     if(s.exists && (s.data() || {}).uid !== u.uid) return {ok:false, msg:'@' + n + ' is already taken. Please try another.'};
-    var old = (cur.uid === u.uid) ? cur.name : '', b = d.batch();
+    var b = d.batch(), pf = {username:n, updatedAt:TS};
+    if(old) pf.usernameChangedAt = TS;                                                  // the first username does not start the 30-day wait
     if(!s.exists) b.set(ref, {uid:u.uid, username:n, createdAt:TS});
-    b.set(d.collection('userProfiles').doc(u.uid), {username:n, updatedAt:TS}, {merge:true});
+    b.set(d.collection('userProfiles').doc(u.uid), pf, {merge:true});
     var nm = String(displayName || '').trim().slice(0, 40);
     if(nm) b.set(d.collection('publicProfiles').doc(u.uid), {name:nm, username:n, updatedAt:TS}, {merge:true});
     if(old && old !== n) b.delete(d.collection('usernames').doc(old));
-    return b.commit().then(function(){ cur = {uid:u.uid, name:n}; return {ok:true, name:n}; });
+    return b.commit().then(function(){ cur = {uid:u.uid, name:n, at:old ? Date.now() : 0}; ping(); return {ok:true, name:n}; });
   }).catch(function(e){
     var c = e && e.code;
-    if(c === 'permission-denied') return {ok:false, msg:'That username could not be saved (it may have just been taken). Try another.'};
+    if(c === 'permission-denied') return {ok:false, msg: old ? 'That username could not be saved. It may have just been taken, or you changed it too recently. Try again later.' : 'That username could not be saved (it may have just been taken). Try another.'};
     return {ok:false, msg:'Could not check the username. Check your internet connection and try again.'};
   });
 }
 
-/* Existing accounts that have no username yet: a one-time, can't-skip prompt after sign-in. */
-var promptOpen = false;
-function need(u, x){
-  if(!u || u.isAnonymous || promptOpen || (x && x.username) || !eligible()) return;
-  promptOpen = true;
+/* Dialog: forced = students without a username (cannot be closed); otherwise opened from Settings / Profile (Cancel allowed). */
+var dlg = null;
+function dialog(forced){
+  if(dlg || !eligible()) return;
+  var wait = nextChange() > Date.now(), had = !!cur.name;
   var nm = ''; try{ nm = (typeof currentUser !== 'undefined' && currentUser.name) || ''; }catch(e){}
-  var ov = document.createElement('div'); ov.id = 'unamePrompt'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Choose your username');
+  var ov = document.createElement('div'); dlg = ov; ov.id = 'unamePrompt'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Username');
   ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
   ov.innerHTML = '<div style="background:var(--card,#fff);color:var(--text,#111);border:1px solid var(--line,#ddd);border-radius:16px;padding:22px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:10px">' +
-    '<div style="font-size:2rem">@</div><h3 style="margin:0">Choose your username</h3>' +
-    '<p style="margin:0;color:var(--muted,#666);font-size:.9rem">Every Campus Loop account now has a unique username. Other students can find you in People by searching it.</p>' +
-    '<input type="text" id="unameIn" class="hm-name-input" style="width:100%" placeholder="e.g. shwetha_g" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Username">' +
+    '<div style="font-size:2rem">@</div><h3 style="margin:0">' + (had ? 'Change your username' : 'Choose your username') + '</h3>' +
+    '<p style="margin:0;color:var(--muted,#666);font-size:.9rem">' + (forced ? 'Every Campus Loop account has a unique username. Other students can find you in People by searching it.' : had ? 'Your username is <b>@' + cur.name + '</b>. You can change it once every ' + COOL_DAYS + ' days.' : 'Pick a unique username so people can find you in People. You can change it later, once every ' + COOL_DAYS + ' days.') + '</p>' +
+    (wait ? '<div class="hm-name-error" role="alert">You changed your username recently. You can change it again on ' + fmtDate(nextChange()) + '.</div>' : '') +
+    '<input type="text" id="unameIn" class="hm-name-input" style="width:100%" placeholder="e.g. shwetha_g" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Username" value="' + (had ? cur.name : '') + '"' + (wait ? ' disabled' : '') + '>' +
     '<small style="color:var(--muted,#666)">3–20 letters, numbers or _ · starts with a letter</small>' +
     '<div class="hm-name-error hidden" id="unameErr" role="alert"></div>' +
-    '<button type="button" class="btn btn-primary" id="unameGo" style="width:100%;justify-content:center">Save username</button></div>';
+    '<div style="display:flex;gap:10px"><button type="button" class="btn btn-primary" id="unameGo" style="flex:1;justify-content:center"' + (wait ? ' disabled' : '') + '>Save username</button>' + (forced ? '' : '<button type="button" class="btn btn-ghost" id="unameNo" style="flex:1;justify-content:center">' + (wait ? 'Close' : 'Cancel') + '</button>') + '</div></div>';
   document.body.appendChild(ov);
-  var inp = ov.querySelector('#unameIn'), err = ov.querySelector('#unameErr'), go = ov.querySelector('#unameGo');
+  var inp = ov.querySelector('#unameIn'), err = ov.querySelector('#unameErr'), go = ov.querySelector('#unameGo'), no = ov.querySelector('#unameNo');
+  function close(){ if(dlg){ dlg.remove(); dlg = null; } }
   function show(m){ err.textContent = m; err.classList.remove('hidden'); }
   function submit(){
+    if(go.disabled) return;
     var m = format(inp.value); if(m){ show(m); inp.focus(); return; }
+    if(norm(inp.value) === cur.name){ close(); return; }
     go.disabled = true; var l = go.textContent; go.textContent = 'Checking…';
     claim(inp.value, nm).then(function(r){
       go.disabled = false; go.textContent = l;
       if(!r.ok){ show(r.msg); inp.focus(); return; }
-      promptOpen = false; ov.remove(); try{ toast('✅ Username @' + r.name + ' saved'); }catch(e){}
+      close(); try{ toast('✅ Username @' + r.name + ' saved'); }catch(e){}
     });
   }
   go.addEventListener('click', submit); inp.addEventListener('keydown', function(e){ if(e.key === 'Enter') submit(); }); inp.addEventListener('input', function(){ err.classList.add('hidden'); });
-  setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 50);
+  if(no) no.addEventListener('click', close);
+  setTimeout(function(){ try{ if(!wait) inp.focus(); }catch(e){} }, 50);
 }
-window.cseUname = {format:format, norm:norm, claim:claim, get:get, seen:seen, need:need, eligible:eligible};
+/* Students without a username: one-time prompt after sign-in that cannot be skipped. Admins and CRs use Settings instead. */
+function need(u, x){ if(!u || u.isAnonymous || (x && x.username) || isStaff() || !eligible()) return; dialog(true); }
+
+/* Settings -> Account row (every signed-in account: student, CR, admin) */
+function paintRow(){
+  var row = document.getElementById('unameRow'); if(!row) return;
+  var ok = eligible(); row.classList.toggle('hidden', !ok); if(!ok) return;
+  var c = document.getElementById('unameCur'), b = document.getElementById('unameBtn'), n = get(), t;
+  if(n){ t = '@' + n + (nextChange() > Date.now() ? ' · can change again on ' + fmtDate(nextChange()) : ''); } else t = loading ? 'Loading…' : 'Not set yet';
+  if(c && c.textContent !== t) c.textContent = t;
+  var bt = n ? 'Change' : 'Set'; if(b && b.textContent !== bt) b.textContent = bt;
+}
+document.addEventListener('click', function(e){
+  var t = e.target && e.target.closest ? e.target.closest('#unameBtn,[data-unedit]') : null; if(!t) return;
+  e.preventDefault(); if(!eligible()) return;
+  refresh().then(function(){ dialog(false); });
+});
+setInterval(paintRow, 1500);
+window.cseUname = {format:format, norm:norm, claim:claim, get:get, seen:seen, need:need, eligible:eligible, refresh:refresh};
 })();
 </script>
 <script id="adminsJs">
@@ -20285,6 +20328,7 @@ var IMT=0,IMU={photo:{u:'',p:''},cover:{u:'',p:''}},DIRTY={},STURL=/^https:\/\/(
 try{IMT=+localStorage.getItem('csec_profile_img_t')||0}catch(e){}
 try{var _m=JSON.parse(localStorage.getItem('csec_profile_img_meta'));if(_m&&_m.photo&&_m.cover)IMU=_m}catch(e){}
 function saveIM(){try{localStorage.setItem('csec_profile_img_t',String(IMT));localStorage.setItem('csec_profile_img_meta',JSON.stringify(IMU))}catch(e){}}
+window.addEventListener('cse:username',function(){ try{ imRender(); }catch(e){} });
 function imRender(){if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')&&!document.querySelector('.pf-modal'))render()}
 function stReady(){return new Promise(function(res,rej){if(firebase.storage)return res(firebase.storage());var s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js';s.onload=function(){firebase.storage?res(firebase.storage()):rej({code:'storage'})};s.onerror=function(){rej({code:'network'})};document.head.appendChild(s)})}
 function toBlob(src,max,q){return new Promise(function(res){var im=new Image();im.onload=function(){var k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);try{c.toBlob(function(b){res(b)},'image/jpeg',q)}catch(e){res(null)}};im.onerror=function(){res(null)};im.src=src})}
@@ -20371,7 +20415,7 @@ function render(){
   var h='<div class="pf-card pf-top"><div class="pf-cover"><button class="pf-btn sm pf-cbtn" data-img="cover">📷 '+(IMG.cover?'Change':'Upload')+' cover</button></div>'+
    '<div class="pf-head"><div class="pf-av"><span></span><button class="pf-btn pf-abtn" data-img="photo" title="Change photo">📷</button></div>'+
    '<button class="pf-btn pri pf-edit" data-basic>✏️ Edit Profile</button>'+
-   '<div class="pf-nm">'+esc(D.name||'Add your name')+'</div>'+(D.headline?'<div class="pf-hl">'+esc(D.headline)+'</div>':'')+
+   '<div class="pf-nm">'+esc(D.name||'Add your name')+'</div>'+(window.cseUname&&cseUname.get()?'<div class="pf-un">@'+esc(cseUname.get())+' <button type="button" class="pf-un-edit" data-unedit="1" aria-label="Change username">Change</button></div>':(window.cseUname&&cseUname.eligible()?'<div class="pf-un"><button type="button" class="pf-un-edit" data-unedit="1">+ Add username</button></div>':''))+(D.headline?'<div class="pf-hl">'+esc(D.headline)+'</div>':'')+
    '<div class="pf-meta">'+[D.college,D.course,D.year,D.location].filter(Boolean).map(esc).join(' · ')+'</div>'+
    (D.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(D.bio)+'</p>':'')+
    (IMG.photo||IMG.cover?'<div class="pf-row">'+(IMG.photo?'<button class="pf-btn sm dng" data-rmimg="photo">Remove photo</button>':'')+(IMG.cover?'<button class="pf-btn sm dng" data-rmimg="cover">Remove cover</button>':'')+'</div>':'')+
@@ -20437,7 +20481,7 @@ function openPeer(p){
     var ab=[['Introduction',A.intro],['Academic background',A.academic],['Career goals',A.goals],['Areas of interest',A.interests],['Looking for',A.looking]].filter(function(r){return r[1]});
     $('pfBody').innerHTML='<div class="pf-card pf-top"><div class="pf-cover"'+(cv?' style="background-image:url(&quot;'+esc(cv)+'&quot;)"':'')+'></div><div class="pf-head"><div class="pf-av"'+(ph?' style="background-image:url(&quot;'+esc(ph)+'&quot;)"':'')+'><span>'+(ph?'':esc((nm||'?').trim().charAt(0).toUpperCase()))+'</span></div>'+
      '<button class="pf-btn pri pf-edit" id="pfConn">'+(rc?rc.label(p.uid):(sent?'✓ Request sent':'Connect'))+'</button>'+
-     '<div class="pf-nm">'+esc(nm)+'</div>'+(x.headline?'<div class="pf-hl">'+esc(x.headline)+'</div>':'')+'<div class="pf-meta">'+meta+'</div>'+(x.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(x.bio)+'</p>':'')+
+     '<div class="pf-nm">'+esc(nm)+'</div>'+(x.username?'<div class="pf-un">@'+esc(x.username)+'</div>':'')+(x.headline?'<div class="pf-hl">'+esc(x.headline)+'</div>':'')+'<div class="pf-meta">'+meta+'</div>'+(x.bio?'<p class="pf-sm" style="margin:10px 0 0;color:var(--text)">'+esc(x.bio)+'</p>':'')+
      '<div class="pf-stats pf-5"><div class="pf-stat"><b id="pfFol">'+(fc==null?'–':fc)+'</b><span>Followers</span></div><div class="pf-stat"><b>'+sk.length+'</b><span>Skills</span></div><div class="pf-stat"><b>'+it.length+'</b><span>Interests</span></div><div class="pf-stat"><b>'+pr.length+'</b><span>Projects</span></div><div class="pf-stat"><b>'+ex.length+'</b><span>Achievements</span></div></div></div></div>'+
      '<div class="pf-card"><h3>About</h3>'+(ab.length?ab.map(function(r){return'<div style="margin-bottom:10px"><div class="pf-sm"><b>'+r[0]+'</b></div><div>'+esc(r[1])+'</div></div>'}).join(''):'<div class="pf-empty">This student has not added an About section yet.</div>')+'</div>'+
      '<div class="pf-card"><h3>Skills</h3>'+chips(sk,0).replace(/class="pf-chip"/g,'class="pf-chip"')+(hi.length?'<div class="pf-sm" style="margin-top:8px">Highlighted: '+hi.map(esc).join(', ')+'</div>':'')+'</div>'+
