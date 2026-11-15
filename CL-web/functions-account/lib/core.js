@@ -9,7 +9,7 @@ const CHAT_ROOMS = ['linklearn', 'year1', 'year2'];
 
 // Collections whose docs carry a `uid` field equal to the student's uid.
 const BY_UID = ['quizAttempts', 'quizXpLedger', 'dailyQuizResults', 'weeklyQuizResults', 'testAttempts', 'testResults',
-  'syllabusQuizAttempts', 'userSyllabusProgress', 'syllabusXpLedger', 'classPollVotes', 'dailyPollVotes', 'chatWarnings'];
+  'syllabusQuizAttempts', 'userSyllabusProgress', 'syllabusXpLedger', 'classPollVotes', 'dailyPollVotes', 'chatWarnings', 'usernames'];
 // Collections whose docs carry `anonymousId` equal to the student's uid (everything the student posted).
 const BY_ANON = ['communityLinks', 'studyMaterials', 'examQuestions', 'communityChat'];
 // Docs whose id IS the uid.

@@ -6958,16 +6958,26 @@ function profileSectionChoices(){
 }
 // Second-year branches without academic content (CSE AIML, ISE): name only. Their quiz group comes from year+branch in userProfiles.
 function renderQuizOnlyProfile(card, opts){
+  const wantU = !!(window.cseUname && cseUname.eligible());
   const p = 'pq' + card.id, br = (SY_BRANCHES.find(b=>b.id === ACAD.branch) || {}).name || ACAD.branch, saved = !!currentUser.name;
   card.innerHTML = `<div class="hm-name-form" style="width:100%"><h3>${saved ? '✏️ Your profile' : '👋 Welcome to <svg class="cl-inf" viewBox="0 0 32 16" aria-hidden="true" focusable="false"><path d="M16 8C13.8 5 11.4 3.5 9 3.5a4.5 4.5 0 0 0 0 9c2.4 0 4.8-1.5 7-4.5s4.6-4.5 7-4.5a4.5 4.5 0 0 1 0 9c-2.4 0-4.8-1.5-7-4.5"/></svg>CAMPUS LOOP'}</h3>
     <div class="pf-acad"><span>${escapeHtml(acadSummary())}</span><button type="button" class="lg-link" id="${p}Acad">Change</button></div>
     <input type="text" id="${p}Name" class="hm-name-input" style="width:100%" placeholder="Enter your name" maxlength="${NAME_MAX_LEN}" value="${escapeHtml(currentUser.name)}" aria-label="Name">
+    ${wantU ? `<input type="text" id="${p}User" class="hm-name-input" style="width:100%" placeholder="Choose a unique username, e.g. shwetha_g" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" value="${escapeHtml(cseUname.get())}" aria-label="Username"><small style="display:block;width:100%;text-align:left;color:var(--muted)">3–20 letters, numbers or _ · starts with a letter · others can find you by it</small>` : ''}
     <div class="hm-name-error hidden" id="${p}Err" role="alert"></div>
     <button type="button" class="btn btn-primary" id="${p}Save" style="width:100%;justify-content:center">${saved ? 'Update' : 'Save Profile'}</button></div>`;
   document.getElementById(p + 'Acad').addEventListener('click', acadOpenSwitcher);
   document.getElementById(p + 'Save').addEventListener('click', ()=>{
     const nm = document.getElementById(p + 'Name').value.trim().slice(0, NAME_MAX_LEN), err = document.getElementById(p + 'Err');
     if(!nm){ err.textContent = 'Please enter your name.'; err.classList.remove('hidden'); return; }
+    const sbq = document.getElementById(p + 'Save');
+    if(wantU && !sbq.dataset.uok){
+      const um = cseUname.format(document.getElementById(p + 'User').value);
+      if(um){ err.textContent = um; err.classList.remove('hidden'); return; }
+      const lq = sbq.textContent; sbq.disabled = true; sbq.textContent = 'Checking username…';
+      cseUname.claim(document.getElementById(p + 'User').value, nm).then(r => { sbq.disabled = false; sbq.textContent = lq; if(!r.ok){ err.textContent = r.msg; err.classList.remove('hidden'); return; } sbq.dataset.uok = '1'; try{ sbq.click(); }finally{ delete sbq.dataset.uok; } });
+      return;
+    }
     currentUser.name = nm; userName = nm;
     try{ localStorage.setItem(PROFILE_KEY, JSON.stringify({name:nm, section:'', batch:'', year:ACAD.year, branch:ACAD.branch, sem:ACAD.sem, cycle:''})); localStorage.setItem('csec_username', JSON.stringify(nm)); }catch(e){}
     try{ if(fbDb && fbUid) fbDb.collection('userProfiles').doc(fbUid).set({name:nm, year:String(ACAD.year), branch:ACAD.branch, sem:String(ACAD.sem), updatedAt:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}).catch(()=>{}); }catch(e){}
@@ -6991,6 +7001,8 @@ function renderProfileForm(containerId, opts){
   const acad = (ACAD && !isCR) ? `<div class="pf-acad"><span>${escapeHtml(acadSummary())}</span><button type="button" class="lg-link" id="${p}Acad">Change</button></div>` : (ACAD ? `<div class="pf-acad"><span>${escapeHtml(acadSummary())}</span></div>` : '');
   // Login screen only: an OPTIONAL "complete your profile" block (collapsed). Skipping it is fine; everything can be added later from Profile.
   const onGate = (containerId === 'lgStudentForm') && !editing;
+  const wantU = !isCR && !!(window.cseUname && cseUname.eligible());
+  const userField = wantU ? lab('Username') + `<input type="text" id="${p}User" class="hm-name-input" style="width:100%" placeholder="Choose a unique username, e.g. shwetha_g" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" value="${escapeHtml(cseUname.get())}" aria-label="Username"><small style="display:block;width:100%;text-align:left;color:var(--muted);margin-top:-4px">3–20 letters, numbers or _ · starts with a letter · others can find you by it</small>` : '';
   const optProf = onGate ? `<details class="lg-opt" id="${p}Opt"><summary>✨ Complete your profile <em>(optional)</em></summary>
       <div class="lg-opt-body">
         <p class="lg-opt-note">Skip this if you like. You can add or change all of it later from your Profile.</p>
@@ -7007,6 +7019,7 @@ function renderProfileForm(containerId, opts){
       <p>${editing ? 'Change your details — your timetable updates instantly.' : 'Set up your profile'}</p>
       ${acad}
       ${lab('Name')}<input type="text" id="${p}Name" class="hm-name-input" style="width:100%" placeholder="Enter your name" maxlength="${NAME_MAX_LEN}" value="${escapeHtml(currentUser.name)}" aria-label="Name" autocomplete="given-name">
+      ${userField}
       ${lab('Section')}<select id="${p}Sec" class="hm-name-input" style="width:100%" aria-label="Section">${secOpts}</select>
       ${lab('Batch Number')}<select id="${p}Batch" class="hm-name-input" style="width:100%" aria-label="Batch number">${batchOpts}</select>
       ${optProf}
@@ -7019,12 +7032,19 @@ function renderProfileForm(containerId, opts){
   const $ = id => document.getElementById(p + id), err = $('Err');
   const showErr = m => { err.textContent = m; err.classList.remove('hidden'); };
   ['Name','Sec','Batch'].forEach(k => $(k).addEventListener(k==='Name'?'input':'change', ()=> err.classList.add('hidden')));
+  if(wantU) $('User').addEventListener('input', ()=> err.classList.add('hidden'));
   if($('Acad')) $('Acad').addEventListener('click', acadOpenSwitcher);
   $('Save').addEventListener('click', ()=>{
     const name = $('Name').value.trim(), sec = $('Sec').value, batch = $('Batch').value;
     if(!name){ showErr('Please enter your name.'); $('Name').focus(); return; }
+    if(wantU){ const um = cseUname.format($('User').value); if(um){ showErr(um); $('User').focus(); return; } }
     if(!isValidSection(sec)){ showErr(currentUser.year === '1' || currentUser.branch !== 'CSE' ? 'Please select your section.' : 'Please select your section (A–G).'); $('Sec').focus(); return; }
     if(!isValidBatch(batch)){ showErr('Please select your batch number.'); $('Batch').focus(); return; }
+    if(wantU && !$('Save').dataset.uok){      // the username must be free and claimed BEFORE the profile can be saved
+      const sb0 = $('Save'), l0 = sb0.textContent; sb0.disabled = true; sb0.textContent = 'Checking username…';
+      cseUname.claim($('User').value, name).then(r => { sb0.disabled = false; sb0.textContent = l0; if(!r.ok){ showErr(r.msg); $('User').focus(); return; } sb0.dataset.uok = '1'; try{ sb0.click(); }finally{ delete sb0.dataset.uok; } });
+      return;
+    }
     const finish = () => {
       commitProfile({name, section:sec, batch});
       toast(editing ? '✅ Profile updated!' : '✅ Profile saved!');
@@ -14384,13 +14404,16 @@ function onStudentAccount(u,opts){
       if(x===null && !localOk){                        // server unreachable and nothing local to rely on: never invent an empty profile
         gSettleNow(); try{ homeInfo(''); }catch(e){} cseGate.show(); cseGate.panel('lgHome'); gateMsg('Could not load your profile. Check your internet connection, then choose your sign-in method again.'); return;
       }
-      x=x||{};
+      var loadedX = x!==null; x=x||{};
+      try{ if(loadedX && window.cseUname) cseUname.seen(u,x); }catch(e){}
       if(profileComplete(x)){
         if(applyServerProfile(x)==='reload') return;
         S2.done=u.uid; finishGate();
+        try{ if(loadedX && window.cseUname) cseUname.need(u,x); }catch(e){}
       } else if(localOk){                              // guest -> account upgrade (same uid): the existing profile simply moves to the server
         try{ if(typeof acctSaveRemote==='function') acctSaveRemote(); }catch(e){}
         S2.done=u.uid; finishGate();
+        try{ if(loadedX && window.cseUname) cseUname.need(u,x); }catch(e){}
       } else {
         startOnboarding(u);
       }
@@ -15002,6 +15025,92 @@ window.cseAcct={
   _wipe:wipeUserData, _claim:claim
 };
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
+})();
+</script>
+<script id="unameJs">
+/* ===== Unique usernames. A username (3-20 chars: a-z 0-9 _ , starts with a letter, stored lowercase) belongs to ONE account.
+   usernames/{name} = {uid, username, createdAt} is written in the same batch as userProfiles/{uid}.username, and Firestore rules refuse a second claim,
+   so two students can never get the same name (even if they press Save at the same moment). Guests have no username; admins and CRs do not need one. ===== */
+(function(){
+'use strict';
+var RE = /^[a-z][a-z0-9_]{2,19}$/;
+var RESERVED = ['admin','administrator','owner','root','support','help','moderator','mod','official','system','campusloop','campus_loop','cr','staff','null','undefined','anonymous','guest'];
+var cur = {uid:'', name:''};
+function authUser(){ try{ return firebase.auth().currentUser || null; }catch(e){ return null; } }
+function dbh(){ try{ return (typeof fbDb !== 'undefined' && fbDb) ? fbDb : null; }catch(e){ return null; } }
+function norm(s){ return String(s == null ? '' : s).trim().replace(/^@+/, '').toLowerCase(); }
+function format(raw){
+  var n = norm(raw);
+  if(!n) return 'Please choose a username.';
+  if(n.length < 3) return 'Username must be at least 3 characters.';
+  if(n.length > 20) return 'Username can be at most 20 characters.';
+  if(!/^[a-z]/.test(n)) return 'Username must start with a letter.';
+  if(!RE.test(n)) return 'Use only letters, numbers and underscore (_), no spaces.';
+  if(RESERVED.indexOf(n) > -1) return 'That username is reserved. Try another.';
+  return '';
+}
+function eligible(){
+  var u = authUser(); if(!u || u.isAnonymous) return false;
+  try{ var r = window.cseRole && cseRole.role; if(r === 'admin' || r === 'cr') return false; }catch(e){}
+  return true;
+}
+function get(){ var u = authUser(); return (u && cur.uid === u.uid) ? cur.name : ''; }
+function seen(u, x){ if(u && x && typeof x.username === 'string' && x.username){ cur = {uid:u.uid, name:x.username}; } else if(u && cur.uid !== u.uid) cur = {uid:u.uid, name:''}; }
+
+function claim(raw, displayName){
+  var n = norm(raw), m = format(n);
+  if(m) return Promise.resolve({ok:false, msg:m});
+  var d = dbh(), u = authUser();
+  if(!d || !u || u.isAnonymous) return Promise.resolve({ok:false, msg:'Sign in with an account to choose a username.'});
+  if(cur.uid === u.uid && cur.name === n) return Promise.resolve({ok:true, name:n});
+  var TS = firebase.firestore.FieldValue.serverTimestamp(), ref = d.collection('usernames').doc(n);
+  return ref.get({source:'server'}).then(function(s){
+    if(s.exists && (s.data() || {}).uid !== u.uid) return {ok:false, msg:'@' + n + ' is already taken. Please try another.'};
+    var old = (cur.uid === u.uid) ? cur.name : '', b = d.batch();
+    if(!s.exists) b.set(ref, {uid:u.uid, username:n, createdAt:TS});
+    b.set(d.collection('userProfiles').doc(u.uid), {username:n, updatedAt:TS}, {merge:true});
+    var nm = String(displayName || '').trim().slice(0, 40);
+    if(nm) b.set(d.collection('publicProfiles').doc(u.uid), {name:nm, username:n, updatedAt:TS}, {merge:true});
+    if(old && old !== n) b.delete(d.collection('usernames').doc(old));
+    return b.commit().then(function(){ cur = {uid:u.uid, name:n}; return {ok:true, name:n}; });
+  }).catch(function(e){
+    var c = e && e.code;
+    if(c === 'permission-denied') return {ok:false, msg:'That username could not be saved (it may have just been taken). Try another.'};
+    return {ok:false, msg:'Could not check the username. Check your internet connection and try again.'};
+  });
+}
+
+/* Existing accounts that have no username yet: a one-time, can't-skip prompt after sign-in. */
+var promptOpen = false;
+function need(u, x){
+  if(!u || u.isAnonymous || promptOpen || (x && x.username) || !eligible()) return;
+  promptOpen = true;
+  var nm = ''; try{ nm = (typeof currentUser !== 'undefined' && currentUser.name) || ''; }catch(e){}
+  var ov = document.createElement('div'); ov.id = 'unamePrompt'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Choose your username');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:var(--card,#fff);color:var(--text,#111);border:1px solid var(--line,#ddd);border-radius:16px;padding:22px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:10px">' +
+    '<div style="font-size:2rem">@</div><h3 style="margin:0">Choose your username</h3>' +
+    '<p style="margin:0;color:var(--muted,#666);font-size:.9rem">Every Campus Loop account now has a unique username. Other students can find you in People by searching it.</p>' +
+    '<input type="text" id="unameIn" class="hm-name-input" style="width:100%" placeholder="e.g. shwetha_g" maxlength="20" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Username">' +
+    '<small style="color:var(--muted,#666)">3–20 letters, numbers or _ · starts with a letter</small>' +
+    '<div class="hm-name-error hidden" id="unameErr" role="alert"></div>' +
+    '<button type="button" class="btn btn-primary" id="unameGo" style="width:100%;justify-content:center">Save username</button></div>';
+  document.body.appendChild(ov);
+  var inp = ov.querySelector('#unameIn'), err = ov.querySelector('#unameErr'), go = ov.querySelector('#unameGo');
+  function show(m){ err.textContent = m; err.classList.remove('hidden'); }
+  function submit(){
+    var m = format(inp.value); if(m){ show(m); inp.focus(); return; }
+    go.disabled = true; var l = go.textContent; go.textContent = 'Checking…';
+    claim(inp.value, nm).then(function(r){
+      go.disabled = false; go.textContent = l;
+      if(!r.ok){ show(r.msg); inp.focus(); return; }
+      promptOpen = false; ov.remove(); try{ toast('✅ Username @' + r.name + ' saved'); }catch(e){}
+    });
+  }
+  go.addEventListener('click', submit); inp.addEventListener('keydown', function(e){ if(e.key === 'Enter') submit(); }); inp.addEventListener('input', function(){ err.classList.add('hidden'); });
+  setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 50);
+}
+window.cseUname = {format:format, norm:norm, claim:claim, get:get, seen:seen, need:need, eligible:eligible};
 })();
 </script>
 <script id="adminsJs">
@@ -18433,9 +18542,9 @@ function reshow(){ if(!cur) return; if(cur.t === 'p') personModal(cur.i); else e
 var tc = $('#cnTeams'), P = {q:'', skills:[], years:[]}, YRS = ['1st Year', '2nd Year'];
 function skillList(){ var c = {}; PF.forEach(function(p){ p[3].forEach(function(s){ c[s] = (c[s] || 0) + 1; }); }); return Object.keys(c).sort(function(a, b){ return c[b] - c[a] || a.localeCompare(b); }); }
 function peopleRows(){
-  var q = P.q.toLowerCase(), w = P.skills;
+  var q = P.q.toLowerCase().replace(/^@+/, ''), w = P.skills;
   return PF.map(function(p, k){ return {p:p, k:k, hit:w.filter(function(s){ return p[3].indexOf(s) > -1; })}; }).filter(function(x){
-    var hay = [x.p[0], x.p[1], x.p[3].join(' '), x.p[4].join(' ')].join(' ').toLowerCase();
+    var hay = [x.p[0], x.p[9] || '', x.p[1], x.p[3].join(' '), x.p[4].join(' ')].join(' ').toLowerCase();
     return (!q || hay.indexOf(q) > -1) && (!w.length || x.hit.length) && (!P.years.length || P.years.indexOf(yl(x.p[2])) > -1);
   }).sort(function(a, b){ return b.hit.length - a.hit.length || a.p[0].localeCompare(b.p[0]); });
 }
@@ -18485,12 +18594,28 @@ function publishMe(){
     if(!nm) return;
     if(yr !== '1' && yr !== '2') yr = '';
     if(BR.indexOf(br) < 0) br = '';
-    var key = u.uid + '|' + nm + '|' + yr + '|' + br; if(key === pubKey) return; pubKey = key;
-    var doc = {name:nm, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}; if(yr) doc.year = yr; if(br) doc.branch = br;
+    var un = (window.cseUname && cseUname.get()) || '';
+    var key = u.uid + '|' + nm + '|' + yr + '|' + br + '|' + un; if(key === pubKey) return; pubKey = key;
+    var doc = {name:nm, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}; if(yr) doc.year = yr; if(br) doc.branch = br; if(un) doc.username = un;
     db.collection('publicProfiles').doc(u.uid).set(doc, {merge:true}).catch(function(e){ pubKey = ''; console.warn('[Connect] could not publish profile', e && e.code); });
   }catch(e){ pubKey = ''; }
 }
-var PD = {}, PL = null, PLuid = '';
+var PD = {}, PL = null, PLuid = '', UT = {};
+/* Search by exact username even when that student is not in the first 500 listed: one lookup usernames/{name} -> publicProfiles/{uid}. */
+function lookupUname(q){
+  var n = String(q || '').trim().replace(/^@+/, '').toLowerCase(), db = fb();
+  if(!db || !/^[a-z][a-z0-9_]{2,19}$/.test(n) || UT[n]) return; UT[n] = 1;
+  for(var i = 0; i < PF.length; i++) if(PF[i][9] === n) return;
+  db.collection('usernames').doc(n).get().then(function(s){
+    if(!s.exists) return null; var id = (s.data() || {}).uid; if(!id) return null;
+    for(var j = 0; j < PF.length; j++) if(PF[j][7] === id) return null;
+    return db.collection('publicProfiles').doc(id).get().then(function(d){
+      if(!d.exists) return; var x = d.data() || {}, nm = String(x.name || '').trim(); if(!nm) return; PD[d.id] = x;
+      var sk = (x.skills || []).map(function(a){ return String(a && a.n || a || ''); }).filter(Boolean), pr = (x.projects || [])[0];
+      PF.push([nm, x.branch || '', +x.year || 0, sk, (x.interests || []).map(String), String(x.bio || x.headline || ''), pr && pr.title ? String(pr.title) : '', d.id, peerPhoto(x), String(x.username || n)]); drawPeople();
+    });
+  }).catch(function(){});
+}
 function loadPeople(){
   var db = fb(), u = fbUser();
   if(!db || !u) return setPS('wait');                 /* Firebase / sign-in not ready yet: retried by the timer below */
@@ -18503,8 +18628,8 @@ function loadPeople(){
     PD = {};
     PF = snap.docs.map(function(d){ var x = d.data() || {}, n = String(x.name || '').trim(); if(!n) return null; PD[d.id] = x;
       var sk = (x.skills || []).map(function(a){ return String(a && a.n || a || ''); }).filter(Boolean), pr = (x.projects || [])[0];
-      return [n, x.branch || '', +x.year || 0, sk, (x.interests || []).map(String), String(x.bio || x.headline || ''), pr && pr.title ? String(pr.title) : '', d.id, peerPhoto(x)]; }).filter(Boolean);
-    PT = Date.now(); PS = 'ok'; drawPeople();
+      return [n, x.branch || '', +x.year || 0, sk, (x.interests || []).map(String), String(x.bio || x.headline || ''), pr && pr.title ? String(pr.title) : '', d.id, peerPhoto(x), String(x.username || '')]; }).filter(Boolean);
+    UT = {}; PT = Date.now(); PS = 'ok'; drawPeople();
   }, function(e, n){ console.warn('[Connect] students listener failed, retrying (' + n + ')', e && e.code); if(PS !== 'ok' && n >= 4){ PS = 'err'; drawPeople(); } });   /* keeps the list on screen and reconnects by itself */
 }
 setInterval(function(){ publishMe(); connTick(); if(wantPeople() && (PS === 'wait' || PS === 'guest')) loadPeople(); }, 3000);
@@ -18587,7 +18712,7 @@ function doConnect(u){
 function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.busy[u]) return; if(fn === 'connSend') SND.sent(); CS.busy[u] = 1; CS.ask = ''; paintConn();
   cCall(fn, data).then(function(){ toast(ok); }).catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); }); }
 function photoOf(u){ return u && PD[u] ? peerPhoto(PD[u]) : ''; }
-function crow(name, sub, acts, i, u){ return '<article class="cn-urow">' + av(name, i, '', photoOf(u)) + '<div class="cn-umain"><span class="cn-uname">' + esc(name) + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
+function crow(name, sub, acts, i, u){ return '<article class="cn-urow">' + av(name, i, '', photoOf(u)) + '<div class="cn-umain">' + (u ? '<button type="button" class="cn-uname" data-vu="' + esc(u) + '" aria-label="View profile of ' + esc(name) + '">' + esc(name) + '</button>' : '<span class="cn-uname">' + esc(name) + '</span>') + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
 function drawConn(){
   var body = $('#cnConBody'); if(!body) return; var D = {received:CS.incL.length, sent:CS.outL.length, mine:CS.connL.length};
   [].forEach.call(root.querySelectorAll('[data-ccon]'), function(b){ var k = b.dataset.ccon, on = k === cTab, n = $('.rq-n', b); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); setBadge(n, k === 'received' ? D.received : 0); });
@@ -18622,6 +18747,10 @@ function initConn(){
   root.addEventListener('click', function(e){
     var b = e.target.closest('button'); if(!b) return; var d = b.dataset;
     if(d.cretry) return connRetry();
+    if(d.vu){ var vi = -1; for(var q = 0; q < PF.length; q++) if(PF[q][7] === d.vu){ vi = q; break; }
+      var vp = vi > -1 ? PF[vi] : null, pd = PD[d.vu] || {};
+      if(window.clShell && window.clShell.openPeer){ window.clShell.openPeer(vp ? {name:vp[0], branch:vp[1], year:yl(vp[2]), skills:vp[3] || [], interests:vp[4] || [], bio:vp[5] || '', project:vp[6], mine:vp[7] === myUid(), uid:vp[7]} : {name:String(pd.name || 'Student'), branch:'', year:'', skills:[], interests:[], bio:'', mine:d.vu === myUid(), uid:d.vu}); }
+      return; }
     if(d.ccon){ cTab = d.ccon; CS.ask = ''; return drawConn(); }
     if(d.cacc) return cAct('connRespond', {from:d.cacc, accept:true}, 'Connected');
     if(d.crej) return cAct('connRespond', {from:d.crej, accept:false}, 'Request rejected');
@@ -18661,7 +18790,7 @@ function connBtn(k, attr){ var u = pkey(k), q = cState(u);
 function pct(x){ return P.skills.length ? Math.round(100 * x.hit.length / P.skills.length) : Math.min(100, Math.round(x.p[3].length * 20)); }
 function personCard(x){
   var p = x.p, k = x.k, w = P.skills, mine = !!p[7] && p[7] === myUid();
-  var meta = [yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
+  var meta = [p[9] ? '@' + esc(p[9]) : '', yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
   return '<article class="cn-urow">' + av(p[0], k, '', p[8]) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
    (mine ? '' : connBtn(k, 'data-k')) + '</article>';
 }
@@ -18701,10 +18830,10 @@ function togglePerson(k){ var u = pkey(k); if(typeof u === 'string') doConnect(u
 function initPeople(){
   var box = $('#cnTpeople');
   box.innerHTML = '<h2 class="cn-sr-h">Find people</h2>' +
-   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, skill or interest" autocomplete="off"></div></div>' +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, @username, skill or interest" autocomplete="off"></div></div>' +
    '<div id="cnPsug"></div><details class="cn-flt" id="cnPflt" open><summary><span>Filters</span><span class="cn-fn" id="cnPfn" aria-live="polite"></span></summary><div class="cn-sum" id="cnPyl"><span class="cn-sub" style="margin:0">Year</span></div><div id="cnPyears">' + chipbar('Filter by year', [''].concat(YRS), P.years, 'data-yr') + '</div><div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Skill</span></div><div id="cnPchips"></div></details><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
-  $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); });
+  var uqT = 0; $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); clearTimeout(uqT); uqT = setTimeout(function(){ lookupUname(P.q); }, 350); });
   box.addEventListener('click', function(e){
     var b = e.target.closest('button'); if(!b) return;
     if(b.dataset.sk != null){ var v = b.dataset.sk; if(v === '') P.skills = []; else { var i = P.skills.indexOf(v); if(i > -1) P.skills.splice(i, 1); else P.skills.push(v); } syncChips($('#cnPchips'), P.skills, 'data-sk'); return drawPeople(); }
@@ -21078,6 +21207,9 @@ html{scrollbar-gutter:stable}                                   /* opening a pop
   #mtModal,#cnPostModal,#mtModal.hidden,#cnPostModal.hidden,#mtModal.hidden .cn-card,#cnPostModal.hidden .cn-card{transition:none}
   .cn-grid>.cn-card:hover,.cn-grid>.mt-card:hover{transform:none}
 }
+/* Light mode: the red "Confirm delete / remove / leave / reject" buttons must stay visible (the Connect gradient rule at #sectionConnect .cn-btn.pri outranked .mt-btn-danger.pri) */
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) #sectionConnect .cn-btn.mt-btn-danger.pri{background:#D92D20 !important;background-image:none !important;border:1px solid #B42318 !important;color:#fff !important;-webkit-text-fill-color:#fff !important;text-shadow:none !important;opacity:1 !important;box-shadow:0 1px 2px rgba(180,35,24,.35) !important}
+html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) #sectionConnect .cn-btn.mt-btn-danger:not(.pri){color:#B42318 !important;-webkit-text-fill-color:#B42318 !important;border-color:rgba(180,35,24,.5) !important;opacity:1 !important}
 </style>
 <script id="smoothTeamsJs">
 /* Teams smoother. The Teams lists re-draw with innerHTML on every Firestore update, filter change and search keystroke,

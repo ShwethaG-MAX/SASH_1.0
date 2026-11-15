@@ -208,9 +208,30 @@ service cloud.firestore{
         && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size()>=1 && request.resource.data.name.size()<=40))
         && (!('batch' in request.resource.data) || request.resource.data.batch in ['1','2'])
         && (!('annReadAt' in request.resource.data) || request.resource.data.annReadAt is timestamp)
+        // username: only a name this account has claimed in /usernames (the claim is written in the SAME batch), or the one it already has
+        && (!('username' in request.resource.data) || (request.resource.data.username is string && request.resource.data.username.matches('^[a-z][a-z0-9_]{2,19}$')
+            && ((resource!=null && resource.data.get('username','')==request.resource.data.username)
+                || (existsAfter(/databases/$(db)/documents/usernames/$(request.resource.data.username))
+                    && getAfter(/databases/$(db)/documents/usernames/$(request.resource.data.username)).data.uid==uid))))
         // a CR's section can never differ from the one on their crAccounts doc (checked after the batch, so signup is covered too)
         && (!existsAfter(/databases/$(db)/documents/crAccounts/$(uid)) || !('section' in request.resource.data)
             || request.resource.data.section==getAfter(/databases/$(db)/documents/crAccounts/$(uid)).data.section);
+    }
+    // Unique usernames. usernames/{lowercase name} = {uid, username, createdAt}. Created together with userProfiles/{uid}.username in ONE batch,
+    // so a name can belong to only one account (create on an existing doc is an update, which is denied). Never listable; only single lookups.
+    match /usernames/{name}{
+      allow get: if request.auth!=null && request.auth.token.firebase.sign_in_provider!='anonymous';
+      allow list: if false;
+      allow create: if request.auth!=null && request.auth.token.firebase.sign_in_provider!='anonymous'
+        && name.matches('^[a-z][a-z0-9_]{2,19}$')
+        && request.resource.data.keys().hasOnly(['uid','username','createdAt'])
+        && request.resource.data.uid==request.auth.uid && request.resource.data.username==name
+        && request.resource.data.createdAt==request.time
+        && getAfter(/databases/$(db)/documents/userProfiles/$(request.auth.uid)).data.get('username','')==name;
+      allow update: if false;
+      // release a name only when the profile no longer points at it (changing username deletes the old claim in the same batch)
+      allow delete: if request.auth!=null && resource.data.uid==request.auth.uid
+        && getAfter(/databases/$(db)/documents/userProfiles/$(request.auth.uid)).data.get('username','')!=name;
     }
     // Public student directory (Connect > Teams > Find people): ONE doc per signed-in (non-guest) student holding only name / year / branch.
     // Readable by any signed-in non-guest student, written only by its owner. userProfiles (section, batch, etc.) stays private.
@@ -222,8 +243,11 @@ service cloud.firestore{
           && (!(p in d) || (d[p] is string && (d[p]=='' || d[p].matches('^profileImages/' + uid + '/' + kind + '_[0-9]{10,15}[.](jpg|png|webp)$'))));
       }
       function ppOk(d){
-        return d.keys().hasOnly(['name','year','branch','updatedAt','headline','college','course','yearLabel','location','bio','about','skills','interests','projects','education','exp','photo','pt','photoUrl','photoPath','coverUrl','coverPath'])
+        return d.keys().hasOnly(['name','username','year','branch','updatedAt','headline','college','course','yearLabel','location','bio','about','skills','interests','projects','education','exp','photo','pt','photoUrl','photoPath','coverUrl','coverPath'])
           && d.name is string && d.name.size()>=1 && d.name.size()<=40
+          && (!('username' in d) || (d.username is string && d.username.matches('^[a-z][a-z0-9_]{2,19}$')
+                && existsAfter(/databases/$(db)/documents/usernames/$(d.username))
+                && getAfter(/databases/$(db)/documents/usernames/$(d.username)).data.uid==uid))
           && (!('year' in d) || d.year in ['1','2'])
           && (!('branch' in d) || d.branch in ['CSE','CSEAIML','ISE','ECE','EEE','EI','CV','IP','ENV','BT','CTM','ME','PST','CSBS'])
           && ppStr(d,'headline',100) && ppStr(d,'college',100) && ppStr(d,'course',100) && ppStr(d,'yearLabel',30) && ppStr(d,'location',80) && ppStr(d,'bio',400)
