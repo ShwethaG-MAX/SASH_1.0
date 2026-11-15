@@ -38,7 +38,7 @@ function fake(seed) {
   assert.strictEqual(authDeleted, null);
   await core.deleteAccount(ctx, 'u1', fresh, { confirm: 'DELETE' });
   const s = f.store, has = (k) => s.has(k);
-  assert.strictEqual(authDeleted, 'u1'); assert.strictEqual(files, 'chatMedia/u1/');
+  assert.strictEqual(authDeleted, 'u1'); assert.strictEqual(files, 'profileImages/u1/');
   ['userProfiles/u1', 'publicProfiles/u1', 'userData/u1/items/csec_x', 'quizAttempts/a1', 'chatRooms/year1/messages/m1', 'examQuestions/q1/answers/a', 'examQuestions/q1/reactions/u1',
     'quizBoards/k_FY_ALL/entries/u1', 'teams/t3', 'teams/t3/members/u1', 'teams/t2/members/u1', 'teams/t1/members/u1', 'teamRequests/r1', 'connections/c1', 'communityLinks/l1'].forEach((k) => assert(!has(k), 'should be gone: ' + k));
   ['userProfiles/u2', 'quizAttempts/a2', 'chatRooms/year1/messages/m2', 'examQuestions/q1', 'examQuestions/q1/answers/b', 'quizBoards/k_FY_ALL/entries/u2', 'teams/t1', 'teams/t2'].forEach((k) => assert(has(k), 'should remain: ' + k));
