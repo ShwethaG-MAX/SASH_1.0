@@ -27,6 +27,7 @@ object Notifs {
     const val ANNOUNCEMENTS = "announcements"
     const val IMPORTANT = "important"
     const val QUIZ = "quiz"                 // Daily Quiz reminders + results (FCM pushes name this channel)
+    const val CONNECTIONS = "connections"   // connection requests / accepts + team-request accepts (FCM pushes from the Worker name this channel)
 
     private class Ch(val id: String, val name: String, val desc: String, val importance: Int)
 
@@ -39,7 +40,8 @@ object Notifs {
         Ch(STUDY_RESOURCES, "Study Resources", "New study material", NotificationManager.IMPORTANCE_DEFAULT),
         Ch(ANNOUNCEMENTS, "Announcements", "Class announcements", NotificationManager.IMPORTANCE_HIGH),
         Ch(IMPORTANT, "Important Updates", "Urgent changes and notices", NotificationManager.IMPORTANCE_HIGH),
-        Ch(QUIZ, "Daily Quiz", "Quiz reminders, results and leaderboard", NotificationManager.IMPORTANCE_HIGH)
+        Ch(QUIZ, "Daily Quiz", "Quiz reminders, results and leaderboard", NotificationManager.IMPORTANCE_HIGH),
+        Ch(CONNECTIONS, "Connections & Teams", "Connection requests, accepted requests and team updates", NotificationManager.IMPORTANCE_HIGH)
     )
 
     fun createChannels(ctx: Context) {
@@ -53,7 +55,7 @@ object Notifs {
     }
 
     private fun isHigh(channel: String) =
-        channel == CLASS_PERIODS || channel == TASKS || channel == ANNOUNCEMENTS || channel == IMPORTANT || channel == QUIZ
+        channel == CLASS_PERIODS || channel == TASKS || channel == ANNOUNCEMENTS || channel == IMPORTANT || channel == QUIZ || channel == CONNECTIONS
 
     /**
      * collapse = true → repeated notifications of that channel replace each other

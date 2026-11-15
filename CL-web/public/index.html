@@ -13122,6 +13122,10 @@ function go(route,ref,sub,onDone){
     }
     else if(route==='announcements'){ setMode('home'); setTimeout(function(){ var a=document.getElementById('annList'); if(a) a.scrollIntoView({block:'start'}); },350); }
     else if(route==='important'){ setMode('home'); setTimeout(openCenter,300); }
+    else if(route==='connect'){   /* push: connection request / accepted / team request accepted → Connect tab (sub = requests | connections | teams) */
+      var cs=/^(requests|connections|teams|people)$/.test(sub)?sub:'requests', openC=function(){ if(window.cseConnect){ window.cseConnect.go('teams',cs); return true; } return false; };
+      if(!openC()) setTimeout(function(){ if(!openC()) setMode('home'); },900);   /* cold start: the Connect module may not be ready yet */
+    }
     else setMode('home');
   }catch(e){ console.warn('[Notif] navigate failed',e); }
 }
