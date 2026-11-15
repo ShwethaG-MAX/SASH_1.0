@@ -3908,12 +3908,19 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
 .cn-ev .cn-themes .cn-chip{font-size:.72rem}
 #cnEgrid .cn-ev{content-visibility:auto;contain-intrinsic-size:auto 520px}
 </style>
+
+<style id="sectionSwitchPerf">
+/* Smooth Campus | Home | Connect switching: keep each pane's layout/paint isolated, promote only what animates */
+body[data-section] .sec-ind{will-change:transform,width}
+</style>
 <style id="clSettingsLayerFix">
 /* Settings is a full-screen layer (z-index 9000). Every popup opened from it (admin login / dashboard, confirm dialogs,
    login screen, backup dialogs, toasts) used to sit underneath and only showed after Settings was closed.
    While Settings (or Profile) is open, lift those popups above it. */
 body.cl-ov-open .at-modal-overlay,body.cl-ov-open .me-modal-overlay{z-index:9600 !important}
 body.cl-ov-open #loginGate{z-index:9650 !important}
+/* Admin Login popup is opened FROM the login screen, so it must sit above it (it was hidden behind it at 9600) */
+body.cl-ov-open #ownerLoginOverlay{z-index:9660 !important}
 body.cl-ov-open #confirmModalOverlay{z-index:9700 !important}
 body.cl-ov-open #cseDlgOv{z-index:9750 !important}
 body.cl-ov-open #cseBusy{z-index:9760 !important}
@@ -18719,7 +18726,7 @@ function paintConn(){
   if(CS.ok.conn && (MUn !== CS.connL.length || Date.now() - MUt > 3e5)){ MUn = CS.connL.length; MUt = Date.now(); MU = {}; MUf = 0; }   /* mutuals are re-read when my connections change (and every 5 min) */
   var inN = CS.incL.length, ico = document.querySelector('#secBtnConnect .sec-ico'), nb = $('#cnNavN', document);
   if(ico && !nb){ nb = document.createElement('span'); nb.id = 'cnNavN'; nb.className = 'rq-n hidden'; nb.setAttribute('aria-label', 'new connection activity'); ico.appendChild(nb); }
-  setBadge(nb, inN + unreadN()); setBadge($('#cnConN'), inN);
+  setBadge(nb, inN + unreadN()); setBadge($('#cnConN'), inN); try{ tmBadge(); }catch(e){}
   if($('#cnConBody')) drawConn();
   if($('#cnPgrid')){ drawPeople(); drawSug(); }
   if(connVisible()) markRead();
@@ -19476,7 +19483,10 @@ root.addEventListener('click', function(e){
   if(s) go(s.dataset.cnsub, null); else if(ts) go('teams', ts.dataset.cntsub);
 });
 window.addEventListener('hashchange', function(){ var r = parse(location.hash.replace('#', '')); if(r) go(r[0], r[1], {noHash:true}); });
-window.addEventListener('cse:sectionchange', function(e){ if(e.detail && e.detail.section === 'connect' && e.detail.previous !== 'connect'){ sync(); setHash(); } else sync(); });
+window.addEventListener('cse:sectionchange', function(e){ var d = e.detail || {};
+  if(d.section === 'connect'){ sync(); if(d.previous !== 'connect') setHash(); }
+  else if(artOn){ artOn = false; try{ window.discoverHide && window.discoverHide(); }catch(x){} }   // leaving Connect: only stop the Articles listener, no re-render
+});
 /* ---------- Teams → MY TEAM ----------
    Live: teams, members, join requests and notifications come from Firestore (see the Teams block below);
    so everything survives a refresh on this device. No Firebase / backend calls. */
@@ -19509,7 +19519,8 @@ function tmBuild(){
   out.sort(function(a, b){ return b.created - a.created; }); myTeams = out;
 }
 function tmPending(){ return TM.inc.filter(function(r){ return r.status === 'pending' && TM.all[r.teamId] || r.status === 'pending' && TM.mine[r.teamId]; }).length; }
-function tmBadge(){ var b = document.getElementById('cnTmN'); if(!b) return; var n = tmPending(); b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; }
+function tmBadge(){ var b = document.getElementById('cnTmN'); if(!b) return; var n = tmPending(); try{ n += (CS.incL.length + unreadN()); }catch(e){}   /* Network = team requests + connection requests/updates */
+  b.setAttribute('aria-label', 'Pending team and connection activity'); b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; }
 function tmPaint(){
   if(tmT) return;
   tmT = setTimeout(function(){
@@ -20100,8 +20111,7 @@ try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   //
   function fade(el, shift){
     if(!el || !el.animate || reduced()) return;
     try{
-      el.animate(shift ? [{opacity:0, transform:'translateY(14px) scale(.985)'},{opacity:1, transform:'none'}] : [{opacity:0},{opacity:1}],
-                 {duration: shift ? 420 : 260, easing:'cubic-bezier(.22,.8,.24,1)'});
+      el.animate([{opacity:.4},{opacity:1}], {duration:160, easing:'cubic-bezier(.22,.8,.24,1)'});
     }catch(e){}
   }
   function closeMenu(){
@@ -20159,9 +20169,15 @@ try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   //
   }
   // One entry point per section. Home is always the same setMode('home'), whether you come from Campus or Connect.
   function goSection(sec, o){
-    if(sec === 'home'){ if(typeof window.setMode === 'function') window.setMode('home'); else apply('home', o); return; }
+    function lazy(m){   // switch the screen now; renders/saves/analytics for that mode run right after the first paint
+      var can = typeof window.finishModeWork === 'function' || (typeof finishModeWork === 'function');
+      if(!can){ window.setMode(m); return; }
+      window.setMode(m, {deferWork:true});
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ try{ if(mode() === m) finishModeWork(m); }catch(e){ console.warn('[Sections] deferred work failed', e); } }); });
+    }
+    if(sec === 'home'){ if(typeof window.setMode === 'function') lazy('home'); else apply('home', o); return; }
     if(sec === 'campus'){
-      if((mode() === 'home' || !mode()) && typeof window.setMode === 'function') window.setMode(lastCampus);
+      if((mode() === 'home' || !mode()) && typeof window.setMode === 'function') lazy(lastCampus);
       else apply('campus', o);
       return;
     }
