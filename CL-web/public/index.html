@@ -3909,6 +3909,13 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
 #cnEgrid .cn-ev{content-visibility:auto;contain-intrinsic-size:auto 520px}
 </style>
 
+<style id="cnNetworkDotMobile">
+/* Mobile bottom nav: the Network badge floats over the icon's top-right corner instead of being a flex item that pushed the icon/label down */
+@media (max-width:820px){
+  #cnModeWrap .mode-btn{position:relative}
+  #cnModeWrap .mode-btn .mt-dot{position:absolute;top:0;left:50%;margin:0 0 0 8px;min-width:16px;height:16px;padding:0 4px;font-size:.62rem;line-height:16px;box-shadow:0 0 0 2px var(--card);pointer-events:none}
+}
+</style>
 <style id="sectionSwitchPerf">
 /* Smooth Campus | Home | Connect switching: keep each pane's layout/paint isolated, promote only what animates */
 body[data-section] .sec-ind{will-change:transform,width}
