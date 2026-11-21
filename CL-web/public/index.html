@@ -19811,6 +19811,7 @@ function mtView(id){
     '<div class="mt-dl">' + sec('About', t.desc) +
     '<div><div class="cn-sub">Required skills</div>' + mtChips(t.skills) + '</div>' +
     '<div><div class="cn-sub">Members · ' + cnt(t) + ' of ' + t.max + '</div><div class="cn-meta">' + people + '</div></div>' +
+    '<div><div class="cn-sub">Registered hackathons' + (erTeam(t.id).length ? ' \u00b7 ' + erTeam(t.id).length : '') + '</div>' + (erTeam(t.id).length ? '<div class="cn-chips">' + erTeam(t.id).map(function(d){ return '<span class="cn-chip">\ud83c\udfc6 ' + esc(d.eventTitle) + '</span>'; }).join('') + '</div>' : '<p>Not registered for any hackathon yet.</p>') + '</div>' +
     sec('Eligibility criteria', t.elig) + sec('Team rules and guidelines', t.rules) + teamPrivHTML(t) +
     '<div class="cn-row">' + ctJoinBtn(t) + '<button class="cn-btn" type="button" data-mt-close="1">Close</button></div></div>');
   var b = mtM.querySelector('.mt-x'); if(b) b.focus();
