@@ -19689,6 +19689,14 @@ function mtClose(){
   if(mtBack && mtBack.focus && document.body.contains(mtBack)){ try{ mtBack.focus(); }catch(e){} } mtBack = null;
 }
 function mtField(id, label, ctl, opt, help){ return '<div class="mt-f"><label class="cn-lbl" for="' + id + '">' + label + (opt ? ' <span class="opt">(optional)</span>' : '') + '</label>' + ctl + (help || '') + '<p class="mt-err" id="' + id + 'Err" aria-live="polite"></p></div>'; }
+/* Project / hackathon field: pick an event listed in Connect → Events, type your own, or leave it blank and set it later */
+var MT_TBD = 'To be decided';
+function mtProjCtl(id, val){
+  var seen = {}, opts = EV.filter(function(x){ return x && !lvEnded(x); }).map(function(x){ return String(x.t || '').trim().slice(0, 80); }).filter(function(t){ if(t.length < 2 || seen[t.toLowerCase()]) return false; seen[t.toLowerCase()] = 1; return true; }).slice(0, 150);
+  return '<input class="cn-in" id="' + id + '" maxlength="80" autocomplete="off" list="' + id + 'List" value="' + esc(val || '') + '" placeholder="Pick a listed event, type your own, or leave blank" aria-describedby="' + id + 'Err">' +
+    '<datalist id="' + id + 'List">' + opts.map(function(t){ return '<option value="' + esc(t) + '"></option>'; }).join('') + '</datalist>';
+}
+var MT_PROJ_HELP = '<p class="mt-help">Choose from the events listed in Connect → Events, type your own hackathon, or leave it blank and add it later.</p>';
 function mtFormHTML(){
   mtSk = []; mtPool = null;
   return '<form class="mt-form" id="mtForm" novalidate>' +
@@ -19698,7 +19706,7 @@ function mtFormHTML(){
     '<div class="mt-mb">' +
     '<div class="cn-row">' +
       mtField('mtName', 'Team name', '<input class="cn-in" id="mtName" maxlength="50" autocomplete="off" placeholder="e.g. Neural Nomads" aria-describedby="mtNameErr">') +
-      mtField('mtProj', 'Project / hackathon / competition', '<input class="cn-in" id="mtProj" maxlength="80" autocomplete="off" placeholder="e.g. Smart India Hackathon 2026" aria-describedby="mtProjErr">') +
+      mtField('mtProj', 'Project / hackathon / competition', mtProjCtl('mtProj', ''), true, MT_PROJ_HELP) +
     '</div>' +
     mtField('mtDesc', 'Team description', '<textarea class="cn-in" id="mtDesc" maxlength="600" placeholder="What are you building, and what is the goal?" aria-describedby="mtDescErr"></textarea>', false, '<p class="mt-cnt" id="mtDescCnt">0 / 600</p>') +
     mtField('mtSkIn', 'Required skills', '<input class="cn-in" id="mtSkIn" maxlength="24" autocomplete="off" placeholder="Type a skill and press Enter" aria-describedby="mtSkInErr">',
@@ -19732,14 +19740,14 @@ function mtSubmit(){
   var name = mtVal('mtName'), proj = mtVal('mtProj'), desc = mtVal('mtDesc'), maxRaw = mtVal('mtMax'), max = Number(maxRaw), bad = null;
   function need(id, ok, msg){ mtErr(id, ok ? '' : msg); if(!ok && !bad) bad = id; }
   need('mtName', name.length >= 3, 'Enter a team name (at least 3 characters).');
-  need('mtProj', proj.length >= 2, 'Enter the project, hackathon or competition name.');
+  need('mtProj', !proj || proj.length >= 2, 'Enter at least 2 characters, or leave it blank.');
   need('mtDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
   need('mtSkIn', mtSk.length > 0, 'Add at least one required skill.');
   need('mtMax', maxRaw !== '' && Math.floor(max) === max && max >= 2 && max <= 20, 'Enter a whole number from 2 to 20.'); var wa = mtVal('mtWa'); need('mtWa', !wa || waOk(wa), 'Enter a valid WhatsApp group invite link (https://chat.whatsapp.com/…), or leave it blank.');
   if(!bad && myTeams.some(function(x){ return nrm(x.name) === nrm(name); })){ mtErr('mtName', 'A team with this name already exists. Choose a different name.'); bad = 'mtName'; }
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
   var sb = $('#mtForm button[type=submit]'); if(sb){ sb.disabled = true; sb.classList.add('mt-busy'); }
-  tAct('teamCreate', {name: name, project: proj, desc: desc, skills: mtSk.slice(), maxMembers: max, eligibility: mtVal('mtElig'), rules: mtVal('mtRules'), whatsappLink: wa}, 'Team created. You are the Team Leader.').then(function(r){
+  tAct('teamCreate', {name: name, project: proj || MT_TBD, desc: desc, skills: mtSk.slice(), maxMembers: max, eligibility: mtVal('mtElig'), rules: mtVal('mtRules'), whatsappLink: wa}, 'Team created. You are the Team Leader.').then(function(r){
     if(!r){ if(sb){ sb.disabled = false; sb.classList.remove('mt-busy'); } return; }
     mtBack = null; mtClose(); tmPaint(); try{ mtc.scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(e){}
   });
@@ -19978,6 +19986,7 @@ function dashHTML(t){
   } else {
     body = '<form id="mtEdit" novalidate class="mt-mbx">' +
       mtField('mtEDesc', 'Team description', '<textarea class="cn-in" id="mtEDesc" maxlength="600" aria-describedby="mtEDescErr">' + esc(t.desc) + '</textarea>') +
+      mtField('mtEProj', 'Project / hackathon / competition', mtProjCtl('mtEProj', t.project === MT_TBD ? '' : t.project), true, MT_PROJ_HELP) +
       mtField('mtEElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtEElig" maxlength="150">' + esc(t.elig || '') + '</textarea>', true) +
       mtField('mtERules', 'Team rules and guidelines', '<textarea class="cn-in" id="mtERules" maxlength="500">' + esc(t.rules || '') + '</textarea>', true, '<p class="mt-help">New requests show the latest rules. Requests already sent keep the rules they accepted.</p>') +
       mtField('mtEWa', 'WhatsApp group link', '<input class="cn-in" id="mtEWa" type="url" inputmode="url" maxlength="120" autocomplete="off" placeholder="https://chat.whatsapp.com/…" value="' + esc(t.wa || '') + '" aria-describedby="mtEWaErr">', true, '<p class="mt-help">Only members of your team can see this link. Leave it blank to remove it.</p>') +
@@ -20010,13 +20019,14 @@ function removeMem(uid){
 }
 function mtSaveEdit(){
   var id = mtDash && mtDash.id; if(!id) return; var t0 = tById(id); if(!t0 || !isOwner(t0)) return;
-  var desc = mtVal('mtEDesc'), maxRaw = mtVal('mtEMax'), max = Number(maxRaw), min = Math.max(2, cnt(t0)), bad = null;
+  var desc = mtVal('mtEDesc'), eproj = mtVal('mtEProj'), maxRaw = mtVal('mtEMax'), max = Number(maxRaw), min = Math.max(2, cnt(t0)), bad = null;
   function need(f, ok, msg){ mtErr(f, ok ? '' : msg); if(!ok && !bad) bad = f; }
+  need('mtEProj', !eproj || eproj.length >= 2, 'Enter at least 2 characters, or leave it blank.');
   need('mtEDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
   need('mtEMax', maxRaw !== '' && Math.floor(max) === max && max >= min && max <= 20, 'Enter a whole number from ' + min + ' to 20.'); var wa = mtVal('mtEWa'); need('mtEWa', !wa || waOk(wa), 'Enter a valid WhatsApp group invite link (https://chat.whatsapp.com/…), or leave it blank.');
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
   var btn = $('#mtEdit button[type=submit]'); if(btn){ btn.disabled = true; btn.classList.add('mt-busy'); }
-  tAct('teamUpdate', {teamId: id, desc: desc, eligibility: mtVal('mtEElig'), rules: mtVal('mtERules'), maxMembers: max, whatsappLink: wa}, 'Team details saved.').then(function(){ if(btn){ btn.disabled = false; btn.classList.remove('mt-busy'); } });
+  tAct('teamUpdate', {teamId: id, project: eproj || MT_TBD, desc: desc, eligibility: mtVal('mtEElig'), rules: mtVal('mtERules'), maxMembers: max, whatsappLink: wa}, 'Team details saved.').then(function(){ if(btn){ btn.disabled = false; btn.classList.remove('mt-busy'); } });
 }
 function deleteTeam(id){
   var card = mtc.querySelector('[data-tid="' + id + '"]'), reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
