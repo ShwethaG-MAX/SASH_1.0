@@ -18978,7 +18978,7 @@ function rqIn(x){
     ? '<p class="mt-warn" role="alert">Reject ' + esc(r.name) + '’s request? They will see it as rejected.</p><div class="cn-row"><button class="cn-btn mt-btn-danger pri" type="button" data-rq-rejok="' + key + '">Confirm reject</button><button class="cn-btn" type="button" data-rq-rejno="1">Keep pending</button></div>'
     : '<div class="cn-row"><button class="cn-btn pri" type="button" data-rq-acc="' + key + '"' + (full(t) ? ' disabled title="Team is full"' : '') + '>Accept</button><button class="cn-btn mt-btn-danger" type="button" data-rq-rej="' + rid + '">Reject</button></div>' + (full(t) ? '<p class="mt-help" style="margin:0">The team is full. Remove a member or raise the limit in Manage Team.</p>' : '');
   return '<article class="cn-card rq-card' + (r.status !== 'pending' ? ' done' : '') + '"><div class="mt-ph">' + av(r.name, x.i, 'sm') + '<div><b>' + esc(r.name) + '</b><small>' + pLine(r) + '</small></div>' + stChip(r.status) + '</div>' +
-    '<div class="rq-team">' + mtLogo(t.name, x.i) + '<span>Request to join <b>' + esc(t.name) + '</b>' + (t.project ? ' · ' + esc(t.project) : '') + '</span></div>' +
+    '<div class="rq-team">' + mtLogo(t.name, x.i) + '<span>Request to join <b>' + esc(t.name) + '</b>' + (t.project ? ' · ' + esc(mtProjOf(t)) : '') + '</span></div>' +
     ((r.skills && r.skills.length) ? mtChips(r.skills) : '') + contactHTML(r) + (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
     '<small class="mt-cap" style="margin:0">Requested ' + ago(r.at) + (r.at2 ? ' · ' + r.status + ' ' + ago(r.at2) : '') + '</small>' + acts + '</article>';
 }
@@ -19315,7 +19315,7 @@ function mrOpen(i){
   function draw(){
     var led = myTeams.filter(isOwner), sz = evSize(x), k = erKey(x), others = erMine(x).filter(function(d){ return !led.some(function(t){ return t.id === d.teamId; }); });
     var rows = led.map(function(t){ var on = !!ER[k + '__' + t.id], n = cnt(t), bad = !on && (n > sz.max || n < sz.min);
-      return '<button type="button" class="rg-opt' + (on ? ' on' : '') + '" data-t="' + esc(t.id) + '"' + (bad ? ' disabled' : '') + '><span class="e">' + (on ? '✅' : '👥') + '</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + (t.project ? ' · ' + esc(t.project) : '') + (on ? ' · registered (tap to undo)' : bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('');
+      return '<button type="button" class="rg-opt' + (on ? ' on' : '') + '" data-t="' + esc(t.id) + '"' + (bad ? ' disabled' : '') + '><span class="e">' + (on ? '✅' : '👥') + '</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + (t.project ? ' · ' + esc(mtProjOf(t)) : '') + (on ? ' · registered (tap to undo)' : bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('');
     o.innerHTML = '<div class="rg-box"><h3>Register a team for ' + esc(x.t) + '</h3>' +
       (led.length ? '<p>Select the team that is registering. Tap a registered team again to undo.</p><div class="rg-teams">' + rows + '</div>' : '<p>You do not lead a team yet. Create a team first, then mark it as registered.</p>') +
       (others.length ? '<p style="margin-top:10px">Registered by your team leader: <b>' + others.map(function(d){ return esc(d.teamName); }).join(', ') + '</b></p>' : '') +
@@ -19651,7 +19651,7 @@ function mtCreated(t, i){
   var acts = mtAsk === t.id
     ? '<p class="mt-warn" role="alert">Delete “' + esc(t.name) + '”? Its members and ' + (t.requests.length ? t.requests.length + ' request' + (t.requests.length === 1 ? '' : 's') : 'requests') + ' will be removed too. This cannot be undone.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-delok="' + id + '">Confirm delete</button><button class="cn-btn" type="button" data-mt-delno="1">Keep team</button>'
     : '<button class="cn-btn pri" type="button" data-ct-manage="' + id + '">Manage' + (pend ? '<span class="mt-dot" aria-label="' + pend + ' pending requests">' + pend + '</span>' : '') + '</button><button class="cn-btn" type="button" data-mt-view="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-del="' + id + '" aria-label="Delete team ' + esc(t.name) + '">Delete</button>';
-  return '<article class="cn-card mt-card' + mtIn('c' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div>' + st + '</div>' +
+  return '<article class="cn-card mt-card' + mtIn('c' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div>' + st + '</div>' +
     '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members · ' + open + (open === 1 ? ' spot' : ' spots') + ' open' + (pend ? ' · ' + pend + ' pending' : '') + '</span></div>' +
     '<div class="cn-cta">' + acts + '</div></article>';
@@ -19707,6 +19707,13 @@ function mtClose(){
 function mtField(id, label, ctl, opt, help){ return '<div class="mt-f"><label class="cn-lbl" for="' + id + '">' + label + (opt ? ' <span class="opt">(optional)</span>' : '') + '</label>' + ctl + (help || '') + '<p class="mt-err" id="' + id + 'Err" aria-live="polite"></p></div>'; }
 /* Project / hackathon field: pick an event listed in Connect → Events, type your own, or leave it blank and set it later */
 var MT_TBD = 'To be decided';
+/* Shown project: the typed/picked one; if still undecided, the event(s) the team has registered for. */
+function mtProjOf(t){
+  var p = t.project || ''; if(p && p !== MT_TBD) return p;
+  var l = []; try{ l = erTeam(t.id); }catch(e){}
+  if(!l.length) return p;
+  return l[0].eventTitle + (l.length > 1 ? ' +' + (l.length - 1) + ' more' : '');
+}
 function mtPjAll(){
   /* Every event in Connect → Events (same EV array the Events section draws), upcoming first, ended last. */
   return EV.filter(function(x){ return x && x.t; }).sort(function(a, b){ var ea = lvEnded(a) ? 1 : 0, eb = lvEnded(b) ? 1 : 0; return ea - eb || (a.off - b.off) || String(a.t).localeCompare(String(b.t)); });
@@ -19800,7 +19807,7 @@ function mtView(id){
   var sec = function(l, b){ return b ? '<div><div class="cn-sub">' + l + '</div><p>' + esc(b) + '</p></div>' : ''; };
   var people = '<div>' + av(t.owner, i, 'sm') + '<span><b>' + esc(t.owner) + '</b></span><span class="mt-badge">' + ic('crown') + 'Team Leader</span>' + roleChip(t.ownerTitle) + '</div>' +
     t.members.map(function(m, j){ return '<div>' + av(m.name, i + j + 1, 'sm') + '<span><b>' + esc(m.name) + '</b></span>' + roleChip(m.title) + '</div>'; }).join('');
-  mtShow('<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(t.project) + '</p><div class="mt-sum"><span class="mt-pill">' + cnt(t) + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span></div><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
+  mtShow('<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(mtProjOf(t)) + '</p><div class="mt-sum"><span class="mt-pill">' + cnt(t) + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span></div><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
     '<div class="mt-dl">' + sec('About', t.desc) +
     '<div><div class="cn-sub">Required skills</div>' + mtChips(t.skills) + '</div>' +
     '<div><div class="cn-sub">Members · ' + cnt(t) + ' of ' + t.max + '</div><div class="cn-meta">' + people + '</div></div>' +
@@ -19856,12 +19863,12 @@ function ctJoinBtn(t){
 /* Find Teams: teams created on this device sit alongside the existing sample teams */
 function ctRows(){
   mtLoad(); var q = T.q.toLowerCase();
-  return myTeams.filter(function(t){ var hay = [t.name, t.project, t.desc, t.skills.join(' ')].join(' ').toLowerCase(); return (!q || hay.indexOf(q) > -1) && (!T.chips.length || T.chips.some(function(c){ return t.skills.indexOf(c) > -1; })); });
+  return myTeams.filter(function(t){ var hay = [t.name, mtProjOf(t), t.desc, t.skills.join(' ')].join(' ').toLowerCase(); return (!q || hay.indexOf(q) > -1) && (!T.chips.length || T.chips.some(function(c){ return t.skills.indexOf(c) > -1; })); });
 }
 function ctCard(t){
   var i = myTeams.indexOf(t), names = [t.owner].concat(t.members.map(function(m){ return m.name; })), id = esc(t.id);
   var st = full(t) ? '<span class="cn-chip mt-joined">Team full</span>' : t.open ? '<span class="mt-s mt-s-open mt-joined">Open</span>' : '<span class="mt-s mt-s-closed mt-joined">Closed</span>';
-  return '<article class="cn-card mt-card' + mtIn('f' + t.id) + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div>' + st + '</div>' +
+  return '<article class="cn-card mt-card' + mtIn('f' + t.id) + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div>' + st + '</div>' +
     '<p class="mt-desc">' + esc(t.desc) + '</p><div><div class="cn-sub">Skills &amp; tech</div><div class="cn-chips">' + t.skills.map(function(s){ return '<span class="cn-chip' + (T.chips.indexOf(s) > -1 ? ' on' : '') + '">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
     '<div class="cn-memrow">' + stack(names, i) + '<span>' + cnt(t) + ' of ' + t.max + ' members · led by <b>' + esc(t.owner) + '</b></span></div>' +
     '<div class="cn-cta"><button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button>' + ctJoinBtn(t) + '</div></article>';
@@ -19876,14 +19883,14 @@ function mtCustomJoined(t, i){
   var acts = mtAskL === t.id
     ? '<p class="mt-warn" role="alert">Leave “' + esc(t.name) + '”? You can send a new request later if the team is still open.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-lvok="' + id + '">Confirm leave</button><button class="cn-btn" type="button" data-mt-lvno="1">Stay</button>'
     : waBtn(t) + '<button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
-  return '<article class="cn-card mt-card' + mtIn('j' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div><span class="mt-s mt-s-accepted mt-joined">Joined</span></div>' +
+  return '<article class="cn-card mt-card' + mtIn('j' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div><span class="mt-s mt-s-accepted mt-joined">Joined</span></div>' +
     '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members</span></div>' +
     '<div class="cn-cta">' + acts + '</div></article>';
 }
 function mtReqCard(t, i){
   var r = myReq(t), id = esc(t.id), when = 'Requested ' + ago(r.at) + (r.status !== 'pending' && r.at2 ? ' · ' + r.status + ' ' + ago(r.at2) : '');
-  return '<article class="cn-card mt-card' + mtIn('q' + t.id + r.status) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div>' + stChip(r.status) + '</div>' +
+  return '<article class="cn-card mt-card' + mtIn('q' + t.id + r.status) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div>' + stChip(r.status) + '</div>' +
     mtLeader(t.owner, i) + '<span class="mt-cap">' + when + '</span>' +
     (r.status === 'rejected' ? '<p class="mt-help" style="margin:0">The team leader declined this request.</p>' : '') +
     '<div class="cn-cta"><button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button>' + (r.status === 'pending' ? '<button class="cn-btn" type="button" data-mt-wd="' + id + '">Withdraw request</button>' : r.status === 'rejected' ? '<button class="cn-btn" type="button" data-mt-dis="' + id + '">Dismiss</button>' : '') + '</div></article>';
@@ -19891,7 +19898,7 @@ function mtReqCard(t, i){
 function reqHTML(t){
   var p = profile(); mtSk = []; mtPool = [];
   return '<form class="mt-form" id="mtReq" novalidate>' +
-    '<div class="mt-mh"><h2 id="mtTitle">Request to join</h2><p>' + esc(t.name) + ' · ' + esc(t.project) + '</p><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
+    '<div class="mt-mh"><h2 id="mtTitle">Request to join</h2><p>' + esc(t.name) + ' · ' + esc(mtProjOf(t)) + '</p><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
     '<div class="mt-mb">' +
     (t.elig ? '<div><div class="cn-sub">Eligibility criteria</div><p class="mt-txt">' + esc(t.elig) + '</p></div>' : '') +
     '<div><div class="cn-sub">Team rules and guidelines</div>' + (t.rules ? '<div class="mt-rules" tabindex="0" role="region" aria-label="Team rules">' + esc(t.rules) + '</div>' : '<p class="mt-help">The leader hasn’t added specific rules. Please communicate respectfully and keep your commitments.</p>') + '</div>' +
@@ -20011,7 +20018,7 @@ function dMem(t, m, j){
 }
 function dashHTML(t){
   var tab = mtDash.tab, n = cnt(t), pend = pendN(t);
-  var head = '<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(t.project) + '</p><div class="mt-sum"><span class="mt-pill">' + n + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span>' +
+  var head = '<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(mtProjOf(t)) + '</p><div class="mt-sum"><span class="mt-pill">' + n + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span>' +
     '<button type="button" class="cn-btn mt-hbtn" data-mt-tog="1">' + (t.open ? 'Close applications' : 'Reopen applications') + '</button></div>' +
     '<button type="button" class="mt-x" data-mt-close="1" aria-label="Close dashboard">' + ic('x') + '</button></div>';
   var tabs = '<div class="mt-tabs" role="tablist" aria-label="Team dashboard">' + [['req', 'Requests', pend], ['mem', 'Members', n], ['det', 'Details', 0]].map(function(x){
