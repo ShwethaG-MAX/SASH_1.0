@@ -3598,6 +3598,8 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 .hm-ev-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:5px;font-size:.74rem;color:var(--muted)}
 .hm-ev-k{padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--brown-dark,#A9835C) 32%,transparent);color:var(--brown-dark,#A9835C);font-weight:600}
 .hm-ev-go{display:grid;place-items:center;color:var(--muted)}
+.hm-ev-hint{margin:0 2px 8px;font-size:.78rem;color:var(--muted)}.hm-ev-past{opacity:.78;cursor:default}
+.mt-evs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0}.mt-evh{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.mt-ev{cursor:pointer;border:1px solid var(--line);background:var(--card);font:inherit}
 .hm-ev-sub{margin:10px 2px 6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.hm-ev-sub:first-child{margin-top:0}
 .hm-ev-ok{padding:1px 8px;border-radius:999px;background:color-mix(in srgb,#16a34a 16%,transparent);color:#15803d;font-weight:700}
 [data-theme="dark"] .hm-ev-ok{color:#4ade80}
@@ -8569,25 +8571,31 @@ function renderHomeEvents(){
   if(!box) return;
   const api = window.cseConnect;
   if(!api || typeof api.upcomingEvents !== 'function'){ box.innerHTML = '<div class="hm-empty"><p>Loading events…</p></div>'; return; }
-  let reg = [], up = [];
+  let reg = [], up = [], past = [];
   try{
     reg = typeof api.registeredEvents === 'function' ? (api.registeredEvents(5) || []) : [];
+    past = typeof api.pastRegistered === 'function' ? (api.pastRegistered(3) || []) : [];
     const regIds = new Set(reg.map(e => e.id));
     up = (api.upcomingEvents() || []).filter(e => !regIds.has(e.id)).slice(0, 3);   // registered ones are listed above, not twice
   }catch(e){ console.warn('[Home] events unavailable', e); }
-  if(!reg.length && !up.length){ box.innerHTML = hmEmpty('cal', 'No upcoming events', 'New hackathons, workshops and fests from Connect will show up here.'); return; }
+  if(!reg.length && !up.length && !past.length){ box.innerHTML = hmEmpty('cal', 'No upcoming events', 'New hackathons, workshops and fests from Connect will show up here.'); return; }
   const row = (ev, isReg) => {
     const d = ev.start instanceof Date ? ev.start : new Date(ev.start);
     const pill = ev.ongoing ? '<b>Now</b><small>On</small>' : `<b>${d.getDate()}</b><small>${d.toLocaleDateString(undefined, {month:'short'})}</small>`;
+    const tm = isReg && ev.teams && ev.teams.length ? `<span>${hmEsc(ev.teams.join(', '))}</span>` : '';
     return `<button type="button" class="hm-ev${isReg ? ' hm-ev-reg' : ''}" data-hm-ev="${ev.id}" aria-label="${hmEsc(ev.title)}, ${hmEsc(ev.dateLabel)}${ev.kind ? ', ' + hmEsc(ev.kind) : ''}${isReg ? ', registered' : ''}. Open details">
       <span class="hm-ev-date" aria-hidden="true">${pill}</span>
       <span class="hm-ev-info"><span class="hm-ev-t">${hmEsc(ev.title)}</span>
-        <span class="hm-ev-m">${isReg ? '<span class="hm-ev-ok">✓ Registered</span>' : ''}${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span></span></span>
+        <span class="hm-ev-m">${isReg ? '<span class="hm-ev-ok">✓ Registered</span>' : ''}${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span>${tm}</span></span>
       <span class="hm-ev-go" aria-hidden="true">${HM_IC.chev}</span></button>`;
   };
+  const prow = ev => `<div class="hm-ev hm-ev-past"><span class="hm-ev-date" aria-hidden="true"><b>✓</b><small>Done</small></span>
+      <span class="hm-ev-info"><span class="hm-ev-t">${hmEsc(ev.title)}</span>
+        <span class="hm-ev-m">${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span><span>${hmEsc(ev.teams.join(', '))}</span></span></span></div>`;
   box.innerHTML =
-    (reg.length ? `<div class="hm-ev-sub">Registered</div>${reg.map(e => row(e, true)).join('')}` : '') +
-    (up.length ? (reg.length ? '<div class="hm-ev-sub">Upcoming</div>' : '') + up.map(e => row(e, false)).join('') : '');
+    (reg.length ? `<div class="hm-ev-sub">Registered</div>${reg.map(e => row(e, true)).join('')}` : '<p class="hm-ev-hint">Events your team registers for appear here. Tap “Mark as registered” on an event.</p>') +
+    (up.length ? (reg.length ? '<div class="hm-ev-sub">Upcoming</div>' : '') + up.map(e => row(e, false)).join('') : '') +
+    (past.length ? `<div class="hm-ev-sub">Past events</div>${past.map(prow).join('')}` : '');
 }
 function renderHome(){
   renderNextClasses();
@@ -8597,8 +8605,7 @@ function initHome(){
   renderHome();
   setInterval(()=>{ if(!document.hidden) renderHome(); }, 15000);       // "now / next" and expired events roll over on their own
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && homeInited) renderHome(); });
-  window.addEventListener('cse:eventschange', renderHomeEvents);
-  window.addEventListener('cse:registered-events-sync', renderHomeEvents);       // Connect added / edited / removed an event
+  window.addEventListener('cse:eventschange', renderHomeEvents);       // Connect added / edited / removed an event
   const nextCard = document.getElementById('hmNextCard');
   if(nextCard) nextCard.addEventListener('click', e=>{
     const b = e.target.closest('[data-hm-go]'); if(!b) return;
@@ -14160,7 +14167,7 @@ var CR_DOMAIN=/@cr\.cse-hub\.app$/i;
 
 /* ---------- which keys sync ---------- */
 var SCOPED=['csec_attendance','csec_attendance_settings','csec_favorites','csec_recent'];   // second-year keys + the _fy1 first-year twins
-var DATA_KEYS=[]; SCOPED.forEach(function(k){ DATA_KEYS.push(k,k+'_fy1'); }); DATA_KEYS.push('csec_tasks','csec_daily_notes','csec_saved_events','csec_registered_events');   // csec_saved_events = bookmarked Connect events, now part of the account
+var DATA_KEYS=[]; SCOPED.forEach(function(k){ DATA_KEYS.push(k,k+'_fy1'); }); DATA_KEYS.push('csec_tasks','csec_daily_notes','csec_saved_events');   // csec_saved_events = bookmarked Connect events, now part of the account
 var PREF_KEYS=['csec_notif_cfg','csec_appearance','csec_theme','fyStudyCycle','csec_onboarding_completed'];   // pulled at login, pushed on change (not live: never flips another device's theme under the user)
 var SYNC_KEYS=DATA_KEYS.concat(PREF_KEYS);
 var KEEP_ON_WIPE=['csec_theme','csec_appearance','csec_element_theme','cse_analytics_optout','cse_analytics_notice','cse_analytics_debug','cse_base_url'];   // device display/diagnostic settings, not personal data
@@ -14238,7 +14245,6 @@ function memApply(k,raw){
     else if(k==='csec_tasks'){ tasks=Array.isArray(v)?v:[]; if(meInited) renderMe(); if(homeInited) renderHome(); try{ if(typeof requestSync==='function') requestSync(); }catch(e){} }
     else if(k==='csec_daily_notes'){ dailyNotes=isObj(v)?v:{}; if(meInited) renderMe(); }
     else if(k==='csec_saved_events'){ window.dispatchEvent(new CustomEvent('cse:saved-events-sync')); }   // Connect re-reads the bookmarks and redraws
-    else if(k==='csec_registered_events'){ window.dispatchEvent(new CustomEvent('cse:registered-events-sync')); }   // Connect + Home re-read the registered events and redraw
     else if(k==='csec_theme'){ applyTheme(v==='dark'?'dark':'light'); }
     else if(k==='csec_appearance'){ if(window.ThemeManager) { applying=true; try{ ThemeManager.set(v); } finally{ applying=false; } } }
   }catch(e){ console.warn('[Sync] could not refresh the screen for', k, e); }
@@ -19059,15 +19065,15 @@ function lvPager(id, pg, pages){
   return h + '<button type="button" class="cn-pgb" data-pgsec="' + id + '" data-pg="' + (pg + 1) + '"' + (pg === pages ? ' disabled' : '') + ' aria-label="Next page">Next \u203a</button></nav>';
 }
 function drawEvents(){
-  var saved = ef.view === 'saved';
+  var regv = ef.view === 'registered', saved = ef.view === 'saved' || regv;
   var sig = [ef.q, ef.kind, ef.dom, ef.st, ef.area, ef.view].join('|'); if(ef._sig !== sig){ ef._sig = sig; ef.pg = {}; }
-  var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return !saved || bm[o.i]; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
+  var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return regv ? mrHas(o.x) : !saved || bm[o.i]; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
   var ac = {}, kc = {}; LV_AREAS.forEach(function(a){ ac[a[0]] = all.filter(function(o){ return lvArea(o.x, a[0]); }).length; });
   base.forEach(function(o){ kc[o.x.k] = (kc[o.x.k] || 0) + 1; });
   /* Search covers event name, college/organiser, city, state, venue and technology domain. */
   var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!ef.dom || lvDoms(x).indexOf(ef.dom) > -1) && lvPass(x, ef.st) && (!q || [x.t, x.org, x.k, x.d, x.loc, x.venue || '', x.city || '', x.state || '', x.country || '', lvGeo(x).place || '', (x.tags || []).join(' '), (x.themes || []).join(' '), lvDoms(x).join(' '), x.srcName || ''].join(' ').toLowerCase().indexOf(q) > -1); });
   var up = [];   /* Updates card removed from Events */
-  $('#cnEview').innerHTML = [['all', 'All events', EV.length], ['saved', 'Saved', savedCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
+  $('#cnEview').innerHTML = [['all', 'All events', EV.length], ['saved', 'Saved', savedCount()], ['registered', 'Registered', registeredCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
   $('#cnEupd').innerHTML = up.length ? '<div class="cn-card cn-upd"><h3>' + ic('clock') + 'Updates</h3>' + up.map(function(u){ return '<button type="button" data-e="' + u.i + '">' + ic(u.ic) + '<span><b>' + esc(u.t) + '</b><em>' + u.s + '</em></span></button>'; }).join('') + '</div>' : '';
   $('#cnEmode').innerHTML = LV_AREAS.map(function(m){ return '<button type="button" data-ea="' + m[0] + '" aria-pressed="' + (ef.area === m[0]) + '">' + m[1] + '<span class="n">' + ac[m[0]] + '</span></button>'; }).join('');
   var ceb = $('#cnEchips .cn-chipbar'), csl = ceb ? ceb.scrollLeft : 0;
@@ -19076,7 +19082,7 @@ function drawEvents(){
   var dsel = $('#cnEdom'); if(dsel){ var dc = {}; base.forEach(function(o){ lvDoms(o.x).forEach(function(t){ dc[t] = (dc[t] || 0) + 1; }); }); var dl_ = LV_DOMAINS.map(function(z){ return z[0]; }).filter(function(t){ return dc[t]; }); if(ef.dom && dl_.indexOf(ef.dom) < 0) dl_.push(ef.dom);
     dsel.innerHTML = '<option value="">All domains</option>' + dl_.map(function(t){ return '<option value="' + esc(t) + '"' + (ef.dom === t ? ' selected' : '') + '>' + esc(t) + ' (' + (dc[t] || 0) + ')</option>'; }).join(''); }
   var any = ef.q || ef.kind || ef.dom || ef.st || ef.area !== 'all';
-  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span><span id="cnElive">' + lvStatusHtml() + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (regv ? 'registered ' : saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span><span id="cnElive">' + lvStatusHtml() + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
   var hb = $('#cnEhealth'); if(hb) hb.innerHTML = ef.health ? '<div class="cn-card cn-hlbox"><h3>' + ic('flag') + 'Event sources</h3>' + lvHealthHtml() + '</div>' : '';
   /* Sections in strict order: Mysuru, nearby, Karnataka, rest of India, online, to verify, international. */
   var groups = {}; LV_TIERS.forEach(function(t){ groups[t[0]] = []; });
@@ -19095,8 +19101,8 @@ function drawEvents(){
         (lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
   });
   $('#cnEgrid').innerHTML = html + (l.length && !saved ? '<div class="cn-evsec cn-discall"><div class="cn-evsec-h"><div><h3>Browse more hackathons</h3><p>Official listing pages, including sites without a live feed.</p></div></div>' + lvDiscHtml(LV_DISCOVER.local.concat(LV_DISCOVER.india, LV_DISCOVER.world.slice(0, 1).concat(LV_DISCOVER.online.slice(1, 2)))) + '</div>' : '');
-  $('#cnEempty').innerHTML = l.length ? '' : saved && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
-    empty(saved ? '🔖' : '📅', saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. Check back soon.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
+  $('#cnEempty').innerHTML = l.length ? '' : regv && !registeredCount() ? empty('✅', 'No registered events yet', 'Tap “Mark as registered” on an event and pick the team that is registering.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') : ef.view === 'saved' && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
+    empty(regv ? '✅' : saved ? '🔖' : '📅', regv ? 'No registered events match' : saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. Check back soon.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
 }
 function evSec(t, h){ return '<div><div class="cn-sub">' + t + '</div>' + h + '</div>'; }
 function evFact(l, v){ return v ? '<div class="cn-fact"><span>' + l + '</span><b>' + esc(v) + '</b></div>' : ''; }
@@ -19185,7 +19191,7 @@ function eventModalOld(i){
    (x.perks && x.perks.length ? evSec('What you get', '<ul class="cn-ul">' + x.perks.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>') : '') +
    (x.rules && x.rules.length ? evSec('Rules and requirements', '<ul class="cn-ul">' + x.rules.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>') : '') +
    (x.contact ? evSec('Contact', '<p class="cn-about"><a href="mailto:' + esc(x.contact) + '">' + esc(x.contact) + '</a></p>') : '') +
-   '<div class="cn-row cn-actions">' + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-mreg="' + i + '">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register Now') + '</button>') + '<button class="cn-btn" type="button" data-msave="' + i + '">' + (bm[i] ? '🔖 Saved' : 'Save Event') + '</button><button class="cn-btn" type="button" data-mteam="' + i + '">Find Teammates</button>' + (x.url ? '<a class="cn-btn" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">Official Website ↗</a>' : '') + '<button class="cn-btn" type="button" data-mshare="' + i + '">Share</button></div><span class="cn-demo">Demo: registration is not sent anywhere.</span></div>', 'e', i);
+   '<div class="cn-row cn-actions">' + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-mreg="' + i + '">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register Now') + '</button>') + '<button class="cn-btn" type="button" data-msave="' + i + '">' + (bm[i] ? '🔖 Saved' : 'Save Event') + '</button><button class="cn-btn" type="button" data-mteam="' + i + '">Find Teammates</button>' + (x.url ? '<a class="cn-btn" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">Official Website ↗</a>' : '') + '<button class="cn-btn" type="button" data-mshare="' + i + '">Share</button></div></div>', 'e', i);
   $('#cnModal').setAttribute('aria-labelledby', 'cnMt'); $('#cnModal .cn-card').classList.add('cn-wide');
 }
 /* ---- Event detail page (full-screen, responsive) ---- */
@@ -19195,12 +19201,12 @@ function evIcs(i){ var x = EV[i], st = new Date(now + x.off * D), en = new Date(
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], {type: 'text/calendar'})); a.download = evId(x) + '.ics'; document.body.appendChild(a); a.click(); a.remove(); }
 function evPage(i){
   var x = EV[i], d = dlInfo(x), closed = d.k === 'closed', sp = {}; try{ sp = hkSplit(x) || {}; }catch(e){}
-  var id = evId(x), ov = document.getElementById('evPage'), keep = ov ? ov.scrollTop : 0, rg = rgAll()[id];
+  var id = evId(x), ov = document.getElementById('evPage'), keep = ov ? ov.scrollTop : 0, rgm = erMine(x);
   if(!ov){ ov = document.createElement('div'); ov.id = 'evPage'; ov.className = 'ep'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov);
     ov.addEventListener('click', function(e){ var b = e.target.closest('[data-ep]'); if(!b || cur == null) return; var j = cur.i, a = b.dataset.ep;
-      if(a === 'back') epClose(); else if(a === 'reg') toggleReg(j); else if(a === 'save') toggleSave(j); else if(a === 'share') shareEv(j);
+      if(a === 'back') epClose(); else if(a === 'reg') toggleReg(j); else if(a === 'mark') toggleMr(j); else if(a === 'save') toggleSave(j); else if(a === 'share') shareEv(j);
       else if(a === 'int'){ evFlag('csec_ev_interested', evId(EV[j]), !evFlag('csec_ev_interested', evId(EV[j]))); reshow(); }
-      else if(a === 'rem'){ var on = !evFlag('csec_ev_remind', evId(EV[j])); evFlag('csec_ev_remind', evId(EV[j]), on); toast(on ? 'Reminder set (demo, this device)' : 'Reminder removed'); reshow(); }
+      else if(a === 'rem'){ var on = !evFlag('csec_ev_remind', evId(EV[j])); evFlag('csec_ev_remind', evId(EV[j]), on); toast(on ? 'Reminder set on this device' : 'Reminder removed'); reshow(); }
       else if(a === 'cal') evIcs(j);
       else if(a === 'mates'){ epClose(); go('teams', 'people'); }
       else if(a === 'newteam'){ epClose(); go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); } });
@@ -19225,8 +19231,9 @@ function evPage(i){
   var links = []; if(x.reg) links.push(['Official registration page', x.reg]); if(x.url && lvUrlKey(x.url) !== lvUrlKey(x.reg)) links.push(['Official website', x.url]);
   (x.sources || []).forEach(function(s){ if(s.url && !links.some(function(k){ return lvUrlKey(k[1]) === lvUrlKey(s.url); })) links.push(['Listed on ' + s.name, s.url]); });
   var linkHtml = links.map(function(l){ var h = ''; try{ h = new URL(l[1]).hostname; }catch(e){} return '<a class="ep-link" href="' + esc(l[1]) + '" target="_blank" rel="noopener noreferrer"><span><b>' + l[0] + '</b><small>' + esc(h) + '</small></span>↗</a>'; }).join('');
-  var teamsReg = []; try{ var rs = rgAll(); myTeams.forEach(function(t){ if(rs[id] && rs[id].tid === t.id) teamsReg.push(t); }); }catch(e){}
-  var teamsHtml = teamsReg.length ? teamsReg.map(function(t){ return '<div class="ep-team"><b>' + esc(t.name) + '</b><small>' + (1 + (t.members || []).length) + ' members · registered</small></div>'; }).join('') : '<p class="ep-mute">No teams have registered for this event yet.</p>';
+  var teamsReg = erFor(x).sort(function(p, q){ return tms(p.createdAt) - tms(q.createdAt); });
+  var teamsHtml = teamsReg.length ? teamsReg.map(function(d){ var tm = TM.all[d.teamId] || TM.mine[d.teamId] || {}, n = tm.memberCount || 1, mine = !!TM.mine[d.teamId];
+    return '<div class="ep-team"><b>' + esc(d.teamName) + (mine ? ' <em>· your team</em>' : '') + '</b><small>' + n + (tm.maxMembers ? ' / ' + tm.maxMembers : '') + ' member' + (n === 1 ? '' : 's') + ' · led by ' + esc(d.leaderName || 'a student') + '</small></div>'; }).join('') : '<p class="ep-mute">No teams have registered for this event yet.</p>';
   var inter = evFlag('csec_ev_interested', id), rem = evFlag('csec_ev_remind', id);
   var banStyle = x.img ? ' style="background-image:url(' + esc(x.img) + ');background-position:' + esc(x.pos || 'center') + '"' : '';
   ov.innerHTML = '<div class="ep-bar"><button type="button" data-ep="back">← All opportunities</button></div><div class="ep-wrap">' +
@@ -19234,9 +19241,9 @@ function evPage(i){
    '<div class="ep-hb"><div class="ep-logo">' + logo + '</div><div class="ep-chips">' + chip(ic(x.mode === 'online' ? 'monitor' : 'pin') + esc(modeLbl(x.mode)), 'alt') + chip(esc(x.k || 'Event')) + lvBadge(x, 1) + tags.slice(0, 4).map(function(t){ return chip(esc(t)); }).join('') + '</div>' +
    '<h1>' + esc(x.t) + '</h1><div class="ep-org">Organised by <b>' + esc(x.org || 'Campus Loop') + '</b></div>' +
    '<div class="ep-dl ' + d.k + '">' + ic('flag') + '<b>' + esc(d.l) + '</b>' + (d.s ? '<em>' + esc(d.s) + '</em>' : '') + '</div>' +
-   (rg ? '<div class="ep-reg">✓ You are registered · ' + (rg.type === 'team' ? 'Team: ' + esc(rg.team) : 'Solo') + '</div>' : '') +
+   (rgm.length ? '<div class="ep-reg">✓ Registered · Team: ' + rgm.map(function(d){ return esc(d.teamName); }).join(', ') + '</div>' : '') +
    '<div class="ep-acts">' + (closed ? '' : '<button type="button" class="ep-b pri" data-ep="reg">' + (reg[i] ? '✓ Registered (tap to undo)' : x.live && hkUrl(x.reg) ? 'Register now ↗' : 'Register now') + '</button>') +
-   '<button type="button" class="ep-b" data-ep="save">' + (bm[i] ? '🔖 Saved' : '🔖 Save') + '</button><button type="button" class="ep-b' + (inter ? ' on' : '') + '" data-ep="int">' + (inter ? '★ Interested' : '☆ Interested') + '</button>' +
+   '<button type="button" class="ep-b' + (rgm.length ? ' on' : '') + '" data-ep="mark">' + (rgm.length ? '✓ Registered' : 'Mark as registered') + '</button><button type="button" class="ep-b" data-ep="save">' + (bm[i] ? '🔖 Saved' : '🔖 Save') + '</button><button type="button" class="ep-b' + (inter ? ' on' : '') + '" data-ep="int">' + (inter ? '★ Interested' : '☆ Interested') + '</button>' +
    '<button type="button" class="ep-b" data-ep="mates">Find teammates</button><button type="button" class="ep-b" data-ep="share">Share</button><button type="button" class="ep-b" data-ep="cal">Add to calendar</button><button type="button" class="ep-b' + (rem ? ' on' : '') + '" data-ep="rem">' + (rem ? '🔔 Reminder on' : '🔔 Remind me') + '</button></div></div></div>' +
    '<div class="ep-facts">' + facts + '</div><div class="ep-cols"><div class="ep-main">' +
    sec('About the event', 'bulb', '<p class="ep-p">' + esc(x.about || x.d || 'Details have not been published yet.') + '</p>') +
@@ -19248,7 +19255,7 @@ function evPage(i){
    '</div><aside class="ep-side">' + sec('Important links', 'flag', linkHtml || '<p class="ep-mute">No official links listed yet.</p>') +
    sec('Teams for this event', 'users', teamsHtml + '<div class="ep-acts"><button type="button" class="ep-b pri" data-ep="newteam">+ Create a team</button><button type="button" class="ep-b" data-ep="mates">Find students</button></div>') +
    (x.contact || x.phone ? sec('Contact', 'bulb', '<p class="ep-p">' + (x.contact ? '<a href="mailto:' + esc(x.contact) + '">' + esc(x.contact) + '</a>' : '') + (x.phone ? '<br>' + esc(x.phone) : '') + '</p>') : '') +
-   '</aside></div><p class="ep-demo">' + (x.manual ? 'Listed by the Campus Loop team. Register on the official page; saves and reminders are stored on this device only.' : x.live ? 'Live listing from ' + esc(x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') + '. Register on the official page; saves and reminders are stored on this device only.' : x.curated ? 'Curated listing from the official website. Register there; saves and reminders are stored on this device only.' : 'Sample listing. Demo: registration, saves and reminders are stored on this device only.') + '</p></div>';
+   '</aside></div><p class="ep-demo">' + (x.manual ? 'Listed by the Campus Loop team. Register on the official page; saves and reminders are stored on this device only.' : x.live ? 'Live listing from ' + esc(x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') + '. Register on the official page; saves and reminders are stored on this device only.' : x.curated ? 'Curated listing from the official website. Register there; saves and reminders are stored on this device only.' : 'Sample listing. Saves and reminders are stored on this device only.') + '</p></div>';
   ov.classList.add('on'); document.body.classList.add('cl-ov-open'); ov.scrollTop = keep;
 }
 function epClose(){ var ov = document.getElementById('evPage'); if(ov) ov.classList.remove('on'); document.body.classList.remove('cl-ov-open'); cur = null; }
@@ -19263,62 +19270,72 @@ function persistSaved(){ try{
 }catch(e){} renderSavedCard(); }
 /* Account sync pulled a newer list of saved events (login, or a save/removal on another device): re-read it and redraw. */
 window.addEventListener('cse:saved-events-sync', function(){ try{ for(var k in bm) delete bm[k]; loadSaved(); drawEvents(); reshow(); eventsChanged(); }catch(e){} });
-/* ---- "Mark as registered": the student's own record of events they registered for. Stored as a list of event ids in csec_registered_events,
-   which is part of the account sync (userData/{uid}/items/csec_registered_events), so it follows the signed-in account across devices. ---- */
-var MR_KEY = 'csec_registered_events';
-function mrList(){ try{ var a = JSON.parse(localStorage.getItem(MR_KEY) || '[]'); return Array.isArray(a) ? a.filter(function(id){ return typeof id === 'string'; }) : []; }catch(e){ return []; } }
-function mrHas(x){ return !!x && mrList().indexOf(evId(x)) > -1; }
+/* ---- "Mark as registered": a team leader registers one of their teams for an event. Stored in Firestore `eventRegistrations/{eventKey}__{teamId}`,
+   so the event page ("Teams for this event"), My Team, Home and every team member's devices all read the same record. ---- */
+var ER = {}, erSig = '';
+function erKey(x){ return String(evId(x)).replace(/[^A-Za-z0-9_.-]/g, '_').slice(0, 120); }
+function erAll(){ return Object.keys(ER).map(function(k){ var d = ER[k]; d.id = k; return d; }); }
+/* a registration whose team was deleted is hidden (only checkable while the team list is not truncated at 200) */
+function erLive(d){ return !!(TM.all[d.teamId] || TM.mine[d.teamId]) || Object.keys(TM.all).length >= 200; }
+function erFor(x){ var k = erKey(x); return erAll().filter(function(d){ return d.ek === k && erLive(d); }); }
+function erMine(x){ return erFor(x).filter(function(d){ return !!TM.mine[d.teamId]; }); }
+function erTeam(tid){ return erAll().filter(function(d){ return d.teamId === tid; }); }
+function mrHas(x){ return !!TM.uid && !!x && erMine(x).length > 0; }
+function registeredCount(){ var n = 0; EV.forEach(function(x){ if(mrHas(x)) n++; }); return n; }
 function mrBtn(i){ var on = mrHas(EV[i]); return '<button class="cn-btn cn-mr' + (on ? ' done' : '') + '" type="button" data-mr="' + i + '" aria-pressed="' + on + '">' + (on ? '✓ Registered' : 'Mark as registered') + '</button>'; }
-function toggleMr(i){
-  var x = EV[i]; if(!x) return; var id = evId(x), a = mrList(), at = a.indexOf(id);
-  if(at > -1) a.splice(at, 1); else a.push(id);
-  try{ localStorage.setItem(MR_KEY, JSON.stringify(a)); }catch(e){}
-  drawEvents(); try{ reshow(); }catch(e){} eventsChanged(); toast(at > -1 ? 'Removed from registered' : 'Marked as registered');
+function erChanged(){ try{ eventsChanged(); }catch(e){} try{ reshow(); }catch(e){} try{ document.dispatchEvent(new CustomEvent('cse:er')); }catch(e){} }
+function erSet(x, t, on){
+  var db = fb(); if(!db || !TM.uid){ toast('Sign in with your student account to register a team.', 'err'); return Promise.resolve(false); }
+  var ref = db.collection('eventRegistrations').doc(erKey(x) + '__' + t.id);
+  var p = on ? ref.set({eventId: String(evId(x)).slice(0, 200), ek: erKey(x), eventTitle: String(x.t).slice(0, 160), eventKind: String(x.k || '').slice(0, 40), endAt: evEnd(x).getTime(), dateLabel: String(fdr(x)).slice(0, 60),
+      teamId: t.id, teamName: String(t.name).slice(0, 120), leaderUid: TM.uid, leaderName: String(t.owner || '').slice(0, 60), createdAt: firebase.firestore.FieldValue.serverTimestamp()}) : ref.delete();
+  return p.then(function(){ toast(on ? t.name + ' is registered for ' + x.t : t.name + ' is no longer registered'); return true; }, function(e){ toast(cErr(e), 'err'); return false; });
 }
-/* Account sync pulled a newer registered list (login, or a change on another device) */
-window.addEventListener('cse:registered-events-sync', function(){ try{ drawEvents(); eventsChanged(); }catch(e){} });
+/* Team picker: the leader chooses which of their teams is registering for this event */
+function mrOpen(i){
+  var x = EV[i]; if(!x) return;
+  if(!TM.uid){ toast('Sign in with your student account to register a team.', 'err'); return; }
+  var o = document.createElement('div'); o.className = 'rg-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); var busy = false;
+  function draw(){
+    var led = myTeams.filter(isOwner), sz = evSize(x), k = erKey(x), others = erMine(x).filter(function(d){ return !led.some(function(t){ return t.id === d.teamId; }); });
+    var rows = led.map(function(t){ var on = !!ER[k + '__' + t.id], n = cnt(t), bad = !on && (n > sz.max || n < sz.min);
+      return '<button type="button" class="rg-opt' + (on ? ' on' : '') + '" data-t="' + esc(t.id) + '"' + (bad ? ' disabled' : '') + '><span class="e">' + (on ? '✅' : '👥') + '</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + (t.project ? ' · ' + esc(t.project) : '') + (on ? ' · registered (tap to undo)' : bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('');
+    o.innerHTML = '<div class="rg-box"><h3>Register a team for ' + esc(x.t) + '</h3>' +
+      (led.length ? '<p>Select the team that is registering. Tap a registered team again to undo.</p><div class="rg-teams">' + rows + '</div>' : '<p>You do not lead a team yet. Create a team first, then mark it as registered.</p>') +
+      (others.length ? '<p style="margin-top:10px">Registered by your team leader: <b>' + others.map(function(d){ return esc(d.teamName); }).join(', ') + '</b></p>' : '') +
+      '<div class="rg-act"><button type="button" data-c>Done</button>' + (led.length ? '' : '<button type="button" class="pri" data-new>+ Create a team</button>') + '</div></div>';
+  }
+  o.addEventListener('click', function(e){
+    if(e.target === o || e.target.closest('[data-c]')){ document.removeEventListener('cse:er', draw); o.remove(); return; }
+    if(e.target.closest('[data-new]')){ document.removeEventListener('cse:er', draw); o.remove(); try{ epClose(); }catch(x2){} go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); return; }
+    var b = e.target.closest('[data-t]'); if(!b || b.disabled || busy) return;
+    var t = tById(b.dataset.t); if(!t || !isOwner(t)){ toast('That team is no longer available.', 'err'); return; }
+    busy = true; erSet(x, t, !ER[erKey(x) + '__' + t.id]).then(function(){ busy = false; draw(); });
+  });
+  document.addEventListener('cse:er', draw);
+  document.body.appendChild(o); draw();
+}
+function toggleMr(i){ mrOpen(i); }
 function toggleSave(i){ bm[i] = !bm[i]; persistSaved(); drawEvents(); reshow(); toast(bm[i] ? 'Saved' : 'Removed from saved'); }
 function shareEv(i){ var x = EV[i], u = location.href.split('#')[0] + '#connect/events', f = function(){ toast('Link copied'); };
   if(navigator.share){ navigator.share({title:x.t, text:x.d, url:u}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(u).then(f, function(){ toast('Sharing not available'); }); } else toast('Sharing not available'); }
 /* ---- More details block + Solo/Team registration chooser (frontend only; csec_event_regs) ---- */
-var RG_KEY = 'csec_event_regs';
-function rgAll(){ try{ return JSON.parse(localStorage.getItem(RG_KEY)) || {}; }catch(e){ return {}; } }
-function rgSet(id, v){ var a = rgAll(); if(v) a[id] = v; else delete a[id]; try{ localStorage.setItem(RG_KEY, JSON.stringify(a)); }catch(e){} }
 function evSize(x){ var m = /(\d+)\s*(?:[–\-]|to)\s*(\d+)/i.exec(String(x.team || '')); return m ? {min:+m[1], max:+m[2]} : (/solo|individual|\b1\b/i.test(String(x.team || '')) ? {min:1, max:1} : (/team/i.test(String(x.team || '')) ? {min:1, max:99} : {min:1, max:99})); }
 function myLedTeams(){ return myTeams.filter(isOwner); }
 function evMore(i, m){
   var x = EV[i], d = dlInfo(x), sz = evSize(x), box = m.querySelector('.cn-evb'); if(!box) return;
-  var r = rgAll()[evId(x)];
+  var rt = erMine(x);
   var h = '<div class="ev-more"><h4>📋 More details</h4><ul>' +
    '<li><b>Event date:</b> ' + esc(fdr(x)) + '</li><li><b>Registration:</b> ' + esc(d.l) + (d.s ? ' (' + esc(d.s) + ')' : '') + '</li>' +
    '<li><b>Eligibility:</b> ' + esc(x.el || 'Open to college students (check the official page for specifics)') + '</li>' +
    '<li><b>Participation:</b> ' + (x.team ? esc(x.team) : sz.min > 1 ? 'Teams only' : 'Solo or team') + (sz.min > 1 ? ' · solo entry not allowed' : ' · solo entry allowed') + '</li>' +
    '<li><b>Mode / venue:</b> ' + esc(modeLbl(x.mode)) + (x.loc ? ' · ' + esc(x.loc) : '') + '</li>' +
    (x.fee ? '<li><b>Entry fee:</b> ' + esc(x.fee) + '</li>' : '') + (x.pz ? '<li><b>Prizes:</b> ' + esc(x.pz) + '</li>' : '') + '</ul>' +
-   '<h4 style="margin-top:12px">How to register</h4><ol><li>Tap <b>Register Now</b>.</li><li>Choose <b>Solo</b> (where allowed) or <b>Team</b>.</li><li>For a team, pick one of the teams you lead.</li><li>Finish on the official site if a registration link is listed.</li></ol>' +
-   (r ? '<p style="margin:10px 0 0"><b>Your registration:</b> ' + (r.type === 'team' ? 'Team – ' + esc(r.team) : 'Solo') + '</p>' : '') + '</div>';
+   '<h4 style="margin-top:12px">How to register</h4><ol><li>Register on the official page (tap <b>Register</b>) if a link is listed.</li><li>Tap <b>Mark as registered</b> and pick the team you lead.</li><li>Your team then appears under <b>Teams for this event</b> and in <b>My Team</b>.</li></ol>' +
+   (rt.length ? '<p style="margin:10px 0 0"><b>Your registration:</b> Team – ' + rt.map(function(d){ return esc(d.teamName); }).join(', ') + '</p>' : '') + '</div>';
   var at = box.querySelector('.cn-actions, .hk-foot'); if(at) at.insertAdjacentHTML('beforebegin', h); else box.insertAdjacentHTML('beforeend', h);
 }
-function rgChoose(i){
-  var x = EV[i], sz = evSize(x), teams = myLedTeams(), pick = null, mode = null;
-  var o = document.createElement('div'); o.className = 'rg-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
-  function draw(){
-    var tl = '';
-    if(mode === 'team'){ tl = teams.length ? '<div class="rg-teams">' + teams.map(function(t, j){ var n = cnt(t), bad = n > sz.max || n < sz.min; return '<button type="button" class="rg-opt' + (pick === j ? ' on' : '') + '" data-t="' + j + '"' + (bad ? ' disabled' : '') + '><span class="e">👥</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + ' · ' + esc(t.project || '') + (bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('') + '</div>' : '<p style="margin-top:12px">You do not lead a team yet. Create one in Connect → Teams, then register.</p>'; }
-    o.innerHTML = '<div class="rg-box"><h3>Register for ' + esc(x.t) + '</h3><p>How do you want to participate?</p>' +
-      '<button type="button" class="rg-opt' + (mode === 'solo' ? ' on' : '') + '" data-m="solo"' + (sz.min > 1 ? ' disabled' : '') + '><span class="e">🧑</span><span><b>Solo</b><small>' + (sz.min > 1 ? 'Not allowed – this event needs a team (' + esc(x.team) + ')' : 'Participate on your own') + '</small></span></button>' +
-      '<button type="button" class="rg-opt' + (mode === 'team' ? ' on' : '') + '" data-m="team"' + (sz.max < 2 ? ' disabled' : '') + '><span class="e">👥</span><span><b>Team</b><small>' + (sz.max < 2 ? 'This event is solo only' : 'Pick one of the teams you created') + '</small></span></button>' + tl +
-      '<div class="rg-act"><button type="button" data-c>Cancel</button><button type="button" class="pri" data-ok' + (mode === 'solo' || (mode === 'team' && pick != null) ? '' : ' disabled') + '>Confirm</button></div><span class="cn-demo">Demo: registration is saved on this device only.</span></div>'; }
-  o.addEventListener('click', function(e){
-    if(e.target === o || e.target.closest('[data-c]')){ o.remove(); return; }
-    var b = e.target.closest('button'); if(!b || b.disabled) return;
-    if(b.dataset.m){ mode = b.dataset.m; pick = null; draw(); }
-    else if(b.dataset.t != null){ pick = +b.dataset.t; draw(); }
-    else if(b.hasAttribute('data-ok')){ if(mode === 'team' && !(tById(teams[pick].id) && isOwner(tById(teams[pick].id)))){ o.remove(); return toast('That team is no longer available.', 'err'); } rgSet(evId(x), mode === 'solo' ? {type:'solo'} : {type:'team', team: teams[pick].name, tid: teams[pick].id}); reg[i] = true; o.remove(); drawEvents(); reshow(); toast('Registered' + (mode === 'solo' ? ' as Solo' : ' with team ' + teams[pick].name) + ' (demo)'); }
-  });
-  document.body.appendChild(o); draw();
-}
-function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated) && !reg[i] && hkUrl(lx.reg)) return lvOpen(lx); if(reg[i]){ reg[i] = false; rgSet(evId(EV[i]), null); drawEvents(); reshow(); toast('Registration cancelled'); } else rgChoose(i); }
+function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated) && hkUrl(lx.reg)) return lvOpen(lx); mrOpen(i); }
 /* ---------- Admin-managed hackathons: Firestore `manualHackathons` (rules: public reads published, only the admin/owner writes) ---------- */
 var MH = {docs: {}, un: null, mode: '', errMode: ''}, MHo = {uid: '', own: false};
 function mhDb(){ try{ return firebase.apps.length ? firebase.firestore() : null; }catch(e){ return null; } }
@@ -19560,6 +19577,7 @@ function tmPaint(){
   if(tmT) return;
   tmT = setTimeout(function(){
     tmT = 0; tmBuild(); drawMyTeam(); drawTeams(); tmBadge();
+    var sg = Object.keys(TM.mine).sort().join(',') + '|' + Object.keys(ER).sort().join(',') + '|' + Object.keys(TM.all).length; if(sg !== erSig){ erSig = sg; erChanged(); }   // registrations or my teams changed: redraw Events, event page and Home
     if(mtDash && mtM && !mtM.classList.contains('hidden')){
       var t = tById(mtDash.id), ed = document.activeElement && document.activeElement.closest && document.activeElement.closest('#mtEdit,.mt-role-cu');
       if(!t || !isOwner(t)) mtClose(); else if(!ed) dashRefresh();
@@ -19585,6 +19603,7 @@ function tmStart(uid){
   var db = fb(); if(!db) return; TM.uid = uid; TM.nfirst = true;
   tmLis('all', db.collection('teams').orderBy('createdAt', 'desc').limit(200), function(s){ TM.all = {}; s.docs.forEach(function(d){ TM.all[d.id] = d.data(); }); });
   tmLis('mine', db.collection('teams').where('memberUids', 'array-contains', uid), function(s){ TM.mine = {}; s.docs.forEach(function(d){ TM.mine[d.id] = d.data(); }); tmSyncMembers(db); });
+  tmLis('er', db.collection('eventRegistrations'), function(s){ ER = {}; s.docs.forEach(function(d){ ER[d.id] = d.data(); }); });
   tmLis('inc', db.collection('teamRequests').where('to', '==', uid), function(s){ TM.inc = s.docs.map(tmReq); });
   tmLis('out', db.collection('teamRequests').where('from', '==', uid), function(s){ TM.out = s.docs.map(tmReq); });
   tmLis('n', db.collection('teamNotifs').doc(uid).collection('items').orderBy('createdAt', 'desc').limit(30), function(s){
@@ -19596,7 +19615,7 @@ function tmStart(uid){
 }
 function tmStop(){
   TM.un.forEach(function(f){ try{ f(); }catch(e){} }); Object.keys(TM.mun).forEach(function(k){ try{ TM.mun[k](); }catch(e){} });
-  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}; tmPaint();
+  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}; ER = {}; tmPaint();
 }
 function tmTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id === TM.uid) return; tmStop(); if(id) tmStart(id); }
 var MT_KEY = 'csec_myteams', MT_SKILLS = ['React', 'Python', 'Node.js', 'UI/UX', 'Machine Learning', 'Flutter', 'Figma', 'C++', 'Firebase', 'Arduino'];
@@ -19609,6 +19628,7 @@ function mtToast(m){ toast(m); }
 function mtLogo(name, i){ return '<span class="cn-logo" style="--c:' + COL[i % COL.length] + '" aria-hidden="true">' + esc(String(name).trim().charAt(0).toUpperCase() || 'T') + '</span>'; }
 function mtChips(a){ return a.length ? '<div class="cn-chips">' + a.map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div>' : ''; }
 function mtLeader(name, i){ return '<div class="mt-lead">' + av(name, i, 'sm') + '<b>' + esc(name) + '</b><span class="mt-badge">' + ic('crown') + 'Team Leader</span></div>'; }
+function mtEvents(t){ var l = erTeam(t.id); if(!l.length) return ''; return '<div class="mt-evs"><span class="mt-evh">Registered for</span>' + l.map(function(d){ return '<button type="button" class="cn-chip mt-ev" data-mt-ev="' + esc(d.eventId) + '">🏆 ' + esc(d.eventTitle) + '</button>'; }).join('') + '</div>'; }
 function mtCreated(t, i){
   var n = cnt(t), pct = Math.min(100, Math.round(n / t.max * 100)), open = t.max - n, id = esc(t.id), pend = pendN(t);
   var st = full(t) ? '<span class="cn-chip mt-joined">Team full</span>' : t.open ? '<span class="mt-s mt-s-open mt-joined">Applications open</span>' : '<span class="mt-s mt-s-closed mt-joined">Applications closed</span>';
@@ -19616,7 +19636,7 @@ function mtCreated(t, i){
     ? '<p class="mt-warn" role="alert">Delete “' + esc(t.name) + '”? Its members and ' + (t.requests.length ? t.requests.length + ' request' + (t.requests.length === 1 ? '' : 's') : 'requests') + ' will be removed too. This cannot be undone.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-delok="' + id + '">Confirm delete</button><button class="cn-btn" type="button" data-mt-delno="1">Keep team</button>'
     : '<button class="cn-btn pri" type="button" data-ct-manage="' + id + '">Manage' + (pend ? '<span class="mt-dot" aria-label="' + pend + ' pending requests">' + pend + '</span>' : '') + '</button><button class="cn-btn" type="button" data-mt-view="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-del="' + id + '" aria-label="Delete team ' + esc(t.name) + '">Delete</button>';
   return '<article class="cn-card mt-card' + mtIn('c' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div>' + st + '</div>' +
-    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtLeader(t.owner, i) +
+    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members · ' + open + (open === 1 ? ' spot' : ' spots') + ' open' + (pend ? ' · ' + pend + ' pending' : '') + '</span></div>' +
     '<div class="cn-cta">' + acts + '</div></article>';
 }
@@ -19806,7 +19826,7 @@ function mtCustomJoined(t, i){
     ? '<p class="mt-warn" role="alert">Leave “' + esc(t.name) + '”? You can send a new request later if the team is still open.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-lvok="' + id + '">Confirm leave</button><button class="cn-btn" type="button" data-mt-lvno="1">Stay</button>'
     : waBtn(t) + '<button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
   return '<article class="cn-card mt-card' + mtIn('j' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div><span class="mt-s mt-s-accepted mt-joined">Joined</span></div>' +
-    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtLeader(t.owner, i) +
+    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members</span></div>' +
     '<div class="cn-cta">' + acts + '</div></article>';
 }
@@ -20027,7 +20047,7 @@ function initMyTeam(){
   mtM = document.createElement('div'); mtM.className = 'cn-modal hidden'; mtM.id = 'mtModal'; mtM.setAttribute('role', 'dialog'); mtM.setAttribute('aria-modal', 'true'); mtM.setAttribute('aria-labelledby', 'mtTitle'); $('.cn-shell').appendChild(mtM);
   try{ localStorage.removeItem('csec_myteams_joined'); }catch(e){}
   mtLoad();
-  mtc.addEventListener('click', function(e){ var b = e.target.closest('button'); if(b && b.dataset.tchat){ tcOpen(b.dataset.tchat); return; } if(b && !b.disabled) onAct(b); });
+  mtc.addEventListener('click', function(e){ var ev = e.target.closest('[data-mt-ev]'); if(ev){ var ix = -1; EV.forEach(function(z, n){ if(String(evId(z)) === ev.dataset.mtEv) ix = n; }); if(ix > -1) openEvent(ix); else toast('This event has ended or is no longer listed.'); return; } var b = e.target.closest('button'); if(b && b.dataset.tchat){ tcOpen(b.dataset.tchat); return; } if(b && !b.disabled) onAct(b); });
   var tt = $('#cnTteams'); if(tt) tt.addEventListener('click', function(e){ var b = e.target.closest('button'); if(b && !b.disabled && (b.dataset.ctVt || b.dataset.ctJoin || b.dataset.ctManage || b.dataset.mtNew)) onAct(b); });
   mtM.addEventListener('click', function(e){
     if(e.target === mtM) return mtClose();
@@ -20084,7 +20104,7 @@ sync();
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
 function evStart(x){ var d = new Date(now + x.off * D); d.setHours(0, 0, 0, 0); return d; }
 function evEnd(x){ var d = new Date(now + (x.ed != null ? x.ed : x.off) * D); d.setHours(23, 59, 59, 999); return d; }
-function evShape(o){ var t = Date.now(), x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0, registered:mrHas(x)}; }
+function evShape(o){ var t = Date.now(), x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0, registered:mrHas(x), teams:erMine(x).map(function(d){ return d.teamName; })}; }
 function liveEvents(){
   var t = Date.now();
   return EV.map(function(x, i){ return {x:x, i:i}; })
@@ -20092,7 +20112,13 @@ function liveEvents(){
     .sort(function(a, b){ return (evStart(a.x) - evStart(b.x)) || (evEnd(a.x) - evEnd(b.x)) || (a.i - b.i); });
 }
 function upcomingEvents(n){ return liveEvents().slice(0, n == null ? EV.length : n).map(evShape); }
-/* Events this student marked as registered (still running or upcoming), soonest first */
+/* Events that ended and that one of my teams was registered for, newest first (read from the registration record, so they stay even after the listing is gone) */
+function pastRegistered(n){
+  var t = Date.now(), by = {};
+  erAll().forEach(function(d){ if(!TM.mine[d.teamId] || !(d.endAt < t)) return; var e = by[d.ek] || (by[d.ek] = {title:d.eventTitle, kind:d.eventKind, dateLabel:d.dateLabel, end:d.endAt, teams:[]}); e.teams.push(d.teamName); });
+  return Object.keys(by).map(function(k){ return by[k]; }).sort(function(a, b){ return b.end - a.end; }).slice(0, n == null ? 3 : n);
+}
+/* Events one of my teams is registered for (still running or upcoming), soonest first */
 function registeredEvents(n){ return liveEvents().filter(function(o){ return mrHas(o.x); }).slice(0, n == null ? EV.length : n).map(evShape); }
 function openEvent(i){ go('events', null); if(EV[i]) eventModal(i); }
 function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
@@ -20116,7 +20142,7 @@ function leaveSettings(){ try{ if(window.clShell && clShell.closeSettings) clShe
     if(t.dataset.svr != null){ var i = +t.dataset.svr; bm[i] = false; persistSaved(); return drawEvents(); }
     if(t.dataset.svall){ leaveSettings(); showSaved(); } });
 })();
-window.cseConnect = { go:go, upcomingEvents:upcomingEvents, registeredEvents:registeredEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
+window.cseConnect = { go:go, upcomingEvents:upcomingEvents, registeredEvents:registeredEvents, pastRegistered:pastRegistered, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
 lvStart();
 try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   // Home may have rendered before Connect finished loading
 

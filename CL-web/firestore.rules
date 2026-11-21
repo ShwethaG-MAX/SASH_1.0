@@ -561,6 +561,31 @@ service cloud.firestore{
       allow create: if false;
     }
 
+    // ===================== EVENT REGISTRATIONS (Connect > Events: a team leader registers a team for an event) =====================
+    // One doc per (event, team): id = <eventKey>__<teamId>. Every signed-in student can read them (the event page lists the registered teams);
+    // only the team's current leader can create or delete one. Docs are never edited in place.
+    match /eventRegistrations/{id}{
+      allow read: if isStudent() || isOwner();
+      allow create: if isStudent()
+        && request.resource.data.keys().hasOnly(['eventId','ek','eventTitle','eventKind','endAt','dateLabel','teamId','teamName','leaderUid','leaderName','createdAt'])
+        && request.resource.data.eventId is string && request.resource.data.eventId.size()>0 && request.resource.data.eventId.size()<=200
+        && request.resource.data.ek is string && request.resource.data.ek.matches('^[A-Za-z0-9_.-]{1,120}$')
+        && request.resource.data.teamId is string && request.resource.data.teamId.size()>0 && request.resource.data.teamId.size()<=128
+        && id == request.resource.data.ek + '__' + request.resource.data.teamId
+        && request.resource.data.eventTitle is string && request.resource.data.eventTitle.size()<=160
+        && request.resource.data.eventKind is string && request.resource.data.eventKind.size()<=40
+        && request.resource.data.dateLabel is string && request.resource.data.dateLabel.size()<=60
+        && request.resource.data.endAt is number
+        && request.resource.data.teamName is string && request.resource.data.teamName.size()<=120
+        && request.resource.data.leaderName is string && request.resource.data.leaderName.size()<=60
+        && request.resource.data.leaderUid == request.auth.uid
+        && get(/databases/$(db)/documents/teams/$(request.resource.data.teamId)).data.leaderUid == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if request.auth!=null && (resource.data.leaderUid==request.auth.uid || isOwner()
+        || get(/databases/$(db)/documents/teams/$(resource.data.teamId)).data.leaderUid==request.auth.uid);
+    }
+
     // ===================== CONNECTIONS (Connect > Connections: Received / Sent / My Connections) =====================
     // Read-only for clients. Sending, answering, cancelling and removing go through the 'connections' Cloud Functions (Admin SDK).
     // A request is visible only to the student who sent it and the student it was sent to.
