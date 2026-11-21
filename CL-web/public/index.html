@@ -2690,6 +2690,22 @@ body.cn-modal-open #cnModeWrap{visibility:hidden}   /* the Connect tab bar must 
 .mt-f{display:grid;gap:0}
 .mt-f .cn-lbl .opt{text-transform:none;letter-spacing:0;font-weight:500;opacity:.8}
 .mt-help{margin:5px 0 0;font-size:.78rem;color:var(--muted)}
+.mt-form .cn-row{align-items:flex-start}
+.mt-pj-tog{margin-top:8px;justify-self:start;min-height:34px;padding:4px 14px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+.mt-pj-tog:hover{border-color:var(--cyan)}
+.mt-pj-tog:focus-visible,.mt-pj-it:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.mt-pj-box{margin-top:8px;border:1px solid var(--line);border-radius:14px;background:var(--bg2,var(--card));overflow:hidden}
+.mt-pj-box[hidden]{display:none}
+.mt-pj-sb{padding:8px;border-bottom:1px solid var(--line)}
+.mt-pj-sb .cn-in{min-height:40px;border-radius:999px}
+.mt-pj-n{margin:0;padding:6px 14px;font-size:.74rem;color:var(--muted)}
+.mt-pj-ls{max-height:240px;overflow:auto;overscroll-behavior:contain;display:grid;padding:0 6px 6px}
+.mt-pj-it{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:10px;background:transparent;color:var(--text);font:inherit;font-size:.86rem;cursor:pointer}
+.mt-pj-it:hover,.mt-pj-it.on{background:color-mix(in srgb,var(--cyan) 14%,transparent)}
+.mt-pj-it b{display:block;font-weight:600;overflow-wrap:anywhere}
+.mt-pj-it em{display:block;font-style:normal;font-size:.74rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-pj-it .mt-pj-end{flex:none;font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 8px}
+.mt-pj-empty{padding:14px;text-align:center;font-size:.85rem;color:var(--muted)}
 .mt-err{min-height:1em;margin:4px 0 0;font-size:.78rem;font-weight:600;color:var(--cn-red,#e5392d)}
 .mt-err:empty{display:none}
 .cn-in[aria-invalid="true"]{border-color:var(--cn-red,#e5392d)}
@@ -19691,10 +19707,37 @@ function mtClose(){
 function mtField(id, label, ctl, opt, help){ return '<div class="mt-f"><label class="cn-lbl" for="' + id + '">' + label + (opt ? ' <span class="opt">(optional)</span>' : '') + '</label>' + ctl + (help || '') + '<p class="mt-err" id="' + id + 'Err" aria-live="polite"></p></div>'; }
 /* Project / hackathon field: pick an event listed in Connect → Events, type your own, or leave it blank and set it later */
 var MT_TBD = 'To be decided';
+function mtPjAll(){
+  /* Every event in Connect → Events (same EV array the Events section draws), upcoming first, ended last. */
+  return EV.filter(function(x){ return x && x.t; }).sort(function(a, b){ var ea = lvEnded(a) ? 1 : 0, eb = lvEnded(b) ? 1 : 0; return ea - eb || (a.off - b.off) || String(a.t).localeCompare(String(b.t)); });
+}
+function mtPjHas(x, q){ return !q || [x.t, x.org, x.k, x.loc, x.venue, x.city, x.state, x.country, x.srcName].join(' ').toLowerCase().indexOf(q) > -1; }
+function mtPjDraw(id){
+  var ls = $('#' + id + 'Ls'); if(!ls) return;
+  var qEl = $('#' + id + 'Q'), q = qEl ? qEl.value.trim().toLowerCase() : '', cur = (($('#' + id) || {}).value || '').trim().toLowerCase();
+  var all = mtPjAll(), m = all.filter(function(x){ return mtPjHas(x, q); });
+  var n = $('#' + id + 'N'); if(n) n.textContent = q ? m.length + ' of ' + all.length + ' events' : all.length + (all.length === 1 ? ' event' : ' events');
+  var tg = $('#' + id + 'Tog'); if(tg) tg.textContent = 'Browse all events (' + all.length + ')';
+  ls.innerHTML = m.length ? m.map(function(x){
+    var meta = [x.k, x.loc].filter(Boolean).join(' · ');
+    return '<button type="button" class="mt-pj-it' + (String(x.t).trim().toLowerCase() === cur ? ' on' : '') + '" data-mt-pj="' + esc(id) + '" data-mt-pjid="' + esc(evId(x)) + '"><span><b>' + esc(x.t) + '</b><em>' + esc(meta) + '</em></span>' + (lvEnded(x) ? '<span class="mt-pj-end">Ended</span>' : '') + '</button>';
+  }).join('') : '<p class="mt-pj-empty">' + (all.length ? 'No events match your search.' : 'No events are listed yet.') + '</p>';
+}
+function mtPjRefresh(){ [].forEach.call(document.querySelectorAll('.mt-pj-box'), function(bx){ mtPjDraw(bx.dataset.pj); }); }
+function mtPjToggle(id){
+  var bx = $('#' + id + 'Box'), tg = $('#' + id + 'Tog'); if(!bx) return;
+  var open = bx.hidden; bx.hidden = !open; if(tg) tg.setAttribute('aria-expanded', String(open));
+  if(open){ mtPjDraw(id); var q = $('#' + id + 'Q'); if(q) q.focus(); }
+}
+function mtPjPick(id, evid){
+  var x = EV.filter(function(e){ return e && evId(e) === evid; })[0], f = $('#' + id); if(!x || !f) return;
+  f.value = String(x.t).trim().slice(0, 80); mtErr(id, ''); mtPjToggle(id); f.focus();
+}
 function mtProjCtl(id, val){
-  var seen = {}, opts = EV.filter(function(x){ return x && !lvEnded(x); }).map(function(x){ return String(x.t || '').trim().slice(0, 80); }).filter(function(t){ if(t.length < 2 || seen[t.toLowerCase()]) return false; seen[t.toLowerCase()] = 1; return true; }).slice(0, 150);
-  return '<input class="cn-in" id="' + id + '" maxlength="80" autocomplete="off" list="' + id + 'List" value="' + esc(val || '') + '" placeholder="Pick a listed event, type your own, or leave blank" aria-describedby="' + id + 'Err">' +
-    '<datalist id="' + id + 'List">' + opts.map(function(t){ return '<option value="' + esc(t) + '"></option>'; }).join('') + '</datalist>';
+  return '<input class="cn-in" id="' + id + '" maxlength="80" autocomplete="off" value="' + esc(val || '') + '" placeholder="Pick a listed event, type your own, or leave blank" aria-describedby="' + id + 'Err">' +
+    '<button type="button" class="mt-pj-tog" id="' + id + 'Tog" data-mt-pjtog="' + esc(id) + '" aria-expanded="false" aria-controls="' + id + 'Box">Browse all events (' + mtPjAll().length + ')</button>' +
+    '<div class="mt-pj-box" id="' + id + 'Box" data-pj="' + esc(id) + '" hidden><div class="mt-pj-sb"><input class="cn-in" type="search" id="' + id + 'Q" data-mt-pjq="' + esc(id) + '" autocomplete="off" placeholder="Search events by name, type or place" aria-label="Search events"></div>' +
+    '<p class="mt-pj-n" id="' + id + 'N" aria-live="polite"></p><div class="mt-pj-ls" id="' + id + 'Ls"></div></div>';
 }
 var MT_PROJ_HELP = '<p class="mt-help">Choose from the events listed in Connect → Events, type your own hackathon, or leave it blank and add it later.</p>';
 function mtFormHTML(){
@@ -20063,6 +20106,8 @@ function initMyTeam(){
     if(e.target === mtM) return mtClose();
     var b = e.target.closest('button'); if(!b || b.disabled) return; var d = b.dataset;
     if(d.mtClose) mtClose();
+    else if(d.mtPjtog){ mtPjToggle(d.mtPjtog); }
+    else if(d.mtPj){ mtPjPick(d.mtPj, d.mtPjid); }
     else if(d.mtSk){ mtAddSk(d.mtSk); var i = $('#mtSkIn'); if(i) i.focus(); }
     else if(d.mtRm != null){ mtSk.splice(+d.mtRm, 1); mtDrawSk(); var j = $('#mtSkIn'); if(j) j.focus(); }
     else if(d.mtStep){ var m = $('#mtMax'), v = parseInt(m.value, 10); if(isNaN(v)) v = 4; m.value = Math.max(2, Math.min(20, v + Number(d.mtStep))); mtErr('mtMax', ''); }
@@ -20083,14 +20128,15 @@ function initMyTeam(){
     if(t.dataset && t.dataset.mtRole != null){ if(t.value === '__custom'){ var cu = t.parentNode.querySelector('.mt-role-cu'); if(cu){ cu.classList.remove('hidden'); var ci = cu.querySelector('input'); if(ci) ci.focus(); } } else setRole(t.dataset.mtRole, t.value); return; }
     if(t.id === 'mtAgree'){ var s = $('#mtReq button[type=submit]'); if(s) s.disabled = !t.checked; if(t.checked) mtErr('mtAgree', ''); } });
   mtM.addEventListener('input', function(e){
-    var t = e.target; if(!t.id) return; if(t.id === 'mtEmail' || t.id === 'mtPhone' || t.id === 'mtWa' || t.id === 'mtEWa') mtErr(t.id, '');
+    var t = e.target; if(t.dataset && t.dataset.mtPjq){ mtPjDraw(t.dataset.mtPjq); return; } if(!t.id) return; if(t.id === 'mtEmail' || t.id === 'mtPhone' || t.id === 'mtWa' || t.id === 'mtEWa') mtErr(t.id, '');
     if(t.id === 'mtDesc'){ var c = $('#mtDescCnt'); if(c) c.textContent = t.value.length + ' / 600'; }
     if(t.id === 'mtSkIn' && t.value.indexOf(',') > -1){ var parts = t.value.split(','); t.value = parts.pop(); parts.forEach(function(x){ mtAddSk(x); }); }
     if(t.getAttribute('aria-invalid')) mtErr(t.id, '');
   });
   mtM.addEventListener('keydown', function(e){
     var t = e.target;
-    if(e.key === 'Enter' && t.dataset && t.dataset.mtRolein != null){ e.preventDefault(); if(t.value.trim()) setRole(t.dataset.mtRolein, t.value); }
+    if(e.key === 'Enter' && t.dataset && t.dataset.mtPjq){ e.preventDefault(); var fi = mtM.querySelector('.mt-pj-it[data-mt-pj="' + t.dataset.mtPjq + '"]'); if(fi) mtPjPick(t.dataset.mtPjq, fi.dataset.mtPjid); }
+    else if(e.key === 'Enter' && t.dataset && t.dataset.mtRolein != null){ e.preventDefault(); if(t.value.trim()) setRole(t.dataset.mtRolein, t.value); }
     else if(e.key === 'Enter' && t.id === 'mtSkIn'){ e.preventDefault(); if(mtAddSk(t.value)) t.value = ''; }
     else if(e.key === 'Backspace' && t.id === 'mtSkIn' && !t.value && mtSk.length){ mtSk.pop(); mtDrawSk(); }
     else if(t.dataset && t.dataset.mtTab && /^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key)){
@@ -20131,7 +20177,7 @@ function pastRegistered(n){
 /* Events one of my teams is registered for (still running or upcoming), soonest first */
 function registeredEvents(n){ return liveEvents().filter(function(o){ return mrHas(o.x); }).slice(0, n == null ? EV.length : n).map(evShape); }
 function openEvent(i){ go('events', null); if(EV[i]) eventModal(i); }
-function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
+function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ mtPjRefresh(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
 /* ---------- Settings → Saved: list of saved events / hackathons ---------- */
 function showSaved(){ ef.view = 'saved'; go('events', null); drawEvents(); }
 function renderSavedCard(){
