@@ -360,18 +360,27 @@ async function sendDeadlineReminders(ctx) {
 }
 
 /* ---------------- phone push text (FCM) ----------------
-   Only the NEW notification types are pushed from here (invites + reminders); request / accepted / rejected pushes already come from the Worker. */
-const PUSH_TYPES = ['invite', 'inviteAccepted', 'inviteDeclined', 'reminder'];
+   Pushed from here: invites, deadline/start reminders, join requests (to the leader) and removed / left / disbanded / transferred. Only 'accepted' (and connection requests) are still pushed by the Cloudflare Worker, so keep the Worker's teamNotifs.request line commented out or leaders get two pushes. */
+const PUSH_TYPES = ['invite', 'inviteAccepted', 'inviteDeclined', 'reminder', 'request', 'removed', 'left', 'disbanded', 'transferred'];
 function pushText(n) {
   n = n || {}; const t = n.teamName || 'a team', f = n.fromName || 'Someone';
   if (n.type === 'invite') return { title: '\uD83E\uDD1D Team invitation', body: `${f} invited you to join ${t}. Tap to accept or decline.` };
   if (n.type === 'inviteAccepted') return { title: '\uD83C\uDF89 Invite accepted', body: `${f} joined ${t}.` };
   if (n.type === 'inviteDeclined') return { title: 'Invite declined', body: `${f} declined your invite to ${t}.` };
+  if (n.type === 'request') return { title: '\uD83D\uDE4B New team join request', body: `${f} wants to join ${t}. Tap to review.` };
+  if (n.type === 'removed') return { title: '\u26A0\uFE0F Removed from team', body: `You were removed from ${t}.` };
+  if (n.type === 'left') return { title: '\uD83D\uDC4B Member left your team', body: `${f} left ${t}.` };
+  if (n.type === 'disbanded') return { title: '\uD83D\uDDD1\uFE0F Team disbanded', body: `${t} was disbanded.` };
+  if (n.type === 'transferred') return { title: '\uD83D\uDC51 You are now the team leader', body: `${f} made you the leader of ${t}.` };
   if (n.type === 'reminder') {
     const h = n.hoursLeft || 24, when = h <= 24 ? 'within 24 hours' : 'within 3 days', ev = n.eventTitle || 'your hackathon';
     return n.kind === 'start' ? { title: '\u23F0 Hackathon starting soon', body: `${ev} (${t}) starts ${when}.` } : { title: '\u23F0 Deadline coming up', body: `Registration for ${ev} (${t}) closes ${when}.` };
   }
   return null;
 }
+/* Where a tap lands inside Connect: join requests -> Requests tab, everything else -> Teams tab. */
+const pushSub = (n) => (n && n.type === 'request' ? 'requests' : 'teams');
+/* Android notification tag: a newer push with the same tag replaces the older one (reminders / invites keep their old tags). */
+const pushTag = (n) => (n.type === 'reminder' ? 'team_remind' : n.type === 'invite' ? 'team_invite' : 'team_' + n.type + '_' + String(n.teamId || '').slice(0, 40));
 
-module.exports = { PUSH_TYPES, pushText, inviteSend, inviteCancel, inviteDecide, sendDeadlineReminders, LIM, CoreError, cleanEmail, cleanPhone, cleanWa, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, setMemberRole, leaveTeam, transferLeader, reqId };
+module.exports = { PUSH_TYPES, pushText, pushSub, pushTag, inviteSend, inviteCancel, inviteDecide, sendDeadlineReminders, LIM, CoreError, cleanEmail, cleanPhone, cleanWa, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, setMemberRole, leaveTeam, transferLeader, reqId };

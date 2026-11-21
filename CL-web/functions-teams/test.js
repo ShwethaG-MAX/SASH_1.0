@@ -218,11 +218,18 @@ t('reminders: notify every member once per window, never twice', async () => {
 });
 
 t('push text: only invites and reminders are pushed from here', () => {
-  assert.ok(core.PUSH_TYPES.includes('invite') && core.PUSH_TYPES.includes('reminder') && !core.PUSH_TYPES.includes('accepted') && !core.PUSH_TYPES.includes('request'));
+  assert.ok(core.PUSH_TYPES.includes('invite') && core.PUSH_TYPES.includes('reminder') && !core.PUSH_TYPES.includes('accepted') && core.PUSH_TYPES.includes('request') && !core.PUSH_TYPES.includes('rejected'));
   assert.match(core.pushText({ type: 'invite', teamName: 'Squad', fromName: 'Alice' }).body, /Alice invited you to join Squad/);
   assert.match(core.pushText({ type: 'reminder', kind: 'deadline', hoursLeft: 24, eventTitle: 'SIH', teamName: 'Squad' }).body, /closes within 24 hours/);
   assert.match(core.pushText({ type: 'reminder', kind: 'start', hoursLeft: 72, eventTitle: 'SIH', teamName: 'Squad' }).title, /starting soon/);
   assert.strictEqual(core.pushText({ type: 'accepted' }), null);
+  assert.match(core.pushText({ type: 'request', teamName: 'Squad', fromName: 'Bob' }).body, /Bob wants to join Squad/);
+  assert.match(core.pushText({ type: 'removed', teamName: 'Squad' }).body, /removed from Squad/);
+  assert.match(core.pushText({ type: 'left', teamName: 'Squad', fromName: 'Bob' }).body, /Bob left Squad/);
+  assert.match(core.pushText({ type: 'disbanded', teamName: 'Squad' }).body, /Squad was disbanded/);
+  assert.match(core.pushText({ type: 'transferred', teamName: 'Squad', fromName: 'Alice' }).body, /Alice made you the leader of Squad/);
+  assert.strictEqual(core.pushSub({ type: 'request' }), 'requests');
+  assert.strictEqual(core.pushSub({ type: 'removed' }), 'teams');
 });
 
 (async () => { let ok = 0; for (const [n, f] of tests) { try { await f(); ok++; console.log('ok  ' + n); } catch (e) { console.error('FAIL ' + n + '\n  ' + (e && e.stack || e)); process.exitCode = 1; } } console.log(`${ok}/${tests.length} passed`); })();

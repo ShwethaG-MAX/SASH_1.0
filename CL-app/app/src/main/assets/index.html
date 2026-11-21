@@ -2579,6 +2579,7 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-sum{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:32px;font-size:.84rem;color:var(--muted);margin:0 2px 8px}
 .cn-link{border:0;background:none;color:var(--text);font:inherit;font-weight:600;font-size:.84rem;text-decoration:underline;cursor:pointer;min-height:32px;padding:0 4px}
 .cn-cta{display:flex;gap:8px;margin-top:auto}.cn-cta .cn-btn{flex:1}
+.cn-cta3{flex-wrap:wrap}.cn-cta3 .cn-btn{flex:1 1 calc(50% - 8px);min-width:0;white-space:nowrap}.cn-cta3 .cn-btn.cn-mr.done{background:color-mix(in srgb,#16a34a 16%,var(--card));border-color:#16a34a}
 .cn-logo{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:1.5rem;background:color-mix(in srgb,var(--c) 18%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
 .cn-stack{display:flex}.cn-stack .cn-av{margin-left:-8px;border:2px solid var(--card)}.cn-stack .cn-av:first-child{margin-left:0}
 .cn-memrow{display:flex;align-items:center;gap:10px;font-size:.84rem;color:var(--muted)}
@@ -2689,6 +2690,22 @@ body.cn-modal-open #cnModeWrap{visibility:hidden}   /* the Connect tab bar must 
 .mt-f{display:grid;gap:0}
 .mt-f .cn-lbl .opt{text-transform:none;letter-spacing:0;font-weight:500;opacity:.8}
 .mt-help{margin:5px 0 0;font-size:.78rem;color:var(--muted)}
+.mt-form .cn-row{align-items:flex-start}
+.mt-pj-tog{margin-top:8px;justify-self:start;min-height:34px;padding:4px 14px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+.mt-pj-tog:hover{border-color:var(--cyan)}
+.mt-pj-tog:focus-visible,.mt-pj-it:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.mt-pj-box{margin-top:8px;border:1px solid var(--line);border-radius:14px;background:var(--bg2,var(--card));overflow:hidden}
+.mt-pj-box[hidden]{display:none}
+.mt-pj-sb{padding:8px;border-bottom:1px solid var(--line)}
+.mt-pj-sb .cn-in{min-height:40px;border-radius:999px}
+.mt-pj-n{margin:0;padding:6px 14px;font-size:.74rem;color:var(--muted)}
+.mt-pj-ls{max-height:240px;overflow:auto;overscroll-behavior:contain;display:grid;padding:0 6px 6px}
+.mt-pj-it{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:10px;background:transparent;color:var(--text);font:inherit;font-size:.86rem;cursor:pointer}
+.mt-pj-it:hover,.mt-pj-it.on{background:color-mix(in srgb,var(--cyan) 14%,transparent)}
+.mt-pj-it b{display:block;font-weight:600;overflow-wrap:anywhere}
+.mt-pj-it em{display:block;font-style:normal;font-size:.74rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-pj-it .mt-pj-end{flex:none;font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 8px}
+.mt-pj-empty{padding:14px;text-align:center;font-size:.85rem;color:var(--muted)}
 .mt-err{min-height:1em;margin:4px 0 0;font-size:.78rem;font-weight:600;color:var(--cn-red,#e5392d)}
 .mt-err:empty{display:none}
 .cn-in[aria-invalid="true"]{border-color:var(--cn-red,#e5392d)}
@@ -3597,6 +3614,11 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 .hm-ev-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:5px;font-size:.74rem;color:var(--muted)}
 .hm-ev-k{padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--brown-dark,#A9835C) 32%,transparent);color:var(--brown-dark,#A9835C);font-weight:600}
 .hm-ev-go{display:grid;place-items:center;color:var(--muted)}
+.hm-ev-hint{margin:0 2px 8px;font-size:.78rem;color:var(--muted)}.hm-ev-past{opacity:.78;cursor:default}
+.mt-evs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0}.mt-evh{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.mt-ev{cursor:pointer;border:1px solid var(--line);background:var(--card);font:inherit}
+.hm-ev-sub{margin:10px 2px 6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.hm-ev-sub:first-child{margin-top:0}
+.hm-ev-ok{padding:1px 8px;border-radius:999px;background:color-mix(in srgb,#16a34a 16%,transparent);color:#15803d;font-weight:700}
+[data-theme="dark"] .hm-ev-ok{color:#4ade80}
 .hm-ev-go svg{width:16px;height:16px}
 
 /* Sheynix card: compact, centred character + one button (character, animations and chat are the existing ones) */
@@ -3909,6 +3931,13 @@ body #clProfile.pf-peer{--pa:#E16FFB !important;--po:#9D5EC9 !important;--pd:#55
 #cnEgrid .cn-ev{content-visibility:auto;contain-intrinsic-size:auto 520px}
 </style>
 
+<style id="cnNetworkDotMobile">
+/* Mobile bottom nav: the Network badge floats over the icon's top-right corner instead of being a flex item that pushed the icon/label down */
+@media (max-width:820px){
+  #cnModeWrap .mode-btn{position:relative}
+  #cnModeWrap .mode-btn .mt-dot{position:absolute;top:0;left:50%;margin:0 0 0 8px;min-width:16px;height:16px;padding:0 4px;font-size:.62rem;line-height:16px;box-shadow:0 0 0 2px var(--card);pointer-events:none}
+}
+</style>
 <style id="sectionSwitchPerf">
 /* Smooth Campus | Home | Connect switching: keep each pane's layout/paint isolated, promote only what animates */
 body[data-section] .sec-ind{will-change:transform,width}
@@ -4310,7 +4339,7 @@ html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-n
 <div id="av-chat"><div id="av-log" aria-live="polite"></div><div class="av-chips"></div><form id="av-form" autocomplete="off"><input id="av-in" type="text" placeholder="Ask about your classes, tasks…" aria-label="Ask your guide"><button id="av-send" type="submit" aria-label="Send">🔥</button></form></div>
 </section>
       <section class="hm-card hm-dcard hm-events" id="hmEventsCard" aria-labelledby="hmEventsTitle">
-        <header class="hm-dhead"><h2 class="hm-dtitle" id="hmEventsTitle"><span class="hm-dico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Upcoming Events</h2></header>
+        <header class="hm-dhead"><h2 class="hm-dtitle" id="hmEventsTitle"><span class="hm-dico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Your Events</h2></header>
         <div class="hm-dmeta">From Connect → Events</div>
         <div class="hm-dbody" id="hmEventsList" aria-live="polite"></div>
         <div class="hm-dfoot"><button type="button" class="hm-dlink" id="hmEventsAll">View All Events <span aria-hidden="true">→</span></button></div>
@@ -5705,7 +5734,7 @@ const TOUR_STEPS = [
   {type:'mode-navigation', icon:'🏠', title:'Home', mode:'home', target:()=>tq('#secBtnHome'), text:'Your main dashboard, shared by Campus and Connect.'},
   {type:'feature', icon:'📚', title:'Next Classes', mode:'home', target:()=>tq('#hmNextCard'), text:'Your next classes from your own timetable, with time, room and faculty. The class in progress is highlighted and the list updates as the day goes on.'},
   {type:'feature', icon:'✨', title:'Sheynix', mode:'home', target:()=>tq('#living-avatar'), text:'Your study companion. Tap <b>Talk to Sheynix</b> to ask about your classes, tasks, calendar or attendance.'},
-  {type:'feature', icon:'📅', title:'Upcoming Events', mode:'home', target:()=>tq('#hmEventsCard'), text:'The next three events from <b>Connect → Events</b>. Tap one to open its details, or use <b>View All Events</b>.'},
+  {type:'feature', icon:'📅', title:'Your Events', mode:'home', target:()=>tq('#hmEventsCard'), text:'The next three events from <b>Connect → Events</b>. Tap one to open its details, or use <b>View All Events</b>.'},
   /* Schedule */
   {type:'mode-navigation', icon:'🗓️', title:'Schedule', mode:'schedule', target:()=>tq('#modeScheduleBtn'), text:'Your timetable, event calendar, tasks and attendance all live together here.'},
   {type:'feature', icon:'🗒️', title:'Timetable', mode:'schedule', target:()=>{schSetTab('timetable');const d=tq('#ttDesktop'),m=tq('#ttMobile');return tVis(d)?d:m;}, text:'This is your class schedule. Lab slots change with Batch 1 / Batch 2.'},
@@ -8558,18 +8587,31 @@ function renderHomeEvents(){
   if(!box) return;
   const api = window.cseConnect;
   if(!api || typeof api.upcomingEvents !== 'function'){ box.innerHTML = '<div class="hm-empty"><p>Loading events…</p></div>'; return; }
-  let list = [];
-  try{ list = api.upcomingEvents(3) || []; }catch(e){ console.warn('[Home] events unavailable', e); }
-  if(!list.length){ box.innerHTML = hmEmpty('cal', 'No upcoming events', 'New hackathons, workshops and fests from Connect will show up here.'); return; }
-  box.innerHTML = list.map(ev => {
+  let reg = [], up = [], past = [];
+  try{
+    reg = typeof api.registeredEvents === 'function' ? (api.registeredEvents(5) || []) : [];
+    past = typeof api.pastRegistered === 'function' ? (api.pastRegistered(3) || []) : [];
+    const regIds = new Set(reg.map(e => e.id));
+    up = (api.upcomingEvents() || []).filter(e => !regIds.has(e.id)).slice(0, 3);   // registered ones are listed above, not twice
+  }catch(e){ console.warn('[Home] events unavailable', e); }
+  if(!reg.length && !up.length && !past.length){ box.innerHTML = hmEmpty('cal', 'No upcoming events', 'New hackathons, workshops and fests from Connect will show up here.'); return; }
+  const row = (ev, isReg) => {
     const d = ev.start instanceof Date ? ev.start : new Date(ev.start);
     const pill = ev.ongoing ? '<b>Now</b><small>On</small>' : `<b>${d.getDate()}</b><small>${d.toLocaleDateString(undefined, {month:'short'})}</small>`;
-    return `<button type="button" class="hm-ev" data-hm-ev="${ev.id}" aria-label="${hmEsc(ev.title)}, ${hmEsc(ev.dateLabel)}${ev.kind ? ', ' + hmEsc(ev.kind) : ''}. Open details">
+    const tm = isReg && ev.teams && ev.teams.length ? `<span>${hmEsc(ev.teams.join(', '))}</span>` : '';
+    return `<button type="button" class="hm-ev${isReg ? ' hm-ev-reg' : ''}" data-hm-ev="${ev.id}" aria-label="${hmEsc(ev.title)}, ${hmEsc(ev.dateLabel)}${ev.kind ? ', ' + hmEsc(ev.kind) : ''}${isReg ? ', registered' : ''}. Open details">
       <span class="hm-ev-date" aria-hidden="true">${pill}</span>
       <span class="hm-ev-info"><span class="hm-ev-t">${hmEsc(ev.title)}</span>
-        <span class="hm-ev-m">${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span></span></span>
+        <span class="hm-ev-m">${isReg ? '<span class="hm-ev-ok">✓ Registered</span>' : ''}${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span>${tm}</span></span>
       <span class="hm-ev-go" aria-hidden="true">${HM_IC.chev}</span></button>`;
-  }).join('');
+  };
+  const prow = ev => `<div class="hm-ev hm-ev-past"><span class="hm-ev-date" aria-hidden="true"><b>✓</b><small>Done</small></span>
+      <span class="hm-ev-info"><span class="hm-ev-t">${hmEsc(ev.title)}</span>
+        <span class="hm-ev-m">${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span><span>${hmEsc(ev.teams.join(', '))}</span></span></span></div>`;
+  box.innerHTML =
+    (reg.length ? `<div class="hm-ev-sub">Registered</div>${reg.map(e => row(e, true)).join('')}` : '<p class="hm-ev-hint">Events your team registers for appear here. Tap “Mark as registered” on an event.</p>') +
+    (up.length ? (reg.length ? '<div class="hm-ev-sub">Upcoming</div>' : '') + up.map(e => row(e, false)).join('') : '') +
+    (past.length ? `<div class="hm-ev-sub">Past events</div>${past.map(prow).join('')}` : '');
 }
 function renderHome(){
   renderNextClasses();
@@ -18195,6 +18237,28 @@ setInterval(function(){
 })();
 </script>
 
+<style id="teamHubCss">
+.hk-ov{z-index:9600}.hk-box{max-width:660px;padding:18px}
+.hk-hd{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin-bottom:6px}.hk-hd h3{margin:0}.hk-hd p{margin:2px 0 0}
+.hk-x{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:1.3rem;line-height:1;cursor:pointer}
+.hk-c{border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;background:color-mix(in srgb,var(--card) 94%,#9D5EC9)}
+.hk-c h4{margin:0 0 6px;font-size:1.05rem}.hk-c .cn-sub{margin:14px 0 6px}
+.hk-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.hk-res.won{background:color-mix(in srgb,#f59e0b 24%,var(--card))}.hk-res.finalist{background:color-mix(in srgb,#9D5EC9 22%,var(--card))}
+.hk-dates{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:.88rem}.hk-dates li{display:flex;gap:8px}.hk-dates b{min-width:92px;color:var(--muted);font-weight:600}
+.hk-links{display:flex;flex-wrap:wrap;gap:8px}.hk-link{display:inline-block;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--text);font-size:.84rem;font-weight:600;text-decoration:none}
+.hk-lw{display:inline-flex;align-items:center;gap:2px}.hk-mut{color:var(--muted);font-size:.82rem}
+.hk-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.hk-add .cn-in{flex:1 1 140px;min-width:0}.hk-add .cn-btn{flex:none}
+.hk-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}.hk-it{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.hk-it label{display:flex;gap:8px;align-items:center;flex:1 1 180px;min-width:0;cursor:pointer}.hk-it.done label span{text-decoration:line-through;color:var(--muted)}
+.hk-w{flex:0 1 150px;min-width:0;padding:6px 8px;min-height:34px}
+.hk-rm{width:28px;height:28px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer}.hk-rm:hover{color:#dc2626}
+.hk-bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden}.hk-bar i{display:block;height:100%;background:#16a34a;border-radius:999px;transition:width .3s}
+.hk-c textarea{width:100%;min-height:70px;resize:vertical}
+.hk-f{margin:12px 0}.hk-f label{display:block;font-weight:600;font-size:.86rem;margin-bottom:4px}.hk-f textarea{width:100%;min-height:64px}
+.hk-btns{display:flex;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}.hk-btns .cn-btn{min-width:84px}
+.hk-soon{display:grid;gap:4px;margin:12px 0;padding:12px 14px;border-radius:16px;border:1px solid #f59e0b;background:color-mix(in srgb,#f59e0b 14%,var(--card))}
+.hk-sn{text-align:left;background:none;border:0;color:inherit;font:inherit;font-size:.88rem;cursor:pointer;padding:4px 0}.hk-sn span{color:var(--muted)}
+</style>
 <script id="connectJs">
 /* Connect — Posting, Teams, Discover (Articles + Events).
    Find people lists real students from Firestore (publicProfiles: name, year, branch of every signed-in, non-guest student).
@@ -18538,10 +18602,31 @@ function lvSync(manual){
     LIVE.had = true;
   });
 }
+/* Ended events leave the list on their own. Day offsets are recalculated, whatever is over is removed (a manual listing stays only
+   while one of my teams is registered for it), and the position-keyed state (saved, registered, open popup) is re-mapped by event id. */
+var EV_DAY = '';
+function evPrune(){
+  try{
+    if(!EV.length) return;
+    var day = new Date().toDateString(), rolled = day !== EV_DAY; EV_DAY = day;
+    EV.forEach(function(x){ try{ if(x && x.iso && x.iso.date) lvDates(x); }catch(e){} });
+    var drop = EV.filter(function(x){ return !x || (lvEnded(x) && !(x.manual && mrHas(x))); });
+    if(drop.length){
+      var sv = {}, rg = {}, cid = cur && cur.t === 'e' && EV[cur.i] ? evId(EV[cur.i]) : '';
+      EV.forEach(function(x, i){ if(!x) return; if(bm[i]) sv[evId(x)] = 1; if(reg[i]) rg[evId(x)] = 1; });
+      EV = EV.filter(function(x){ return drop.indexOf(x) < 0; });
+      bm = {}; reg = {}; EV.forEach(function(x, i){ var id = evId(x); if(sv[id]) bm[i] = true; if(rg[id]) reg[i] = true; });
+      if(cid){ var k = -1; EV.forEach(function(x, i){ if(evId(x) === cid) k = i; }); cur = k < 0 ? null : {t:'e', i:k}; }
+    }
+    if(drop.length || rolled) eventsChanged();
+  }catch(e){ console.warn('[Events] prune failed', e); }
+}
 function lvStart(){
   try{ var hc = JSON.parse(localStorage.getItem('csec_live_health') || 'null'); if(hc){ LIVE.health = hc.h || []; LIVE.feedHealth = hc.f || []; } }catch(e){}
   setTimeout(function(){ lvSync(false); }, 1500);
   setInterval(function(){ if(!document.hidden) lvSync(false); }, LV_POLL);
+  setInterval(function(){ if(!document.hidden) evPrune(); }, 6e4);   // ended events drop out within a minute
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) evPrune(); });
   document.addEventListener('visibilitychange', function(){ if(!document.hidden && Date.now() - LIVE.tried > LV_POLL) lvSync(false); });
   window.addEventListener('online', function(){ if(LIVE.st === 'error') lvSync(false); });
 }
@@ -18846,7 +18931,7 @@ function personCard(x){
   var p = x.p, k = x.k, w = P.skills, mine = !!p[7] && p[7] === myUid();
   var meta = [p[9] ? '@' + esc(p[9]) : '', yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
   return '<article class="cn-urow">' + av(p[0], k, '', p[8]) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
-   (mine ? '' : connBtn(k, 'data-k')) + '</article>';
+   (mine ? '' : '<span class="hk-btns">' + ivBtn(k) + connBtn(k, 'data-k') + '</span>') + '</article>';
 }
 var pSkSig = null;
 function fltN(id, n){ var e = document.getElementById(id); if(e) e.textContent = n ? n + ' active' : ''; }
@@ -18910,7 +18995,7 @@ function drawTeams(){
   $('#cnTsum').innerHTML = all ? '<span>' + tot + ' ' + (tot === 1 ? 'team' : 'teams') + (T.q ? ' for “' + esc(T.q) + '”' : '') + (T.chips.length ? ' with ' + T.chips.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '') : '';
   $('#cnTgrid').innerHTML = (TM.uid && !TM.ok.all && !TM.err && !crows.length) ? mtSkel(3) : crows.map(ctCard).join('');
   $('#cnTempty').innerHTML = tot ? '' : (all ? empty('🧩', 'No teams found', 'Try a different skill, or search by another keyword.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>')
-    : '');
+    : empty('\ud83e\udde9', 'No teams yet', 'Be the first: create a team for a hackathon, then invite people from Find people. Or check back soon to join one.', '<button class="cn-btn pri" type="button" data-hk-new="1">Create a team</button> <button class="cn-btn" type="button" data-hk-go="events">Browse events</button>'));
   fltN('cnTfn', T.chips.length);
   if(typeof drawReqs === 'function') drawReqs();
 }
@@ -18936,7 +19021,7 @@ function rqIn(x){
     ? '<p class="mt-warn" role="alert">Reject ' + esc(r.name) + '’s request? They will see it as rejected.</p><div class="cn-row"><button class="cn-btn mt-btn-danger pri" type="button" data-rq-rejok="' + key + '">Confirm reject</button><button class="cn-btn" type="button" data-rq-rejno="1">Keep pending</button></div>'
     : '<div class="cn-row"><button class="cn-btn pri" type="button" data-rq-acc="' + key + '"' + (full(t) ? ' disabled title="Team is full"' : '') + '>Accept</button><button class="cn-btn mt-btn-danger" type="button" data-rq-rej="' + rid + '">Reject</button></div>' + (full(t) ? '<p class="mt-help" style="margin:0">The team is full. Remove a member or raise the limit in Manage Team.</p>' : '');
   return '<article class="cn-card rq-card' + (r.status !== 'pending' ? ' done' : '') + '"><div class="mt-ph">' + av(r.name, x.i, 'sm') + '<div><b>' + esc(r.name) + '</b><small>' + pLine(r) + '</small></div>' + stChip(r.status) + '</div>' +
-    '<div class="rq-team">' + mtLogo(t.name, x.i) + '<span>Request to join <b>' + esc(t.name) + '</b>' + (t.project ? ' · ' + esc(t.project) : '') + '</span></div>' +
+    '<div class="rq-team">' + mtLogo(t.name, x.i) + '<span>Request to join <b>' + esc(t.name) + '</b>' + (t.project ? ' · ' + esc(mtProjOf(t)) : '') + '</span></div>' +
     ((r.skills && r.skills.length) ? mtChips(r.skills) : '') + contactHTML(r) + (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
     '<small class="mt-cap" style="margin:0">Requested ' + ago(r.at) + (r.at2 ? ' · ' + r.status + ' ' + ago(r.at2) : '') + '</small>' + acts + '</article>';
 }
@@ -19021,7 +19106,7 @@ function evCard(x, i){
    '<button type="button" class="cn-bm" data-bm="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + ': ' + esc(x.t) + '">' + ic('bookmark') + '</button><span class="cn-lab">' + esc(x.k) + '</span></div>' +
    '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip' + (x.mode === 'tbv' ? ' cn-tbv' : '') + '">' + ic(x.mode === 'online' ? 'monitor' : 'pin') + modeLbl(x.mode) + '</span>' + (lvGeoLbl(x) ? '<span class="cn-chip cn-geo ' + lvGeo(x).t + '">' + esc(lvGeoLbl(x)) + '</span>' : '') + lvBadge(x) + x.tags.slice(0, 1).map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
    '<h3><button type="button" class="cn-tl" data-e="' + i + '">' + esc(x.t) + '</button></h3><div class="cn-org"><span class="cn-om" aria-hidden="true">' + esc(ini) + '</span>' + esc(x.org) + '</div>' + (lvPlain(x.d) ? '<p class="cn-desc">' + esc(lvPlain(x.d)) + '</p>' : '') + dlHtml(d) + metaHtml(x) + lvMoreFacts(x) +
-   (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : x.live && hkUrl(x.reg) ? 'Register ↗' : 'Register') + '</button></div>') + '</div></article>';
+   '<div class="cn-cta cn-cta3">' + (closed ? '' : '<button class="cn-btn" type="button" data-e="' + i + '">View Details</button>') + mrBtn(i) + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : x.live && hkUrl(x.reg) ? 'Register ↗' : 'Register') + '</button>') + '</div></div></article>';
 }
 function updates(){
   var l = [];
@@ -19039,15 +19124,15 @@ function lvPager(id, pg, pages){
   return h + '<button type="button" class="cn-pgb" data-pgsec="' + id + '" data-pg="' + (pg + 1) + '"' + (pg === pages ? ' disabled' : '') + ' aria-label="Next page">Next \u203a</button></nav>';
 }
 function drawEvents(){
-  var saved = ef.view === 'saved';
+  var regv = ef.view === 'registered', saved = ef.view === 'saved' || regv;
   var sig = [ef.q, ef.kind, ef.dom, ef.st, ef.area, ef.view].join('|'); if(ef._sig !== sig){ ef._sig = sig; ef.pg = {}; }
-  var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return !saved || bm[o.i]; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
+  var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return regv ? mrHas(o.x) : !lvEnded(o.x) && (!saved || bm[o.i]); }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
   var ac = {}, kc = {}; LV_AREAS.forEach(function(a){ ac[a[0]] = all.filter(function(o){ return lvArea(o.x, a[0]); }).length; });
   base.forEach(function(o){ kc[o.x.k] = (kc[o.x.k] || 0) + 1; });
   /* Search covers event name, college/organiser, city, state, venue and technology domain. */
   var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!ef.dom || lvDoms(x).indexOf(ef.dom) > -1) && lvPass(x, ef.st) && (!q || [x.t, x.org, x.k, x.d, x.loc, x.venue || '', x.city || '', x.state || '', x.country || '', lvGeo(x).place || '', (x.tags || []).join(' '), (x.themes || []).join(' '), lvDoms(x).join(' '), x.srcName || ''].join(' ').toLowerCase().indexOf(q) > -1); });
   var up = [];   /* Updates card removed from Events */
-  $('#cnEview').innerHTML = [['all', 'All events', EV.length], ['saved', 'Saved', savedCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
+  $('#cnEview').innerHTML = [['all', 'All events', EV.filter(function(x){ return !lvEnded(x); }).length], ['saved', 'Saved', savedCount()], ['registered', 'Registered', registeredCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
   $('#cnEupd').innerHTML = up.length ? '<div class="cn-card cn-upd"><h3>' + ic('clock') + 'Updates</h3>' + up.map(function(u){ return '<button type="button" data-e="' + u.i + '">' + ic(u.ic) + '<span><b>' + esc(u.t) + '</b><em>' + u.s + '</em></span></button>'; }).join('') + '</div>' : '';
   $('#cnEmode').innerHTML = LV_AREAS.map(function(m){ return '<button type="button" data-ea="' + m[0] + '" aria-pressed="' + (ef.area === m[0]) + '">' + m[1] + '<span class="n">' + ac[m[0]] + '</span></button>'; }).join('');
   var ceb = $('#cnEchips .cn-chipbar'), csl = ceb ? ceb.scrollLeft : 0;
@@ -19056,7 +19141,7 @@ function drawEvents(){
   var dsel = $('#cnEdom'); if(dsel){ var dc = {}; base.forEach(function(o){ lvDoms(o.x).forEach(function(t){ dc[t] = (dc[t] || 0) + 1; }); }); var dl_ = LV_DOMAINS.map(function(z){ return z[0]; }).filter(function(t){ return dc[t]; }); if(ef.dom && dl_.indexOf(ef.dom) < 0) dl_.push(ef.dom);
     dsel.innerHTML = '<option value="">All domains</option>' + dl_.map(function(t){ return '<option value="' + esc(t) + '"' + (ef.dom === t ? ' selected' : '') + '>' + esc(t) + ' (' + (dc[t] || 0) + ')</option>'; }).join(''); }
   var any = ef.q || ef.kind || ef.dom || ef.st || ef.area !== 'all';
-  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span><span id="cnElive">' + lvStatusHtml() + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
+  $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (regv ? 'registered ' : saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span><span id="cnElive">' + lvStatusHtml() + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
   var hb = $('#cnEhealth'); if(hb) hb.innerHTML = ef.health ? '<div class="cn-card cn-hlbox"><h3>' + ic('flag') + 'Event sources</h3>' + lvHealthHtml() + '</div>' : '';
   /* Sections in strict order: Mysuru, nearby, Karnataka, rest of India, online, to verify, international. */
   var groups = {}; LV_TIERS.forEach(function(t){ groups[t[0]] = []; });
@@ -19075,8 +19160,8 @@ function drawEvents(){
         (lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
   });
   $('#cnEgrid').innerHTML = html + (l.length && !saved ? '<div class="cn-evsec cn-discall"><div class="cn-evsec-h"><div><h3>Browse more hackathons</h3><p>Official listing pages, including sites without a live feed.</p></div></div>' + lvDiscHtml(LV_DISCOVER.local.concat(LV_DISCOVER.india, LV_DISCOVER.world.slice(0, 1).concat(LV_DISCOVER.online.slice(1, 2)))) + '</div>' : '');
-  $('#cnEempty').innerHTML = l.length ? '' : saved && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
-    empty(saved ? '🔖' : '📅', saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. Check back soon.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
+  $('#cnEempty').innerHTML = l.length ? '' : regv && !registeredCount() ? empty('✅', 'No registered events yet', 'Register on an event’s official page, then tap “Mark as registered” and pick the team you lead. Registered events get deadline reminders and a team checklist.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') : ef.view === 'saved' && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
+    empty(regv ? '✅' : saved ? '🔖' : '📅', regv ? 'No registered events match' : saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. New hackathons appear here as soon as they are found. Meanwhile you can find teammates or start a team so you are ready.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '<div class="cn-row" style="justify-content:center;flex-wrap:wrap"><button class="cn-btn pri" type="button" data-hk-go="people">Find people</button><button class="cn-btn" type="button" data-hk-new="1">Create a team</button></div>');
 }
 function evSec(t, h){ return '<div><div class="cn-sub">' + t + '</div>' + h + '</div>'; }
 function evFact(l, v){ return v ? '<div class="cn-fact"><span>' + l + '</span><b>' + esc(v) + '</b></div>' : ''; }
@@ -19165,7 +19250,7 @@ function eventModalOld(i){
    (x.perks && x.perks.length ? evSec('What you get', '<ul class="cn-ul">' + x.perks.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>') : '') +
    (x.rules && x.rules.length ? evSec('Rules and requirements', '<ul class="cn-ul">' + x.rules.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>') : '') +
    (x.contact ? evSec('Contact', '<p class="cn-about"><a href="mailto:' + esc(x.contact) + '">' + esc(x.contact) + '</a></p>') : '') +
-   '<div class="cn-row cn-actions">' + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-mreg="' + i + '">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register Now') + '</button>') + '<button class="cn-btn" type="button" data-msave="' + i + '">' + (bm[i] ? '🔖 Saved' : 'Save Event') + '</button><button class="cn-btn" type="button" data-mteam="' + i + '">Find Teammates</button>' + (x.url ? '<a class="cn-btn" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">Official Website ↗</a>' : '') + '<button class="cn-btn" type="button" data-mshare="' + i + '">Share</button></div><span class="cn-demo">Demo: registration is not sent anywhere.</span></div>', 'e', i);
+   '<div class="cn-row cn-actions">' + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-mreg="' + i + '">' + (reg[i] ? '✓ Registered (tap to undo)' : 'Register Now') + '</button>') + '<button class="cn-btn" type="button" data-msave="' + i + '">' + (bm[i] ? '🔖 Saved' : 'Save Event') + '</button><button class="cn-btn" type="button" data-mteam="' + i + '">Find Teammates</button>' + (x.url ? '<a class="cn-btn" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">Official Website ↗</a>' : '') + '<button class="cn-btn" type="button" data-mshare="' + i + '">Share</button></div></div>', 'e', i);
   $('#cnModal').setAttribute('aria-labelledby', 'cnMt'); $('#cnModal .cn-card').classList.add('cn-wide');
 }
 /* ---- Event detail page (full-screen, responsive) ---- */
@@ -19175,12 +19260,12 @@ function evIcs(i){ var x = EV[i], st = new Date(now + x.off * D), en = new Date(
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], {type: 'text/calendar'})); a.download = evId(x) + '.ics'; document.body.appendChild(a); a.click(); a.remove(); }
 function evPage(i){
   var x = EV[i], d = dlInfo(x), closed = d.k === 'closed', sp = {}; try{ sp = hkSplit(x) || {}; }catch(e){}
-  var id = evId(x), ov = document.getElementById('evPage'), keep = ov ? ov.scrollTop : 0, rg = rgAll()[id];
+  var id = evId(x), ov = document.getElementById('evPage'), keep = ov ? ov.scrollTop : 0, rgm = erMine(x);
   if(!ov){ ov = document.createElement('div'); ov.id = 'evPage'; ov.className = 'ep'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov);
     ov.addEventListener('click', function(e){ var b = e.target.closest('[data-ep]'); if(!b || cur == null) return; var j = cur.i, a = b.dataset.ep;
-      if(a === 'back') epClose(); else if(a === 'reg') toggleReg(j); else if(a === 'save') toggleSave(j); else if(a === 'share') shareEv(j);
+      if(a === 'back') epClose(); else if(a === 'reg') toggleReg(j); else if(a === 'mark') toggleMr(j); else if(a === 'save') toggleSave(j); else if(a === 'share') shareEv(j);
       else if(a === 'int'){ evFlag('csec_ev_interested', evId(EV[j]), !evFlag('csec_ev_interested', evId(EV[j]))); reshow(); }
-      else if(a === 'rem'){ var on = !evFlag('csec_ev_remind', evId(EV[j])); evFlag('csec_ev_remind', evId(EV[j]), on); toast(on ? 'Reminder set (demo, this device)' : 'Reminder removed'); reshow(); }
+      else if(a === 'rem'){ var on = !evFlag('csec_ev_remind', evId(EV[j])); evFlag('csec_ev_remind', evId(EV[j]), on); toast(on ? 'Reminder set on this device' : 'Reminder removed'); reshow(); }
       else if(a === 'cal') evIcs(j);
       else if(a === 'mates'){ epClose(); go('teams', 'people'); }
       else if(a === 'newteam'){ epClose(); go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); } });
@@ -19205,8 +19290,9 @@ function evPage(i){
   var links = []; if(x.reg) links.push(['Official registration page', x.reg]); if(x.url && lvUrlKey(x.url) !== lvUrlKey(x.reg)) links.push(['Official website', x.url]);
   (x.sources || []).forEach(function(s){ if(s.url && !links.some(function(k){ return lvUrlKey(k[1]) === lvUrlKey(s.url); })) links.push(['Listed on ' + s.name, s.url]); });
   var linkHtml = links.map(function(l){ var h = ''; try{ h = new URL(l[1]).hostname; }catch(e){} return '<a class="ep-link" href="' + esc(l[1]) + '" target="_blank" rel="noopener noreferrer"><span><b>' + l[0] + '</b><small>' + esc(h) + '</small></span>↗</a>'; }).join('');
-  var teamsReg = []; try{ var rs = rgAll(); myTeams.forEach(function(t){ if(rs[id] && rs[id].tid === t.id) teamsReg.push(t); }); }catch(e){}
-  var teamsHtml = teamsReg.length ? teamsReg.map(function(t){ return '<div class="ep-team"><b>' + esc(t.name) + '</b><small>' + (1 + (t.members || []).length) + ' members · registered</small></div>'; }).join('') : '<p class="ep-mute">No teams have registered for this event yet.</p>';
+  var teamsReg = erFor(x).sort(function(p, q){ return tms(p.createdAt) - tms(q.createdAt); });
+  var teamsHtml = teamsReg.length ? teamsReg.map(function(d){ var tm = TM.all[d.teamId] || TM.mine[d.teamId] || {}, n = tm.memberCount || 1, mine = !!TM.mine[d.teamId];
+    return '<div class="ep-team"><b>' + esc(d.teamName) + (mine ? ' <em>· your team</em>' : '') + '</b><small>' + n + (tm.maxMembers ? ' / ' + tm.maxMembers : '') + ' member' + (n === 1 ? '' : 's') + ' · led by ' + esc(d.leaderName || 'a student') + '</small></div>'; }).join('') : '<p class="ep-mute">No teams have registered for this event yet.</p>';
   var inter = evFlag('csec_ev_interested', id), rem = evFlag('csec_ev_remind', id);
   var banStyle = x.img ? ' style="background-image:url(' + esc(x.img) + ');background-position:' + esc(x.pos || 'center') + '"' : '';
   ov.innerHTML = '<div class="ep-bar"><button type="button" data-ep="back">← All opportunities</button></div><div class="ep-wrap">' +
@@ -19214,9 +19300,9 @@ function evPage(i){
    '<div class="ep-hb"><div class="ep-logo">' + logo + '</div><div class="ep-chips">' + chip(ic(x.mode === 'online' ? 'monitor' : 'pin') + esc(modeLbl(x.mode)), 'alt') + chip(esc(x.k || 'Event')) + lvBadge(x, 1) + tags.slice(0, 4).map(function(t){ return chip(esc(t)); }).join('') + '</div>' +
    '<h1>' + esc(x.t) + '</h1><div class="ep-org">Organised by <b>' + esc(x.org || 'Campus Loop') + '</b></div>' +
    '<div class="ep-dl ' + d.k + '">' + ic('flag') + '<b>' + esc(d.l) + '</b>' + (d.s ? '<em>' + esc(d.s) + '</em>' : '') + '</div>' +
-   (rg ? '<div class="ep-reg">✓ You are registered · ' + (rg.type === 'team' ? 'Team: ' + esc(rg.team) : 'Solo') + '</div>' : '') +
+   (rgm.length ? '<div class="ep-reg">✓ Registered · Team: ' + rgm.map(function(d){ return esc(d.teamName); }).join(', ') + '</div>' : '') +
    '<div class="ep-acts">' + (closed ? '' : '<button type="button" class="ep-b pri" data-ep="reg">' + (reg[i] ? '✓ Registered (tap to undo)' : x.live && hkUrl(x.reg) ? 'Register now ↗' : 'Register now') + '</button>') +
-   '<button type="button" class="ep-b" data-ep="save">' + (bm[i] ? '🔖 Saved' : '🔖 Save') + '</button><button type="button" class="ep-b' + (inter ? ' on' : '') + '" data-ep="int">' + (inter ? '★ Interested' : '☆ Interested') + '</button>' +
+   '<button type="button" class="ep-b' + (rgm.length ? ' on' : '') + '" data-ep="mark">' + (rgm.length ? '✓ Registered' : 'Mark as registered') + '</button><button type="button" class="ep-b" data-ep="save">' + (bm[i] ? '🔖 Saved' : '🔖 Save') + '</button><button type="button" class="ep-b' + (inter ? ' on' : '') + '" data-ep="int">' + (inter ? '★ Interested' : '☆ Interested') + '</button>' +
    '<button type="button" class="ep-b" data-ep="mates">Find teammates</button><button type="button" class="ep-b" data-ep="share">Share</button><button type="button" class="ep-b" data-ep="cal">Add to calendar</button><button type="button" class="ep-b' + (rem ? ' on' : '') + '" data-ep="rem">' + (rem ? '🔔 Reminder on' : '🔔 Remind me') + '</button></div></div></div>' +
    '<div class="ep-facts">' + facts + '</div><div class="ep-cols"><div class="ep-main">' +
    sec('About the event', 'bulb', '<p class="ep-p">' + esc(x.about || x.d || 'Details have not been published yet.') + '</p>') +
@@ -19228,7 +19314,7 @@ function evPage(i){
    '</div><aside class="ep-side">' + sec('Important links', 'flag', linkHtml || '<p class="ep-mute">No official links listed yet.</p>') +
    sec('Teams for this event', 'users', teamsHtml + '<div class="ep-acts"><button type="button" class="ep-b pri" data-ep="newteam">+ Create a team</button><button type="button" class="ep-b" data-ep="mates">Find students</button></div>') +
    (x.contact || x.phone ? sec('Contact', 'bulb', '<p class="ep-p">' + (x.contact ? '<a href="mailto:' + esc(x.contact) + '">' + esc(x.contact) + '</a>' : '') + (x.phone ? '<br>' + esc(x.phone) : '') + '</p>') : '') +
-   '</aside></div><p class="ep-demo">' + (x.manual ? 'Listed by the Campus Loop team. Register on the official page; saves and reminders are stored on this device only.' : x.live ? 'Live listing from ' + esc(x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') + '. Register on the official page; saves and reminders are stored on this device only.' : x.curated ? 'Curated listing from the official website. Register there; saves and reminders are stored on this device only.' : 'Sample listing. Demo: registration, saves and reminders are stored on this device only.') + '</p></div>';
+   '</aside></div><p class="ep-demo">' + (x.manual ? 'Listed by the Campus Loop team. Register on the official page; saves and reminders are stored on this device only.' : x.live ? 'Live listing from ' + esc(x.srcName || 'a live feed') + (LIVE.ok ? ', updated ' + ago(LIVE.ok).toLowerCase() : '') + '. Register on the official page; saves and reminders are stored on this device only.' : x.curated ? 'Curated listing from the official website. Register there; saves and reminders are stored on this device only.' : 'Sample listing. Saves and reminders are stored on this device only.') + '</p></div>';
   ov.classList.add('on'); document.body.classList.add('cl-ov-open'); ov.scrollTop = keep;
 }
 function epClose(){ var ov = document.getElementById('evPage'); if(ov) ov.classList.remove('on'); document.body.classList.remove('cl-ov-open'); cur = null; }
@@ -19243,48 +19329,73 @@ function persistSaved(){ try{
 }catch(e){} renderSavedCard(); }
 /* Account sync pulled a newer list of saved events (login, or a save/removal on another device): re-read it and redraw. */
 window.addEventListener('cse:saved-events-sync', function(){ try{ for(var k in bm) delete bm[k]; loadSaved(); drawEvents(); reshow(); eventsChanged(); }catch(e){} });
+/* ---- "Mark as registered": a team leader registers one of their teams for an event. Stored in Firestore `eventRegistrations/{eventKey}__{teamId}`,
+   so the event page ("Teams for this event"), My Team, Home and every team member's devices all read the same record. ---- */
+var ER = {}, erSig = '';
+function erKey(x){ return String(evId(x)).replace(/[^A-Za-z0-9_.-]/g, '_').slice(0, 120); }
+function erAll(){ return Object.keys(ER).map(function(k){ var d = ER[k]; d.id = k; return d; }); }
+/* a registration whose team was deleted is hidden (only checkable while the team list is not truncated at 200) */
+function erLive(d){ return !!(TM.all[d.teamId] || TM.mine[d.teamId]) || Object.keys(TM.all).length >= 200; }
+function erFor(x){ var k = erKey(x); return erAll().filter(function(d){ return d.ek === k && erLive(d); }); }
+function erMine(x){ return erFor(x).filter(function(d){ return !!TM.mine[d.teamId]; }); }
+function erTeam(tid){ return erAll().filter(function(d){ return d.teamId === tid; }); }
+function mrHas(x){ return !!TM.uid && !!x && erMine(x).length > 0; }
+function registeredCount(){ var n = 0; EV.forEach(function(x){ if(mrHas(x)) n++; }); return n; }
+function mrBtn(i){ var on = mrHas(EV[i]); return '<button class="cn-btn cn-mr' + (on ? ' done' : '') + '" type="button" data-mr="' + i + '" aria-pressed="' + on + '">' + (on ? '✓ Registered' : 'Mark as registered') + '</button>'; }
+function erChanged(){ try{ eventsChanged(); }catch(e){} try{ reshow(); }catch(e){} try{ document.dispatchEvent(new CustomEvent('cse:er')); }catch(e){} }
+function erSet(x, t, on){
+  var db = fb(); if(!db || !TM.uid){ toast('Sign in with your student account to register a team.', 'err'); return Promise.resolve(false); }
+  var ref = db.collection('eventRegistrations').doc(erKey(x) + '__' + t.id);
+  var base = {eventId: String(evId(x)).slice(0, 200), ek: erKey(x), eventTitle: String(x.t).slice(0, 160), eventKind: String(x.k || '').slice(0, 40), endAt: evEnd(x).getTime(), dateLabel: String(fdr(x)).slice(0, 60),
+      teamId: t.id, teamName: String(t.name).slice(0, 120), leaderUid: TM.uid, leaderName: String(t.owner || '').slice(0, 60), createdAt: firebase.firestore.FieldValue.serverTimestamp()};
+  var p = on ? ref.set(hkRegExtra(x, Object.assign({}, base))).catch(function(e){ if(e && e.code === 'permission-denied') return ref.set(base); throw e; }) : ref.delete();
+  return p.then(function(){ toast(on ? t.name + ' is registered for ' + x.t : t.name + ' is no longer registered'); return true; }, function(e){ toast(cErr(e), 'err'); return false; });
+}
+/* Team picker: the leader chooses which of their teams is registering for this event */
+function mrOpen(i){
+  var x = EV[i]; if(!x) return;
+  if(!TM.uid){ toast('Sign in with your student account to register a team.', 'err'); return; }
+  var o = document.createElement('div'); o.className = 'rg-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); var busy = false;
+  function draw(){
+    var led = myTeams.filter(isOwner), sz = evSize(x), k = erKey(x), others = erMine(x).filter(function(d){ return !led.some(function(t){ return t.id === d.teamId; }); });
+    var rows = led.map(function(t){ var on = !!ER[k + '__' + t.id], n = cnt(t), bad = !on && (n > sz.max || n < sz.min);
+      return '<button type="button" class="rg-opt' + (on ? ' on' : '') + '" data-t="' + esc(t.id) + '"' + (bad ? ' disabled' : '') + '><span class="e">' + (on ? '✅' : '👥') + '</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + (t.project ? ' · ' + esc(mtProjOf(t)) : '') + (on ? ' · registered (tap to undo)' : bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('');
+    o.innerHTML = '<div class="rg-box"><h3>Register a team for ' + esc(x.t) + '</h3>' +
+      (led.length ? '<p>Select the team that is registering. Tap a registered team again to undo.</p><div class="rg-teams">' + rows + '</div>' : '<p>You do not lead a team yet. Create a team first, then mark it as registered.</p>') +
+      (others.length ? '<p style="margin-top:10px">Registered by your team leader: <b>' + others.map(function(d){ return esc(d.teamName); }).join(', ') + '</b></p>' : '') +
+      '<div class="rg-act"><button type="button" data-c>Done</button>' + (led.length ? '' : '<button type="button" class="pri" data-new>+ Create a team</button>') + '</div></div>';
+  }
+  o.addEventListener('click', function(e){
+    if(e.target === o || e.target.closest('[data-c]')){ document.removeEventListener('cse:er', draw); o.remove(); return; }
+    if(e.target.closest('[data-new]')){ document.removeEventListener('cse:er', draw); o.remove(); try{ epClose(); }catch(x2){} go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); return; }
+    var b = e.target.closest('[data-t]'); if(!b || b.disabled || busy) return;
+    var t = tById(b.dataset.t); if(!t || !isOwner(t)){ toast('That team is no longer available.', 'err'); return; }
+    busy = true; erSet(x, t, !ER[erKey(x) + '__' + t.id]).then(function(){ busy = false; draw(); });
+  });
+  document.addEventListener('cse:er', draw);
+  document.body.appendChild(o); draw();
+}
+function toggleMr(i){ mrOpen(i); }
 function toggleSave(i){ bm[i] = !bm[i]; persistSaved(); drawEvents(); reshow(); toast(bm[i] ? 'Saved' : 'Removed from saved'); }
 function shareEv(i){ var x = EV[i], u = location.href.split('#')[0] + '#connect/events', f = function(){ toast('Link copied'); };
   if(navigator.share){ navigator.share({title:x.t, text:x.d, url:u}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(u).then(f, function(){ toast('Sharing not available'); }); } else toast('Sharing not available'); }
 /* ---- More details block + Solo/Team registration chooser (frontend only; csec_event_regs) ---- */
-var RG_KEY = 'csec_event_regs';
-function rgAll(){ try{ return JSON.parse(localStorage.getItem(RG_KEY)) || {}; }catch(e){ return {}; } }
-function rgSet(id, v){ var a = rgAll(); if(v) a[id] = v; else delete a[id]; try{ localStorage.setItem(RG_KEY, JSON.stringify(a)); }catch(e){} }
 function evSize(x){ var m = /(\d+)\s*(?:[–\-]|to)\s*(\d+)/i.exec(String(x.team || '')); return m ? {min:+m[1], max:+m[2]} : (/solo|individual|\b1\b/i.test(String(x.team || '')) ? {min:1, max:1} : (/team/i.test(String(x.team || '')) ? {min:1, max:99} : {min:1, max:99})); }
 function myLedTeams(){ return myTeams.filter(isOwner); }
 function evMore(i, m){
   var x = EV[i], d = dlInfo(x), sz = evSize(x), box = m.querySelector('.cn-evb'); if(!box) return;
-  var r = rgAll()[evId(x)];
+  var rt = erMine(x);
   var h = '<div class="ev-more"><h4>📋 More details</h4><ul>' +
    '<li><b>Event date:</b> ' + esc(fdr(x)) + '</li><li><b>Registration:</b> ' + esc(d.l) + (d.s ? ' (' + esc(d.s) + ')' : '') + '</li>' +
    '<li><b>Eligibility:</b> ' + esc(x.el || 'Open to college students (check the official page for specifics)') + '</li>' +
    '<li><b>Participation:</b> ' + (x.team ? esc(x.team) : sz.min > 1 ? 'Teams only' : 'Solo or team') + (sz.min > 1 ? ' · solo entry not allowed' : ' · solo entry allowed') + '</li>' +
    '<li><b>Mode / venue:</b> ' + esc(modeLbl(x.mode)) + (x.loc ? ' · ' + esc(x.loc) : '') + '</li>' +
    (x.fee ? '<li><b>Entry fee:</b> ' + esc(x.fee) + '</li>' : '') + (x.pz ? '<li><b>Prizes:</b> ' + esc(x.pz) + '</li>' : '') + '</ul>' +
-   '<h4 style="margin-top:12px">How to register</h4><ol><li>Tap <b>Register Now</b>.</li><li>Choose <b>Solo</b> (where allowed) or <b>Team</b>.</li><li>For a team, pick one of the teams you lead.</li><li>Finish on the official site if a registration link is listed.</li></ol>' +
-   (r ? '<p style="margin:10px 0 0"><b>Your registration:</b> ' + (r.type === 'team' ? 'Team – ' + esc(r.team) : 'Solo') + '</p>' : '') + '</div>';
+   '<h4 style="margin-top:12px">How to register</h4><ol><li>Register on the official page (tap <b>Register</b>) if a link is listed.</li><li>Tap <b>Mark as registered</b> and pick the team you lead.</li><li>Your team then appears under <b>Teams for this event</b> and in <b>My Team</b>.</li></ol>' +
+   (rt.length ? '<p style="margin:10px 0 0"><b>Your registration:</b> Team – ' + rt.map(function(d){ return esc(d.teamName); }).join(', ') + '</p>' : '') + '</div>';
   var at = box.querySelector('.cn-actions, .hk-foot'); if(at) at.insertAdjacentHTML('beforebegin', h); else box.insertAdjacentHTML('beforeend', h);
 }
-function rgChoose(i){
-  var x = EV[i], sz = evSize(x), teams = myLedTeams(), pick = null, mode = null;
-  var o = document.createElement('div'); o.className = 'rg-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
-  function draw(){
-    var tl = '';
-    if(mode === 'team'){ tl = teams.length ? '<div class="rg-teams">' + teams.map(function(t, j){ var n = cnt(t), bad = n > sz.max || n < sz.min; return '<button type="button" class="rg-opt' + (pick === j ? ' on' : '') + '" data-t="' + j + '"' + (bad ? ' disabled' : '') + '><span class="e">👥</span><span><b>' + esc(t.name) + '</b><small>' + n + ' member' + (n === 1 ? '' : 's') + ' · ' + esc(t.project || '') + (bad ? ' · team size not allowed for this event (' + esc(x.team || '') + ')' : '') + '</small></span></button>'; }).join('') + '</div>' : '<p style="margin-top:12px">You do not lead a team yet. Create one in Connect → Teams, then register.</p>'; }
-    o.innerHTML = '<div class="rg-box"><h3>Register for ' + esc(x.t) + '</h3><p>How do you want to participate?</p>' +
-      '<button type="button" class="rg-opt' + (mode === 'solo' ? ' on' : '') + '" data-m="solo"' + (sz.min > 1 ? ' disabled' : '') + '><span class="e">🧑</span><span><b>Solo</b><small>' + (sz.min > 1 ? 'Not allowed – this event needs a team (' + esc(x.team) + ')' : 'Participate on your own') + '</small></span></button>' +
-      '<button type="button" class="rg-opt' + (mode === 'team' ? ' on' : '') + '" data-m="team"' + (sz.max < 2 ? ' disabled' : '') + '><span class="e">👥</span><span><b>Team</b><small>' + (sz.max < 2 ? 'This event is solo only' : 'Pick one of the teams you created') + '</small></span></button>' + tl +
-      '<div class="rg-act"><button type="button" data-c>Cancel</button><button type="button" class="pri" data-ok' + (mode === 'solo' || (mode === 'team' && pick != null) ? '' : ' disabled') + '>Confirm</button></div><span class="cn-demo">Demo: registration is saved on this device only.</span></div>'; }
-  o.addEventListener('click', function(e){
-    if(e.target === o || e.target.closest('[data-c]')){ o.remove(); return; }
-    var b = e.target.closest('button'); if(!b || b.disabled) return;
-    if(b.dataset.m){ mode = b.dataset.m; pick = null; draw(); }
-    else if(b.dataset.t != null){ pick = +b.dataset.t; draw(); }
-    else if(b.hasAttribute('data-ok')){ if(mode === 'team' && !(tById(teams[pick].id) && isOwner(tById(teams[pick].id)))){ o.remove(); return toast('That team is no longer available.', 'err'); } rgSet(evId(x), mode === 'solo' ? {type:'solo'} : {type:'team', team: teams[pick].name, tid: teams[pick].id}); reg[i] = true; o.remove(); drawEvents(); reshow(); toast('Registered' + (mode === 'solo' ? ' as Solo' : ' with team ' + teams[pick].name) + ' (demo)'); }
-  });
-  document.body.appendChild(o); draw();
-}
-function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated) && !reg[i] && hkUrl(lx.reg)) return lvOpen(lx); if(reg[i]){ reg[i] = false; rgSet(evId(EV[i]), null); drawEvents(); reshow(); toast('Registration cancelled'); } else rgChoose(i); }
+function toggleReg(i){ var lx = EV[i]; if(lx && (lx.live || lx.curated) && hkUrl(lx.reg)) return lvOpen(lx); mrOpen(i); }
 /* ---------- Admin-managed hackathons: Firestore `manualHackathons` (rules: public reads published, only the admin/owner writes) ---------- */
 var MH = {docs: {}, un: null, mode: '', errMode: ''}, MHo = {uid: '', own: false};
 function mhDb(){ try{ return firebase.apps.length ? firebase.firestore() : null; }catch(e){ return null; } }
@@ -19435,6 +19546,7 @@ function initEvents(){
     if(b.dataset.reset){ ef = {q:'', kind:'', mode:'all', area:'all', more:{}, health:ef.health, sort:'closing', view:ef.view, dom:'', st:''}; $('#cnEq').value = ''; $('#cnEsort').value = 'closing'; $('#cnEdom').value = ''; $('#cnEst').value = ''; return drawEvents(); }
     if(b.dataset.bm != null) return toggleSave(+b.dataset.bm);
     if(b.dataset.e != null) return eventModal(+b.dataset.e);
+    if(b.dataset.mr != null) return toggleMr(+b.dataset.mr);
     if(b.dataset.r != null) toggleReg(+b.dataset.r);
   });
 }
@@ -19497,7 +19609,7 @@ ICN.minus = '<path d="M5 12h14"/>';
 /* ---------- Teams (real): Firestore listeners + `teams` Cloud Functions (asia-south1). Replaces the old localStorage layer. ----------
    Reads: teams (all), teams where I am a member, teams/{id}/members (my teams only), teamRequests (to me / from me), teamNotifs/{uid}/items.
    Writes: ONLY through callables (teamCreate, teamUpdate, teamDelete, teamRequestSend/Cancel/Decide, teamRemoveMember, teamLeave, teamTransfer). */
-var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}, fnT = null, tmT = 0;
+var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], invIn: [], invOut: [], ok: {}, err: 0, nfirst: true}, fnT = null, tmT = 0;
 function tCall(name, data){ return cFns().then(function(){ if(!fnT) fnT = firebase.app().functions('asia-south1'); return fnT.httpsCallable(name, {timeout: 30000})(data || {}); }).then(function(r){ return r.data; }); }
 function tAct(name, data, okMsg){
   if(!TM.uid){ toast('Sign in with your student account to use Teams.', 'err'); return Promise.resolve(false); }
@@ -19518,13 +19630,14 @@ function tmBuild(){
   });
   out.sort(function(a, b){ return b.created - a.created; }); myTeams = out;
 }
-function tmPending(){ return TM.inc.filter(function(r){ return r.status === 'pending' && TM.all[r.teamId] || r.status === 'pending' && TM.mine[r.teamId]; }).length; }
+function tmPending(){ return TM.inc.filter(function(r){ return r.status === 'pending' && TM.all[r.teamId] || r.status === 'pending' && TM.mine[r.teamId]; }).length + TM.invIn.filter(function(r){ return r.status === 'pending'; }).length; }
 function tmBadge(){ var b = document.getElementById('cnTmN'); if(!b) return; var n = tmPending(); try{ n += (CS.incL.length + unreadN()); }catch(e){}   /* Network = team requests + connection requests/updates */
   b.setAttribute('aria-label', 'Pending team and connection activity'); b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; }
 function tmPaint(){
   if(tmT) return;
   tmT = setTimeout(function(){
-    tmT = 0; tmBuild(); drawMyTeam(); drawTeams(); tmBadge();
+    tmT = 0; tmBuild(); drawMyTeam(); drawTeams(); tmBadge(); try{ hkBackfill(); }catch(e){}
+    var sg = Object.keys(TM.mine).sort().join(',') + '|' + Object.keys(ER).sort().join(',') + '|' + Object.keys(TM.all).length; if(sg !== erSig){ erSig = sg; erChanged(); }   // registrations or my teams changed: redraw Events, event page and Home
     if(mtDash && mtM && !mtM.classList.contains('hidden')){
       var t = tById(mtDash.id), ed = document.activeElement && document.activeElement.closest && document.activeElement.closest('#mtEdit,.mt-role-cu');
       if(!t || !isOwner(t)) mtClose(); else if(!ed) dashRefresh();
@@ -19543,6 +19656,10 @@ function tmSyncMembers(db){
 }
 function tmNote(n){
   var t = n.teamName || 'a team', f = n.fromName || 'Someone';
+  if(n.type === 'invite') return f + ' invited you to join ' + t;
+  if(n.type === 'inviteAccepted') return f + ' accepted your invite to ' + t;
+  if(n.type === 'inviteDeclined') return f + ' declined your invite to ' + t;
+  if(n.type === 'reminder') return (n.kind === 'start' ? 'Starting soon: ' : 'Deadline soon: ') + (n.eventTitle || 'a hackathon') + ' \u00b7 ' + t + (n.whenMs ? ' (' + new Date(n.whenMs).toLocaleDateString(undefined, {day: 'numeric', month: 'short'}) + ')' : '');
   return n.type === 'request' ? f + ' wants to join ' + t : n.type === 'accepted' ? 'You are in! ' + t + ' accepted your request' : n.type === 'rejected' ? t + ' declined your request' :
     n.type === 'removed' ? 'You were removed from ' + t : n.type === 'left' ? f + ' left ' + t : n.type === 'disbanded' ? t + ' was deleted by its leader' : n.type === 'transferred' ? 'You are now the leader of ' + t : 'Team update: ' + t;
 }
@@ -19550,8 +19667,11 @@ function tmStart(uid){
   var db = fb(); if(!db) return; TM.uid = uid; TM.nfirst = true;
   tmLis('all', db.collection('teams').orderBy('createdAt', 'desc').limit(200), function(s){ TM.all = {}; s.docs.forEach(function(d){ TM.all[d.id] = d.data(); }); });
   tmLis('mine', db.collection('teams').where('memberUids', 'array-contains', uid), function(s){ TM.mine = {}; s.docs.forEach(function(d){ TM.mine[d.id] = d.data(); }); tmSyncMembers(db); });
+  tmLis('er', db.collection('eventRegistrations'), function(s){ ER = {}; s.docs.forEach(function(d){ ER[d.id] = d.data(); }); });
   tmLis('inc', db.collection('teamRequests').where('to', '==', uid), function(s){ TM.inc = s.docs.map(tmReq); });
   tmLis('out', db.collection('teamRequests').where('from', '==', uid), function(s){ TM.out = s.docs.map(tmReq); });
+  TM.un.push(clListen(db.collection('teamInvites').where('to', '==', uid), function(s){ TM.invIn = s.docs.map(ivMap); ivChanged(); }, function(e, n){ console.warn('[Invites] inbox listener', n, e && e.code); }));
+  TM.un.push(clListen(db.collection('teamInvites').where('from', '==', uid), function(s){ TM.invOut = s.docs.map(ivMap); ivChanged(); }, function(e, n){ console.warn('[Invites] sent listener', n, e && e.code); }));
   tmLis('n', db.collection('teamNotifs').doc(uid).collection('items').orderBy('createdAt', 'desc').limit(30), function(s){
     var fresh = [];
     s.docChanges().forEach(function(c){ if(c.type !== 'added') return; var n = c.doc.data(); if(TM.nfirst ? n.read === false : !c.doc.metadata.hasPendingWrites){ fresh.push(n); } if(n.read === false){ try{ c.doc.ref.update({read: true}).catch(function(){}); }catch(e){} } });
@@ -19561,9 +19681,184 @@ function tmStart(uid){
 }
 function tmStop(){
   TM.un.forEach(function(f){ try{ f(); }catch(e){} }); Object.keys(TM.mun).forEach(function(k){ try{ TM.mun[k](); }catch(e){} });
-  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}; tmPaint();
+  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], invIn: [], invOut: [], ok: {}, err: 0, nfirst: true}; ER = {}; tmPaint();
 }
 function tmTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id === TM.uid) return; tmStop(); if(id) tmStart(id); }
+/* ---------- Team Hub additions: team invites · deadline reminders · "Our hackathons" · past results · empty-state help ---------- */
+var HK = {plans: {}, res: {}, un: [], tid: '', ov: null, dirty: 0};
+var HK_RES = {won: ['\ud83e\udd47', 'Won'], finalist: ['\ud83c\udfc5', 'Finalist'], participated: ['\ud83c\udfaf', 'Participated']};
+var HK_STARTER = ['Register on the official page', 'Finalise the idea and problem statement', 'Split the work between members', 'Build the prototype', 'Prepare the presentation / pitch', 'Record the demo video', 'Submit before the deadline'];
+function hkPend(r){ return r.status === 'pending'; }
+function hkId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function hkSafeUrl(u){ return /^https:\/\/[^\s"'<>]{3,300}$/i.test(String(u || '')); }
+function ivMap(d){ var x = d.data(); return {id: d.id, teamId: x.teamId, teamName: x.teamName || 'Team', from: x.from, fromName: x.fromName || 'Team leader', to: x.to, toName: x.toName || 'Student', status: x.status, msg: x.message || '', at: tms(x.createdAt) || Date.now()}; }
+function ivChanged(){ tmPaint(); try{ drawPeople(); }catch(e){} }
+function ivPend(tid, u){ return TM.invOut.some(function(r){ return r.teamId === tid && r.to === u && hkPend(r); }); }
+function ivTeamsFor(u){ return myTeams.filter(function(t){ return isOwner(t) && !full(t) && t.uids.indexOf(u) < 0 && !ivPend(t.id, u); }); }
+function ivBtn(k){
+  var u = pkey(k); if(typeof u !== 'string' || !TM.uid || u === TM.uid) return '';
+  if(!myTeams.some(isOwner)) return '';
+  if(!ivTeamsFor(u).length) return TM.invOut.some(function(r){ return r.to === u && hkPend(r); }) ? '<button class="cn-btn done" type="button" disabled>\u2713 Invited</button>' : '';
+  return '<button class="cn-btn" type="button" data-hk-inv="' + k + '">Invite</button>';
+}
+function ivOpen(k){
+  var p = PF[k], u = pkey(k); if(!p || typeof u !== 'string') return;
+  if(!TM.uid){ toast('Sign in with your student account to invite people.', 'err'); return; }
+  var free = ivTeamsFor(u); if(!free.length){ toast('None of your teams can invite ' + p[0] + ' right now.', 'err'); return; }
+  var o = document.createElement('div'), busy = false; o.className = 'rg-ov hk-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+  o.innerHTML = '<div class="rg-box"><h3>Invite ' + esc(p[0]) + '</h3><p>Choose the team they are invited to. They get a notification and can accept or decline.</p>' +
+    free.map(function(t){ return '<button type="button" class="rg-opt" data-t="' + esc(t.id) + '"><span class="e">\ud83d\udc65</span><span><b>' + esc(t.name) + '</b><small>' + cnt(t) + ' of ' + t.max + ' members' + (t.project ? ' \u00b7 ' + esc(mtProjOf(t)) : '') + '</small></span></button>'; }).join('') +
+    '<div class="hk-f"><label for="hkIvMsg">Message (optional)</label><textarea id="hkIvMsg" class="cn-in" maxlength="140" placeholder="Why would you like them on the team?"></textarea></div><div class="rg-act"><button type="button" data-c>Cancel</button></div></div>';
+  o.addEventListener('click', function(e){
+    if(e.target === o || e.target.closest('[data-c]')){ o.remove(); return; }
+    var b = e.target.closest('[data-t]'); if(!b || busy) return; busy = true;
+    tAct('teamInviteSend', {teamId: b.dataset.t, to: u, message: (o.querySelector('#hkIvMsg').value || '').trim().slice(0, 140)}, 'Invite sent to ' + p[0] + '.').then(function(r){ busy = false; if(r){ o.remove(); ivChanged(); } });
+  });
+  document.body.appendChild(o);
+}
+function ivInHTML(){
+  var l = TM.invIn.filter(hkPend).sort(function(a, b){ return b.at - a.at; }); if(!l.length) return '';
+  return '<h3 class="mt-h">' + ic('users') + 'Team invitations<span class="n">' + l.length + '</span></h3><div class="cn-grid">' + l.map(function(r, i){
+    return '<article class="cn-card mt-card" data-iv="' + esc(r.teamId) + '"><div class="mt-top">' + mtLogo(r.teamName, i) + '<div><h3>' + esc(r.teamName) + '</h3><span class="mt-proj">Invited by ' + esc(r.fromName) + ' \u00b7 ' + ago(r.at) + '</span></div><span class="mt-s mt-s-pending mt-joined">Invitation</span></div>' +
+      (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
+      '<div class="cn-cta"><button class="cn-btn pri" type="button" data-hk-ivacc="' + esc(r.teamId) + '">Accept</button><button class="cn-btn" type="button" data-hk-vt="' + esc(r.teamId) + '">View team</button><button class="cn-btn" type="button" data-hk-ivdec="' + esc(r.teamId) + '">Decline</button></div></article>'; }).join('') + '</div>';
+}
+function ivSentHTML(t){
+  var l = TM.invOut.filter(function(r){ return r.teamId === t.id && hkPend(r); }); if(!l.length) return '';
+  return '<div><div class="cn-sub">Invitations sent \u00b7 ' + l.length + '</div><div class="mt-list">' + l.map(function(r, i){
+    return '<div class="mt-req"><div class="mt-ph">' + av(r.toName, i, 'sm') + '<div><b>' + esc(r.toName) + '</b><small>Invited ' + ago(r.at) + ' \u00b7 waiting for a reply</small></div></div><div class="cn-row"><button class="cn-btn" type="button" data-hk-ivcan="' + esc(t.id) + '" data-to="' + esc(r.to) + '">Cancel invite</button></div></div>'; }).join('') + '</div></div>';
+}
+/* ---- deadline / start reminders ---- */
+function hkTs(x){ if(!x || x.dl == null || x.dl < 0) return 0; var d = new Date(now + x.dl * D); d.setHours(23, 59, 0, 0); return d.getTime(); }
+function hkRegExtra(x, o){ var a = hkTs(x), s = evStart(x).getTime(); if(a) o.dlAt = a; if(s) o.startAt = s; return o; }
+function hkEvOf(ek){ for(var i = 0; i < EV.length; i++){ if(erKey(EV[i]) === ek) return EV[i]; } return null; }
+function hkLeft(ms){ var h = Math.floor(ms / 36e5); return h < 1 ? 'less than an hour' : h < 24 ? h + ' hour' + (h === 1 ? '' : 's') : Math.ceil(ms / 864e5) + ' day' + (Math.ceil(ms / 864e5) === 1 ? '' : 's'); }
+function hkSoon(){
+  var out = [], t0 = Date.now();
+  erAll().forEach(function(d){
+    var tm = TM.mine[d.teamId]; if(!tm) return; var x = hkEvOf(d.ek), dl = d.dlAt || hkTs(x), st = d.startAt || (x ? evStart(x).getTime() : 0);
+    [['deadline', dl], ['start', st]].forEach(function(p){ var diff = p[1] - t0; if(p[1] && diff > 0 && diff <= 3 * 864e5) out.push({d: d, kind: p[0], ts: p[1], left: diff, team: tm.name}); });
+  });
+  return out.sort(function(a, b){ return a.ts - b.ts; });
+}
+var HK_BF = {};
+/* Older registrations were saved without a deadline. The team leader's app adds it once, so the server can send the reminder pushes for them too. */
+function hkBackfill(){
+  var db = fb(); if(!db || !TM.uid) return;
+  erAll().forEach(function(d){
+    if(d.leaderUid !== TM.uid || d.dlAt != null || d.startAt != null || HK_BF[d.id] || (d.endAt && d.endAt < Date.now())) return;
+    var x = hkEvOf(d.ek); if(!x) return; var u = hkRegExtra(x, {}); delete u.nothing; if(!u.dlAt && !u.startAt) return;
+    HK_BF[d.id] = 1; db.collection('eventRegistrations').doc(d.id).update(u).catch(function(e){ console.warn('[Reminders] backfill', e && e.code); });
+  });
+}
+function hkBanner(){
+  var l = hkSoon(); if(!l.length) return '';
+  return '<div class="hk-soon" role="status"><b>\u23f0 Coming up for your teams</b>' + l.map(function(r){ return '<button type="button" class="hk-sn" data-hk-open="' + esc(r.d.teamId) + '"><span>' + (r.kind === 'deadline' ? 'Registration deadline' : 'Starts') + ':</span> <b>' + esc(r.d.eventTitle) + '</b> \u00b7 ' + esc(r.team) + ' \u2014 in ' + hkLeft(r.left) + '</button>'; }).join('') + '</div>';
+}
+/* ---- empty-state help ---- */
+function hkStart(){
+  if(!TM.uid) return empty('\ud83d\udd10', 'Sign in to build a team', 'Create or join teams with your student account. Guests can browse events but cannot use Teams.');
+  return empty('\ud83d\ude80', 'New here? Start in 3 steps', '1) Browse hackathons in Events and pick one you like. 2) Find teammates in Find people, or create your own team. 3) Open the event, register on the official page, then tap \u201cMark as registered\u201d to track dates and tasks with your team.',
+    '<div class="cn-row" style="justify-content:center;flex-wrap:wrap"><button class="cn-btn pri" type="button" data-hk-go="events">Browse events</button><button class="cn-btn" type="button" data-hk-go="people">Find people</button><button class="cn-btn" type="button" data-hk-new="1">Create a team</button></div>');
+}
+/* ---- "Our hackathons" (members only) ---- */
+function hkStop(){ HK.un.forEach(function(f){ try{ f(); }catch(e){} }); HK.un = []; HK.plans = {}; HK.res = {}; }
+function hkClose(){ hkStop(); if(HK.ov){ HK.ov.remove(); HK.ov = null; } HK.tid = ''; }
+function hkOpen(tid){
+  var t = tById(tid), db = fb(); if(!db) return;
+  if(!t || !(isOwner(t) || isMem(t))){ toast('Only members of this team can open this.', 'err'); return; }
+  hkClose(); HK.tid = tid; var o = document.createElement('div'); o.className = 'rg-ov hk-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Our hackathons: ' + t.name);
+  document.body.appendChild(o); HK.ov = o; hkDraw();
+  HK.un.push(clListen(db.collection('teams').doc(tid).collection('hackplans'), function(s){ HK.plans = {}; s.docs.forEach(function(d){ HK.plans[d.id] = d.data(); }); hkDraw(); }, function(e, n){ console.warn('[Hackathons] plans listener', n, e && e.code); }));
+  HK.un.push(clListen(db.collection('hackResults').where('teamId', '==', tid), function(s){ HK.res = {}; s.docs.forEach(function(d){ var x = d.data(); HK.res[x.ek] = x; }); hkDraw(); }, function(e, n){ console.warn('[Hackathons] results listener', n, e && e.code); }));
+}
+function hkWho(t, sel){
+  var l = [{uid: t.ownerUid, name: t.owner}].concat(t.members.map(function(m){ return {uid: m.uid, name: m.name}; }));
+  return '<option value="">Unassigned</option>' + l.map(function(m){ return '<option value="' + esc(m.uid) + '"' + (m.uid === sel ? ' selected' : '') + '>' + esc(m.name) + '</option>'; }).join('');
+}
+function hkCard(t, d, lead){
+  var x = hkEvOf(d.ek), pl = HK.plans[d.ek] || {}, items = pl.items || [], res = HK.res[d.ek], k = esc(d.ek), done = items.filter(function(i){ return i.done; }).length, dl = x ? dlInfo(x) : null;
+  var started = (x ? evStart(x).getTime() : (d.startAt || 0)) <= Date.now();
+  var h = '<section class="hk-c" data-ek="' + k + '"><h4>' + esc(d.eventTitle) + '</h4><div class="hk-meta"><span class="cn-chip">' + esc(d.eventKind || 'Event') + '</span>' + (res ? '<span class="cn-chip hk-res ' + esc(res.result) + '">' + (HK_RES[res.result] || HK_RES.participated).join(' ') + '</span>' : '') + '</div>' +
+    '<ul class="hk-dates"><li><b>Dates</b><span>' + esc(x ? fdr(x) : d.dateLabel || 'Not listed') + '</span></li>' + (dl ? '<li><b>Registration</b><span>' + esc(dl.l) + (dl.s ? ' \u00b7 ' + esc(dl.s) : '') + '</span></li>' : '') + (x && x.loc ? '<li><b>Where</b><span>' + esc(x.loc) + '</span></li>' : '') + '</ul>';
+  var links = [], custom = pl.links || [];
+  if(x){ if(hkUrl(x.reg)) links.push('<a class="hk-link" href="' + esc(x.reg) + '" target="_blank" rel="noopener noreferrer">Registration page</a>'); if(hkUrl(x.url) && x.url !== x.reg) links.push('<a class="hk-link" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">Official website</a>'); }
+  custom.forEach(function(l, i){ if(hkSafeUrl(l.url)) links.push('<span class="hk-lw"><a class="hk-link" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label || l.url) + '</a><button type="button" class="hk-rm" data-hk-lrm="' + i + '" aria-label="Remove link">\u00d7</button></span>'); });
+  h += '<div class="cn-sub">Links</div><div class="hk-links">' + (links.join('') || '<small class="hk-mut">No links yet. Add the submission page, Drive folder or Figma file.</small>') + '</div>' +
+    '<div class="hk-add"><input class="cn-in" data-hk-ll maxlength="30" placeholder="Label (e.g. Devpost)" aria-label="Link label"><input class="cn-in" data-hk-lu maxlength="300" inputmode="url" placeholder="https://\u2026" aria-label="Link address"><button type="button" class="cn-btn" data-hk-ladd="1">Add link</button></div>';
+  h += '<div class="cn-sub">Submission checklist' + (items.length ? ' \u00b7 ' + done + '/' + items.length + ' done' : '') + '</div>' + (items.length ? '<div class="hk-bar"><i style="width:' + Math.round(100 * done / items.length) + '%"></i></div>' : '') +
+    '<ul class="hk-list">' + items.map(function(it){ return '<li class="hk-it' + (it.done ? ' done' : '') + '"><label><input type="checkbox" data-hk-tg="' + esc(it.id) + '"' + (it.done ? ' checked' : '') + '><span>' + esc(it.t) + '</span></label><select class="cn-in cn-sel hk-w" data-hk-as="' + esc(it.id) + '" aria-label="Who is doing this">' + hkWho(t, it.w) + '</select><button type="button" class="hk-rm" data-hk-rm="' + esc(it.id) + '" aria-label="Remove task">\u00d7</button></li>'; }).join('') + '</ul>' +
+    '<div class="hk-add"><input class="cn-in" data-hk-ni maxlength="120" placeholder="Add a task, e.g. Record demo video" aria-label="New task"><select class="cn-in cn-sel hk-w" data-hk-nw aria-label="Assign to">' + hkWho(t, '') + '</select><button type="button" class="cn-btn pri" data-hk-nadd="1">Add</button></div>' +
+    (items.length ? '' : '<button type="button" class="cn-btn" data-hk-starter="1" style="margin-top:8px">Add a starter checklist</button>');
+  h += '<div class="cn-sub">Team notes</div><textarea class="cn-in" data-hk-notes="1" maxlength="600" placeholder="Idea, problem statement, submission details\u2026">' + esc(pl.notes || '') + '</textarea>';
+  h += '<div class="cn-sub">Result</div>' + (lead ? (started ? '<div class="hk-add"><select class="cn-in cn-sel" data-hk-rs aria-label="Result"><option value="">Not recorded</option>' + Object.keys(HK_RES).map(function(r){ return '<option value="' + r + '"' + (res && res.result === r ? ' selected' : '') + '>' + HK_RES[r][0] + ' ' + HK_RES[r][1] + '</option>'; }).join('') + '</select><input class="cn-in" data-hk-rn maxlength="80" placeholder="Optional, e.g. 2nd place" value="' + esc(res ? res.note : '') + '" aria-label="Result note"><button type="button" class="cn-btn pri" data-hk-rsave="1">Save result</button></div><small class="hk-mut">Saved results appear on every member\u2019s profile.</small>' : '<small class="hk-mut">You can record the result once the event has started.</small>')
+    : '<small class="hk-mut">' + (res ? (HK_RES[res.result] || HK_RES.participated).join(' ') + (res.note ? ' \u00b7 ' + esc(res.note) : '') : 'The team leader records the result after the event.') + '</small>');
+  return h + '</section>';
+}
+function hkDraw(){
+  var o = HK.ov; if(!o) return; var a = document.activeElement;
+  if(a && o.contains(a) && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox'))){ HK.dirty = 1; return; } HK.dirty = 0;
+  var t = tById(HK.tid); if(!t){ hkClose(); return; }
+  var regs = erTeam(t.id).sort(function(p, q){ return (p.endAt || 0) - (q.endAt || 0); }), lead = isOwner(t), old = o.querySelector('.rg-box'), sc = old ? old.scrollTop : 0;
+  o.innerHTML = '<div class="rg-box hk-box"><div class="hk-hd"><div><h3>\ud83c\udfc6 Our hackathons</h3><p>' + esc(t.name) + ' \u00b7 shared by every member</p></div><button type="button" class="hk-x" data-hk-close="1" aria-label="Close">\u00d7</button></div>' +
+    (regs.length ? regs.map(function(d){ return hkCard(t, d, lead); }).join('') : empty('\ud83c\udfc1', 'No hackathon registered yet', 'Open Events, register on the official page, then tap \u201cMark as registered\u201d and pick this team. It will appear here with dates, links, a checklist and who is doing what.', lead ? '<button class="cn-btn pri" type="button" data-hk-go="events">Browse events</button>' : '')) + '</div>';
+  var nb = o.querySelector('.rg-box'); if(nb) nb.scrollTop = sc;
+}
+function hkMut(ek, fn){
+  var db = fb(); if(!db || !HK.tid) return Promise.resolve(false); var ref = db.collection('teams').doc(HK.tid).collection('hackplans').doc(ek);
+  return db.runTransaction(function(tx){ return tx.get(ref).then(function(s){
+    var p = s.exists ? s.data() : {}, n = {items: (p.items || []).slice(), links: (p.links || []).slice(), notes: p.notes || ''}; fn(n);
+    tx.set(ref, {ek: ek, items: n.items, links: n.links, notes: String(n.notes).slice(0, 600), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: TM.uid});
+  }); }).then(function(){ return true; }, function(e){ toast(cErr(e), 'err'); return false; });
+}
+function hkSaveRes(ek, val, note){
+  var t = tById(HK.tid), db = fb(), reg = ER[ek + '__' + HK.tid]; if(!t || !isOwner(t) || !db || !reg){ toast('Only the team leader can record results.', 'err'); return; }
+  var ref = db.collection('hackResults').doc(ek + '__' + HK.tid);
+  var p = val ? ref.set({ek: ek, eventTitle: String(reg.eventTitle || '').slice(0, 160), teamId: HK.tid, teamName: String(t.name).slice(0, 120), memberUids: t.uids.slice(), result: val, note: String(note || '').slice(0, 80), endAt: +reg.endAt || 0, setBy: TM.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}) : ref.delete();
+  p.then(function(){ toast(val ? 'Result saved. It now shows on every member\u2019s profile.' : 'Result cleared.'); }, function(e){ toast(cErr(e), 'err'); });
+}
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && HK.ov && !document.querySelector('.rg-ov:not(.hk-ov)')) hkClose(); });
+document.addEventListener('click', function(e){
+  if(HK.ov && e.target === HK.ov){ hkClose(); return; }
+  var b = e.target.closest && e.target.closest('[data-hk-open],[data-hk-inv],[data-hk-ivacc],[data-hk-ivdec],[data-hk-ivcan],[data-hk-vt],[data-hk-go],[data-hk-new],[data-hk-close],[data-hk-nadd],[data-hk-ladd],[data-hk-lrm],[data-hk-rm],[data-hk-starter],[data-hk-rsave]');
+  if(!b || b.disabled) return; var d = b.dataset, card = b.closest('.hk-c'), ek = card ? card.dataset.ek : '';
+  if(d.hkOpen != null){ hkOpen(d.hkOpen); return; }
+  if(d.hkInv != null){ ivOpen(+d.hkInv); return; }
+  if(d.hkIvacc != null){ tAct('teamInviteDecide', {teamId: d.hkIvacc, accept: true}, 'You joined the team!').then(function(){ ivChanged(); }); return; }
+  if(d.hkIvdec != null){ tAct('teamInviteDecide', {teamId: d.hkIvdec, accept: false}, 'Invitation declined.').then(function(){ ivChanged(); }); return; }
+  if(d.hkIvcan != null){ tAct('teamInviteCancel', {teamId: d.hkIvcan, to: d.to}, 'Invitation cancelled.').then(function(){ ivChanged(); }); return; }
+  if(d.hkVt != null){ mtView(d.hkVt); return; }
+  if(d.hkGo != null){ hkClose(); if(d.hkGo === 'events') go('events'); else go('teams', d.hkGo === 'people' ? 'people' : 'teams'); return; }
+  if(d.hkNew != null){ hkClose(); go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); return; }
+  if(d.hkClose != null){ hkClose(); return; }
+  if(!ek) return;
+  var t = tById(HK.tid); if(!t) return;
+  if(d.hkNadd != null){
+    var ti = card.querySelector('[data-hk-ni]'), tw = card.querySelector('[data-hk-nw]'), txt = ti.value.trim(); if(!txt){ toast('Type the task first.', 'err'); ti.focus(); return; }
+    if(((HK.plans[ek] || {}).items || []).length >= 40){ toast('A checklist can hold up to 40 tasks.', 'err'); return; }
+    var wn = tw.value ? String(tw.options[tw.selectedIndex].text).slice(0, 40) : ''; ti.value = '';
+    hkMut(ek, function(n){ n.items.push({id: hkId(), t: txt.slice(0, 120), done: false, w: tw.value, wn: wn}); });
+  } else if(d.hkStarter != null){
+    hkMut(ek, function(n){ if(n.items.length) return; HK_STARTER.forEach(function(s){ n.items.push({id: hkId(), t: s, done: false, w: '', wn: ''}); }); });
+  } else if(d.hkRm != null){
+    hkMut(ek, function(n){ n.items = n.items.filter(function(i){ return i.id !== d.hkRm; }); });
+  } else if(d.hkLadd != null){
+    var li = card.querySelector('[data-hk-ll]'), lu = card.querySelector('[data-hk-lu]'), url = lu.value.trim(); if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    if(!hkSafeUrl(url)){ toast('Enter a valid https:// link.', 'err'); lu.focus(); return; }
+    if(((HK.plans[ek] || {}).links || []).length >= 10){ toast('You can save up to 10 links.', 'err'); return; }
+    var lab = li.value.trim().slice(0, 30); li.value = ''; lu.value = ''; hkMut(ek, function(n){ n.links.push({label: lab, url: url}); });
+  } else if(d.hkLrm != null){
+    hkMut(ek, function(n){ n.links.splice(+d.hkLrm, 1); });
+  } else if(d.hkRsave != null){
+    hkSaveRes(ek, card.querySelector('[data-hk-rs]').value, card.querySelector('[data-hk-rn]').value.trim());
+  }
+});
+document.addEventListener('change', function(e){
+  var el = e.target; if(!HK.ov || !HK.ov.contains(el)) return; var card = el.closest('.hk-c'), ek = card ? card.dataset.ek : ''; if(!ek) return;
+  if(el.dataset.hkTg != null){ var on = el.checked; hkMut(ek, function(n){ n.items.forEach(function(i){ if(i.id === el.dataset.hkTg) i.done = on; }); }); }
+  else if(el.dataset.hkAs != null){ var w = el.value, wn = w ? String(el.options[el.selectedIndex].text).slice(0, 40) : ''; hkMut(ek, function(n){ n.items.forEach(function(i){ if(i.id === el.dataset.hkAs){ i.w = w; i.wn = wn; } }); }); }
+  else if(el.dataset.hkNotes != null){ var v = el.value; hkMut(ek, function(n){ n.notes = v.slice(0, 600); }); }
+});
 var MT_KEY = 'csec_myteams', MT_SKILLS = ['React', 'Python', 'Node.js', 'UI/UX', 'Machine Learning', 'Flutter', 'Figma', 'C++', 'Firebase', 'Arduino'];
 var mtc = $('#cnMyTeam'), myTeams = [], mtM = null, mtSk = [], mtAsk = '', mtAskL = '', mtAskR = '', mtBack = null, mtOk = true, mtSeen = {};
 function mtIn(k){ if(mtSeen[k]) return ''; mtSeen[k] = 1; return ' mt-in'; }
@@ -19574,14 +19869,15 @@ function mtToast(m){ toast(m); }
 function mtLogo(name, i){ return '<span class="cn-logo" style="--c:' + COL[i % COL.length] + '" aria-hidden="true">' + esc(String(name).trim().charAt(0).toUpperCase() || 'T') + '</span>'; }
 function mtChips(a){ return a.length ? '<div class="cn-chips">' + a.map(function(s){ return '<span class="cn-chip">' + esc(s) + '</span>'; }).join('') + '</div>' : ''; }
 function mtLeader(name, i){ return '<div class="mt-lead">' + av(name, i, 'sm') + '<b>' + esc(name) + '</b><span class="mt-badge">' + ic('crown') + 'Team Leader</span></div>'; }
+function mtEvents(t){ var l = erTeam(t.id); if(!l.length) return ''; return '<div class="mt-evs"><span class="mt-evh">Registered for</span>' + l.map(function(d){ return '<button type="button" class="cn-chip mt-ev" data-mt-ev="' + esc(d.eventId) + '">🏆 ' + esc(d.eventTitle) + '</button>'; }).join('') + '</div>'; }
 function mtCreated(t, i){
   var n = cnt(t), pct = Math.min(100, Math.round(n / t.max * 100)), open = t.max - n, id = esc(t.id), pend = pendN(t);
   var st = full(t) ? '<span class="cn-chip mt-joined">Team full</span>' : t.open ? '<span class="mt-s mt-s-open mt-joined">Applications open</span>' : '<span class="mt-s mt-s-closed mt-joined">Applications closed</span>';
   var acts = mtAsk === t.id
     ? '<p class="mt-warn" role="alert">Delete “' + esc(t.name) + '”? Its members and ' + (t.requests.length ? t.requests.length + ' request' + (t.requests.length === 1 ? '' : 's') : 'requests') + ' will be removed too. This cannot be undone.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-delok="' + id + '">Confirm delete</button><button class="cn-btn" type="button" data-mt-delno="1">Keep team</button>'
-    : '<button class="cn-btn pri" type="button" data-ct-manage="' + id + '">Manage' + (pend ? '<span class="mt-dot" aria-label="' + pend + ' pending requests">' + pend + '</span>' : '') + '</button><button class="cn-btn" type="button" data-mt-view="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-del="' + id + '" aria-label="Delete team ' + esc(t.name) + '">Delete</button>';
-  return '<article class="cn-card mt-card' + mtIn('c' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div>' + st + '</div>' +
-    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtLeader(t.owner, i) +
+    : '<button class="cn-btn pri" type="button" data-ct-manage="' + id + '">Manage' + (pend ? '<span class="mt-dot" aria-label="' + pend + ' pending requests">' + pend + '</span>' : '') + '</button><button class="cn-btn" type="button" data-hk-open="' + id + '">Our hackathons</button><button class="cn-btn" type="button" data-mt-view="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-del="' + id + '" aria-label="Delete team ' + esc(t.name) + '">Delete</button>';
+  return '<article class="cn-card mt-card' + mtIn('c' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div>' + st + '</div>' +
+    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members · ' + open + (open === 1 ? ' spot' : ' spots') + ' open' + (pend ? ' · ' + pend + ' pending' : '') + '</span></div>' +
     '<div class="cn-cta">' + acts + '</div></article>';
 }
@@ -19593,6 +19889,7 @@ function drawMyTeam(){
   var sub = !TM.uid ? 'Sign in with your student account to create or join teams.' : TM.err ? 'Reconnecting to Campus Loop… your teams and requests will appear automatically.' : pendAll ? 'You have <b>' + pendAll + '</b> join request' + (pendAll === 1 ? '' : 's') + ' waiting for your review.' : total ? 'The teams you lead, the teams you have joined and your join requests, all in one place.' : 'Lead your own team for a hackathon or competition, or join one from Find Teams.';
   var html = '<div class="mt-hero"><div><h2>' + ic('users') + 'MY TEAM</h2><p>' + sub + '</p></div>' +
     '<button type="button" class="mt-create" data-mt-new="1">' + ic('plus') + 'Create Team</button></div>';
+  html += hkBanner() + ivInHTML();
   if(total){
     var h = function(icon, t, n){ return '<h3 class="mt-h">' + ic(icon) + t + '<span class="n">' + n + '</span></h3>'; };
     if(led.length) html += h('crown', 'Teams I lead', led.length) + '<div class="cn-grid">' + led.map(function(t){ return mtCreated(t, myTeams.indexOf(t)); }).join('') + '</div>';
@@ -19600,6 +19897,7 @@ function drawMyTeam(){
     if(rq.length) html += h('clock', 'My join requests', rq.length) + '<div class="cn-grid">' + rq.map(function(t){ return mtReqCard(t, myTeams.indexOf(t)); }).join('') + '</div>';
   }
   if(!total && TM.uid && !TM.ok.mine && !TM.err) html += '<div class="cn-grid">' + mtSkel(2) + '</div>';
+  else if(!total && !TM.invIn.some(hkPend) && (!TM.uid || TM.ok.mine) && !TM.err) html += hkStart();
   mtc.innerHTML = html;
 }
 /* ---- Team Chat (frontend only, localStorage "csec_teamchat_<id>"). Only the leader and accepted members can open it. ---- */
@@ -19634,6 +19932,48 @@ function mtClose(){
   if(mtBack && mtBack.focus && document.body.contains(mtBack)){ try{ mtBack.focus(); }catch(e){} } mtBack = null;
 }
 function mtField(id, label, ctl, opt, help){ return '<div class="mt-f"><label class="cn-lbl" for="' + id + '">' + label + (opt ? ' <span class="opt">(optional)</span>' : '') + '</label>' + ctl + (help || '') + '<p class="mt-err" id="' + id + 'Err" aria-live="polite"></p></div>'; }
+/* Project / hackathon field: pick an event listed in Connect → Events, type your own, or leave it blank and set it later */
+var MT_TBD = 'To be decided';
+/* Shown project: the typed/picked one; if still undecided, the event(s) the team has registered for. */
+function mtProjOf(t){
+  var p = t.project || ''; if(p && p !== MT_TBD) return p;
+  var l = []; try{ l = erTeam(t.id); }catch(e){}
+  if(!l.length) return p;
+  return l[0].eventTitle + (l.length > 1 ? ' +' + (l.length - 1) + ' more' : '');
+}
+function mtPjAll(){
+  /* Every event in Connect → Events (same EV array the Events section draws), upcoming first, ended last. */
+  return EV.filter(function(x){ return x && x.t; }).sort(function(a, b){ var ea = lvEnded(a) ? 1 : 0, eb = lvEnded(b) ? 1 : 0; return ea - eb || (a.off - b.off) || String(a.t).localeCompare(String(b.t)); });
+}
+function mtPjHas(x, q){ return !q || [x.t, x.org, x.k, x.loc, x.venue, x.city, x.state, x.country, x.srcName].join(' ').toLowerCase().indexOf(q) > -1; }
+function mtPjDraw(id){
+  var ls = $('#' + id + 'Ls'); if(!ls) return;
+  var qEl = $('#' + id + 'Q'), q = qEl ? qEl.value.trim().toLowerCase() : '', cur = (($('#' + id) || {}).value || '').trim().toLowerCase();
+  var all = mtPjAll(), m = all.filter(function(x){ return mtPjHas(x, q); });
+  var n = $('#' + id + 'N'); if(n) n.textContent = q ? m.length + ' of ' + all.length + ' events' : all.length + (all.length === 1 ? ' event' : ' events');
+  var tg = $('#' + id + 'Tog'); if(tg) tg.textContent = 'Browse all events (' + all.length + ')';
+  ls.innerHTML = m.length ? m.map(function(x){
+    var meta = [x.k, x.loc].filter(Boolean).join(' · ');
+    return '<button type="button" class="mt-pj-it' + (String(x.t).trim().toLowerCase() === cur ? ' on' : '') + '" data-mt-pj="' + esc(id) + '" data-mt-pjid="' + esc(evId(x)) + '"><span><b>' + esc(x.t) + '</b><em>' + esc(meta) + '</em></span>' + (lvEnded(x) ? '<span class="mt-pj-end">Ended</span>' : '') + '</button>';
+  }).join('') : '<p class="mt-pj-empty">' + (all.length ? 'No events match your search.' : 'No events are listed yet.') + '</p>';
+}
+function mtPjRefresh(){ [].forEach.call(document.querySelectorAll('.mt-pj-box'), function(bx){ mtPjDraw(bx.dataset.pj); }); }
+function mtPjToggle(id){
+  var bx = $('#' + id + 'Box'), tg = $('#' + id + 'Tog'); if(!bx) return;
+  var open = bx.hidden; bx.hidden = !open; if(tg) tg.setAttribute('aria-expanded', String(open));
+  if(open){ mtPjDraw(id); var q = $('#' + id + 'Q'); if(q) q.focus(); }
+}
+function mtPjPick(id, evid){
+  var x = EV.filter(function(e){ return e && evId(e) === evid; })[0], f = $('#' + id); if(!x || !f) return;
+  f.value = String(x.t).trim().slice(0, 80); mtErr(id, ''); mtPjToggle(id); f.focus();
+}
+function mtProjCtl(id, val){
+  return '<input class="cn-in" id="' + id + '" maxlength="80" autocomplete="off" value="' + esc(val || '') + '" placeholder="Pick a listed event, type your own, or leave blank" aria-describedby="' + id + 'Err">' +
+    '<button type="button" class="mt-pj-tog" id="' + id + 'Tog" data-mt-pjtog="' + esc(id) + '" aria-expanded="false" aria-controls="' + id + 'Box">Browse all events (' + mtPjAll().length + ')</button>' +
+    '<div class="mt-pj-box" id="' + id + 'Box" data-pj="' + esc(id) + '" hidden><div class="mt-pj-sb"><input class="cn-in" type="search" id="' + id + 'Q" data-mt-pjq="' + esc(id) + '" autocomplete="off" placeholder="Search events by name, type or place" aria-label="Search events"></div>' +
+    '<p class="mt-pj-n" id="' + id + 'N" aria-live="polite"></p><div class="mt-pj-ls" id="' + id + 'Ls"></div></div>';
+}
+var MT_PROJ_HELP = '<p class="mt-help">Choose from the events listed in Connect → Events, type your own hackathon, or leave it blank and add it later.</p>';
 function mtFormHTML(){
   mtSk = []; mtPool = null;
   return '<form class="mt-form" id="mtForm" novalidate>' +
@@ -19643,7 +19983,7 @@ function mtFormHTML(){
     '<div class="mt-mb">' +
     '<div class="cn-row">' +
       mtField('mtName', 'Team name', '<input class="cn-in" id="mtName" maxlength="50" autocomplete="off" placeholder="e.g. Neural Nomads" aria-describedby="mtNameErr">') +
-      mtField('mtProj', 'Project / hackathon / competition', '<input class="cn-in" id="mtProj" maxlength="80" autocomplete="off" placeholder="e.g. Smart India Hackathon 2026" aria-describedby="mtProjErr">') +
+      mtField('mtProj', 'Project / hackathon / competition', mtProjCtl('mtProj', ''), true, MT_PROJ_HELP) +
     '</div>' +
     mtField('mtDesc', 'Team description', '<textarea class="cn-in" id="mtDesc" maxlength="600" placeholder="What are you building, and what is the goal?" aria-describedby="mtDescErr"></textarea>', false, '<p class="mt-cnt" id="mtDescCnt">0 / 600</p>') +
     mtField('mtSkIn', 'Required skills', '<input class="cn-in" id="mtSkIn" maxlength="24" autocomplete="off" placeholder="Type a skill and press Enter" aria-describedby="mtSkInErr">',
@@ -19677,14 +20017,14 @@ function mtSubmit(){
   var name = mtVal('mtName'), proj = mtVal('mtProj'), desc = mtVal('mtDesc'), maxRaw = mtVal('mtMax'), max = Number(maxRaw), bad = null;
   function need(id, ok, msg){ mtErr(id, ok ? '' : msg); if(!ok && !bad) bad = id; }
   need('mtName', name.length >= 3, 'Enter a team name (at least 3 characters).');
-  need('mtProj', proj.length >= 2, 'Enter the project, hackathon or competition name.');
+  need('mtProj', !proj || proj.length >= 2, 'Enter at least 2 characters, or leave it blank.');
   need('mtDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
   need('mtSkIn', mtSk.length > 0, 'Add at least one required skill.');
   need('mtMax', maxRaw !== '' && Math.floor(max) === max && max >= 2 && max <= 20, 'Enter a whole number from 2 to 20.'); var wa = mtVal('mtWa'); need('mtWa', !wa || waOk(wa), 'Enter a valid WhatsApp group invite link (https://chat.whatsapp.com/…), or leave it blank.');
   if(!bad && myTeams.some(function(x){ return nrm(x.name) === nrm(name); })){ mtErr('mtName', 'A team with this name already exists. Choose a different name.'); bad = 'mtName'; }
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
   var sb = $('#mtForm button[type=submit]'); if(sb){ sb.disabled = true; sb.classList.add('mt-busy'); }
-  tAct('teamCreate', {name: name, project: proj, desc: desc, skills: mtSk.slice(), maxMembers: max, eligibility: mtVal('mtElig'), rules: mtVal('mtRules'), whatsappLink: wa}, 'Team created. You are the Team Leader.').then(function(r){
+  tAct('teamCreate', {name: name, project: proj || MT_TBD, desc: desc, skills: mtSk.slice(), maxMembers: max, eligibility: mtVal('mtElig'), rules: mtVal('mtRules'), whatsappLink: wa}, 'Team created. You are the Team Leader.').then(function(r){
     if(!r){ if(sb){ sb.disabled = false; sb.classList.remove('mt-busy'); } return; }
     mtBack = null; mtClose(); tmPaint(); try{ mtc.scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(e){}
   });
@@ -19694,10 +20034,11 @@ function mtView(id){
   var sec = function(l, b){ return b ? '<div><div class="cn-sub">' + l + '</div><p>' + esc(b) + '</p></div>' : ''; };
   var people = '<div>' + av(t.owner, i, 'sm') + '<span><b>' + esc(t.owner) + '</b></span><span class="mt-badge">' + ic('crown') + 'Team Leader</span>' + roleChip(t.ownerTitle) + '</div>' +
     t.members.map(function(m, j){ return '<div>' + av(m.name, i + j + 1, 'sm') + '<span><b>' + esc(m.name) + '</b></span>' + roleChip(m.title) + '</div>'; }).join('');
-  mtShow('<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(t.project) + '</p><div class="mt-sum"><span class="mt-pill">' + cnt(t) + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span></div><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
+  mtShow('<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(mtProjOf(t)) + '</p><div class="mt-sum"><span class="mt-pill">' + cnt(t) + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span></div><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
     '<div class="mt-dl">' + sec('About', t.desc) +
     '<div><div class="cn-sub">Required skills</div>' + mtChips(t.skills) + '</div>' +
     '<div><div class="cn-sub">Members · ' + cnt(t) + ' of ' + t.max + '</div><div class="cn-meta">' + people + '</div></div>' +
+    '<div><div class="cn-sub">Registered hackathons' + (erTeam(t.id).length ? ' \u00b7 ' + erTeam(t.id).length : '') + '</div>' + (erTeam(t.id).length ? '<div class="cn-chips">' + erTeam(t.id).map(function(d){ return '<span class="cn-chip">\ud83c\udfc6 ' + esc(d.eventTitle) + '</span>'; }).join('') + '</div>' : '<p>Not registered for any hackathon yet.</p>') + '</div>' +
     sec('Eligibility criteria', t.elig) + sec('Team rules and guidelines', t.rules) + teamPrivHTML(t) +
     '<div class="cn-row">' + ctJoinBtn(t) + '<button class="cn-btn" type="button" data-mt-close="1">Close</button></div></div>');
   var b = mtM.querySelector('.mt-x'); if(b) b.focus();
@@ -19750,12 +20091,12 @@ function ctJoinBtn(t){
 /* Find Teams: teams created on this device sit alongside the existing sample teams */
 function ctRows(){
   mtLoad(); var q = T.q.toLowerCase();
-  return myTeams.filter(function(t){ var hay = [t.name, t.project, t.desc, t.skills.join(' ')].join(' ').toLowerCase(); return (!q || hay.indexOf(q) > -1) && (!T.chips.length || T.chips.some(function(c){ return t.skills.indexOf(c) > -1; })); });
+  return myTeams.filter(function(t){ var hay = [t.name, mtProjOf(t), t.desc, t.skills.join(' ')].join(' ').toLowerCase(); return (!q || hay.indexOf(q) > -1) && (!T.chips.length || T.chips.some(function(c){ return t.skills.indexOf(c) > -1; })); });
 }
 function ctCard(t){
   var i = myTeams.indexOf(t), names = [t.owner].concat(t.members.map(function(m){ return m.name; })), id = esc(t.id);
   var st = full(t) ? '<span class="cn-chip mt-joined">Team full</span>' : t.open ? '<span class="mt-s mt-s-open mt-joined">Open</span>' : '<span class="mt-s mt-s-closed mt-joined">Closed</span>';
-  return '<article class="cn-card mt-card' + mtIn('f' + t.id) + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div>' + st + '</div>' +
+  return '<article class="cn-card mt-card' + mtIn('f' + t.id) + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div>' + st + '</div>' +
     '<p class="mt-desc">' + esc(t.desc) + '</p><div><div class="cn-sub">Skills &amp; tech</div><div class="cn-chips">' + t.skills.map(function(s){ return '<span class="cn-chip' + (T.chips.indexOf(s) > -1 ? ' on' : '') + '">' + esc(s) + '</span>'; }).join('') + '</div></div>' +
     '<div class="cn-memrow">' + stack(names, i) + '<span>' + cnt(t) + ' of ' + t.max + ' members · led by <b>' + esc(t.owner) + '</b></span></div>' +
     '<div class="cn-cta"><button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button>' + ctJoinBtn(t) + '</div></article>';
@@ -19769,15 +20110,15 @@ function mtCustomJoined(t, i){
   var n = cnt(t), id = esc(t.id), pct = Math.min(100, Math.round(n / t.max * 100));
   var acts = mtAskL === t.id
     ? '<p class="mt-warn" role="alert">Leave “' + esc(t.name) + '”? You can send a new request later if the team is still open.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-lvok="' + id + '">Confirm leave</button><button class="cn-btn" type="button" data-mt-lvno="1">Stay</button>'
-    : waBtn(t) + '<button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
-  return '<article class="cn-card mt-card' + mtIn('j' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div><span class="mt-s mt-s-accepted mt-joined">Joined</span></div>' +
-    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtLeader(t.owner, i) +
+    : waBtn(t) + '<button class="cn-btn" type="button" data-hk-open="' + id + '">Our hackathons</button><button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
+  return '<article class="cn-card mt-card' + mtIn('j' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div><span class="mt-s mt-s-accepted mt-joined">Joined</span></div>' +
+    '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members</span></div>' +
     '<div class="cn-cta">' + acts + '</div></article>';
 }
 function mtReqCard(t, i){
   var r = myReq(t), id = esc(t.id), when = 'Requested ' + ago(r.at) + (r.status !== 'pending' && r.at2 ? ' · ' + r.status + ' ' + ago(r.at2) : '');
-  return '<article class="cn-card mt-card' + mtIn('q' + t.id + r.status) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(t.project) + '</span></div>' + stChip(r.status) + '</div>' +
+  return '<article class="cn-card mt-card' + mtIn('q' + t.id + r.status) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div>' + stChip(r.status) + '</div>' +
     mtLeader(t.owner, i) + '<span class="mt-cap">' + when + '</span>' +
     (r.status === 'rejected' ? '<p class="mt-help" style="margin:0">The team leader declined this request.</p>' : '') +
     '<div class="cn-cta"><button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button>' + (r.status === 'pending' ? '<button class="cn-btn" type="button" data-mt-wd="' + id + '">Withdraw request</button>' : r.status === 'rejected' ? '<button class="cn-btn" type="button" data-mt-dis="' + id + '">Dismiss</button>' : '') + '</div></article>';
@@ -19785,7 +20126,7 @@ function mtReqCard(t, i){
 function reqHTML(t){
   var p = profile(); mtSk = []; mtPool = [];
   return '<form class="mt-form" id="mtReq" novalidate>' +
-    '<div class="mt-mh"><h2 id="mtTitle">Request to join</h2><p>' + esc(t.name) + ' · ' + esc(t.project) + '</p><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
+    '<div class="mt-mh"><h2 id="mtTitle">Request to join</h2><p>' + esc(t.name) + ' · ' + esc(mtProjOf(t)) + '</p><button type="button" class="mt-x" data-mt-close="1" aria-label="Close">' + ic('x') + '</button></div>' +
     '<div class="mt-mb">' +
     (t.elig ? '<div><div class="cn-sub">Eligibility criteria</div><p class="mt-txt">' + esc(t.elig) + '</p></div>' : '') +
     '<div><div class="cn-sub">Team rules and guidelines</div>' + (t.rules ? '<div class="mt-rules" tabindex="0" role="region" aria-label="Team rules">' + esc(t.rules) + '</div>' : '<p class="mt-help">The leader hasn’t added specific rules. Please communicate respectfully and keep your commitments.</p>') + '</div>' +
@@ -19905,7 +20246,7 @@ function dMem(t, m, j){
 }
 function dashHTML(t){
   var tab = mtDash.tab, n = cnt(t), pend = pendN(t);
-  var head = '<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(t.project) + '</p><div class="mt-sum"><span class="mt-pill">' + n + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span>' +
+  var head = '<div class="mt-mh"><h2 id="mtTitle">' + esc(t.name) + '</h2><p>' + esc(mtProjOf(t)) + '</p><div class="mt-sum"><span class="mt-pill">' + n + ' of ' + t.max + ' members</span><span class="mt-pill">' + (full(t) ? 'Team full' : t.open ? 'Applications open' : 'Applications closed') + '</span>' +
     '<button type="button" class="cn-btn mt-hbtn" data-mt-tog="1">' + (t.open ? 'Close applications' : 'Reopen applications') + '</button></div>' +
     '<button type="button" class="mt-x" data-mt-close="1" aria-label="Close dashboard">' + ic('x') + '</button></div>';
   var tabs = '<div class="mt-tabs" role="tablist" aria-label="Team dashboard">' + [['req', 'Requests', pend], ['mem', 'Members', n], ['det', 'Details', 0]].map(function(x){
@@ -19923,12 +20264,14 @@ function dashHTML(t){
   } else {
     body = '<form id="mtEdit" novalidate class="mt-mbx">' +
       mtField('mtEDesc', 'Team description', '<textarea class="cn-in" id="mtEDesc" maxlength="600" aria-describedby="mtEDescErr">' + esc(t.desc) + '</textarea>') +
+      mtField('mtEProj', 'Project / hackathon / competition', mtProjCtl('mtEProj', t.project === MT_TBD ? '' : t.project), true, MT_PROJ_HELP) +
       mtField('mtEElig', 'Eligibility criteria', '<textarea class="cn-in" id="mtEElig" maxlength="150">' + esc(t.elig || '') + '</textarea>', true) +
       mtField('mtERules', 'Team rules and guidelines', '<textarea class="cn-in" id="mtERules" maxlength="500">' + esc(t.rules || '') + '</textarea>', true, '<p class="mt-help">New requests show the latest rules. Requests already sent keep the rules they accepted.</p>') +
       mtField('mtEWa', 'WhatsApp group link', '<input class="cn-in" id="mtEWa" type="url" inputmode="url" maxlength="120" autocomplete="off" placeholder="https://chat.whatsapp.com/…" value="' + esc(t.wa || '') + '" aria-describedby="mtEWaErr">', true, '<p class="mt-help">Only members of your team can see this link. Leave it blank to remove it.</p>') +
       mtField('mtEMax', 'Maximum members', '<input class="cn-in" id="mtEMax" type="number" inputmode="numeric" min="' + Math.max(2, n) + '" max="20" value="' + t.max + '" aria-describedby="mtEMaxErr" style="max-width:140px">', false, '<p class="mt-help">Includes you. Cannot be lower than the current ' + n + '.</p>') +
       '<div class="cn-row" style="margin-top:6px"><button type="submit" class="cn-btn pri">Save changes</button></div></form>';
   }
+  if(tab === 'req') body += ivSentHTML(t);
   mtDash.fresh = false;
   return head + tabs + '<div class="mt-dl" role="tabpanel" data-tab="' + tab + '">' + body + '</div>';
 }
@@ -19955,13 +20298,14 @@ function removeMem(uid){
 }
 function mtSaveEdit(){
   var id = mtDash && mtDash.id; if(!id) return; var t0 = tById(id); if(!t0 || !isOwner(t0)) return;
-  var desc = mtVal('mtEDesc'), maxRaw = mtVal('mtEMax'), max = Number(maxRaw), min = Math.max(2, cnt(t0)), bad = null;
+  var desc = mtVal('mtEDesc'), eproj = mtVal('mtEProj'), maxRaw = mtVal('mtEMax'), max = Number(maxRaw), min = Math.max(2, cnt(t0)), bad = null;
   function need(f, ok, msg){ mtErr(f, ok ? '' : msg); if(!ok && !bad) bad = f; }
+  need('mtEProj', !eproj || eproj.length >= 2, 'Enter at least 2 characters, or leave it blank.');
   need('mtEDesc', desc.length >= 10, 'Describe the team in at least 10 characters.');
   need('mtEMax', maxRaw !== '' && Math.floor(max) === max && max >= min && max <= 20, 'Enter a whole number from ' + min + ' to 20.'); var wa = mtVal('mtEWa'); need('mtEWa', !wa || waOk(wa), 'Enter a valid WhatsApp group invite link (https://chat.whatsapp.com/…), or leave it blank.');
   if(bad){ var f = $('#' + bad); if(f) f.focus(); return; }
   var btn = $('#mtEdit button[type=submit]'); if(btn){ btn.disabled = true; btn.classList.add('mt-busy'); }
-  tAct('teamUpdate', {teamId: id, desc: desc, eligibility: mtVal('mtEElig'), rules: mtVal('mtERules'), maxMembers: max, whatsappLink: wa}, 'Team details saved.').then(function(){ if(btn){ btn.disabled = false; btn.classList.remove('mt-busy'); } });
+  tAct('teamUpdate', {teamId: id, project: eproj || MT_TBD, desc: desc, eligibility: mtVal('mtEElig'), rules: mtVal('mtERules'), maxMembers: max, whatsappLink: wa}, 'Team details saved.').then(function(){ if(btn){ btn.disabled = false; btn.classList.remove('mt-busy'); } });
 }
 function deleteTeam(id){
   var card = mtc.querySelector('[data-tid="' + id + '"]'), reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -19992,12 +20336,14 @@ function initMyTeam(){
   mtM = document.createElement('div'); mtM.className = 'cn-modal hidden'; mtM.id = 'mtModal'; mtM.setAttribute('role', 'dialog'); mtM.setAttribute('aria-modal', 'true'); mtM.setAttribute('aria-labelledby', 'mtTitle'); $('.cn-shell').appendChild(mtM);
   try{ localStorage.removeItem('csec_myteams_joined'); }catch(e){}
   mtLoad();
-  mtc.addEventListener('click', function(e){ var b = e.target.closest('button'); if(b && b.dataset.tchat){ tcOpen(b.dataset.tchat); return; } if(b && !b.disabled) onAct(b); });
+  mtc.addEventListener('click', function(e){ var ev = e.target.closest('[data-mt-ev]'); if(ev){ var ix = -1; EV.forEach(function(z, n){ if(String(evId(z)) === ev.dataset.mtEv) ix = n; }); if(ix > -1) openEvent(ix); else toast('This event has ended or is no longer listed.'); return; } var b = e.target.closest('button'); if(b && b.dataset.tchat){ tcOpen(b.dataset.tchat); return; } if(b && !b.disabled) onAct(b); });
   var tt = $('#cnTteams'); if(tt) tt.addEventListener('click', function(e){ var b = e.target.closest('button'); if(b && !b.disabled && (b.dataset.ctVt || b.dataset.ctJoin || b.dataset.ctManage || b.dataset.mtNew)) onAct(b); });
   mtM.addEventListener('click', function(e){
     if(e.target === mtM) return mtClose();
     var b = e.target.closest('button'); if(!b || b.disabled) return; var d = b.dataset;
     if(d.mtClose) mtClose();
+    else if(d.mtPjtog){ mtPjToggle(d.mtPjtog); }
+    else if(d.mtPj){ mtPjPick(d.mtPj, d.mtPjid); }
     else if(d.mtSk){ mtAddSk(d.mtSk); var i = $('#mtSkIn'); if(i) i.focus(); }
     else if(d.mtRm != null){ mtSk.splice(+d.mtRm, 1); mtDrawSk(); var j = $('#mtSkIn'); if(j) j.focus(); }
     else if(d.mtStep){ var m = $('#mtMax'), v = parseInt(m.value, 10); if(isNaN(v)) v = 4; m.value = Math.max(2, Math.min(20, v + Number(d.mtStep))); mtErr('mtMax', ''); }
@@ -20018,14 +20364,15 @@ function initMyTeam(){
     if(t.dataset && t.dataset.mtRole != null){ if(t.value === '__custom'){ var cu = t.parentNode.querySelector('.mt-role-cu'); if(cu){ cu.classList.remove('hidden'); var ci = cu.querySelector('input'); if(ci) ci.focus(); } } else setRole(t.dataset.mtRole, t.value); return; }
     if(t.id === 'mtAgree'){ var s = $('#mtReq button[type=submit]'); if(s) s.disabled = !t.checked; if(t.checked) mtErr('mtAgree', ''); } });
   mtM.addEventListener('input', function(e){
-    var t = e.target; if(!t.id) return; if(t.id === 'mtEmail' || t.id === 'mtPhone' || t.id === 'mtWa' || t.id === 'mtEWa') mtErr(t.id, '');
+    var t = e.target; if(t.dataset && t.dataset.mtPjq){ mtPjDraw(t.dataset.mtPjq); return; } if(!t.id) return; if(t.id === 'mtEmail' || t.id === 'mtPhone' || t.id === 'mtWa' || t.id === 'mtEWa') mtErr(t.id, '');
     if(t.id === 'mtDesc'){ var c = $('#mtDescCnt'); if(c) c.textContent = t.value.length + ' / 600'; }
     if(t.id === 'mtSkIn' && t.value.indexOf(',') > -1){ var parts = t.value.split(','); t.value = parts.pop(); parts.forEach(function(x){ mtAddSk(x); }); }
     if(t.getAttribute('aria-invalid')) mtErr(t.id, '');
   });
   mtM.addEventListener('keydown', function(e){
     var t = e.target;
-    if(e.key === 'Enter' && t.dataset && t.dataset.mtRolein != null){ e.preventDefault(); if(t.value.trim()) setRole(t.dataset.mtRolein, t.value); }
+    if(e.key === 'Enter' && t.dataset && t.dataset.mtPjq){ e.preventDefault(); var fi = mtM.querySelector('.mt-pj-it[data-mt-pj="' + t.dataset.mtPjq + '"]'); if(fi) mtPjPick(t.dataset.mtPjq, fi.dataset.mtPjid); }
+    else if(e.key === 'Enter' && t.dataset && t.dataset.mtRolein != null){ e.preventDefault(); if(t.value.trim()) setRole(t.dataset.mtRolein, t.value); }
     else if(e.key === 'Enter' && t.id === 'mtSkIn'){ e.preventDefault(); if(mtAddSk(t.value)) t.value = ''; }
     else if(e.key === 'Backspace' && t.id === 'mtSkIn' && !t.value && mtSk.length){ mtSk.pop(); mtDrawSk(); }
     else if(t.dataset && t.dataset.mtTab && /^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key)){
@@ -20047,18 +20394,26 @@ var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], bo
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
-function evStart(x){ var d = new Date(now + x.off * D); d.setHours(0, 0, 0, 0); return d; }
-function evEnd(x){ var d = new Date(now + (x.ed != null ? x.ed : x.off) * D); d.setHours(23, 59, 59, 999); return d; }
-function upcomingEvents(n){
+function evStart(x){ var d = new Date(Date.now() + x.off * D); d.setHours(0, 0, 0, 0); return d; }
+function evEnd(x){ var d = new Date(Date.now() + (x.ed != null ? x.ed : x.off) * D); d.setHours(23, 59, 59, 999); return d; }
+function evShape(o){ var t = Date.now(), x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0, registered:mrHas(x), teams:erMine(x).map(function(d){ return d.teamName; })}; }
+function liveEvents(){
   var t = Date.now();
   return EV.map(function(x, i){ return {x:x, i:i}; })
     .filter(function(o){ return o.x && evEnd(o.x).getTime() >= t; })                         // expired events never show
-    .sort(function(a, b){ return (evStart(a.x) - evStart(b.x)) || (evEnd(a.x) - evEnd(b.x)) || (a.i - b.i); })
-    .slice(0, n == null ? EV.length : n)
-    .map(function(o){ var x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0}; });
+    .sort(function(a, b){ return (evStart(a.x) - evStart(b.x)) || (evEnd(a.x) - evEnd(b.x)) || (a.i - b.i); });
 }
+function upcomingEvents(n){ return liveEvents().slice(0, n == null ? EV.length : n).map(evShape); }
+/* Events that ended and that one of my teams was registered for, newest first (read from the registration record, so they stay even after the listing is gone) */
+function pastRegistered(n){
+  var t = Date.now(), by = {};
+  erAll().forEach(function(d){ if(!TM.mine[d.teamId] || !(d.endAt < t)) return; var e = by[d.ek] || (by[d.ek] = {title:d.eventTitle, kind:d.eventKind, dateLabel:d.dateLabel, end:d.endAt, teams:[]}); e.teams.push(d.teamName); });
+  return Object.keys(by).map(function(k){ return by[k]; }).sort(function(a, b){ return b.end - a.end; }).slice(0, n == null ? 3 : n);
+}
+/* Events one of my teams is registered for (still running or upcoming), soonest first */
+function registeredEvents(n){ return liveEvents().filter(function(o){ return mrHas(o.x); }).slice(0, n == null ? EV.length : n).map(evShape); }
 function openEvent(i){ go('events', null); if(EV[i]) eventModal(i); }
-function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
+function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ mtPjRefresh(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
 /* ---------- Settings → Saved: list of saved events / hackathons ---------- */
 function showSaved(){ ef.view = 'saved'; go('events', null); drawEvents(); }
 function renderSavedCard(){
@@ -20079,7 +20434,7 @@ function leaveSettings(){ try{ if(window.clShell && clShell.closeSettings) clShe
     if(t.dataset.svr != null){ var i = +t.dataset.svr; bm[i] = false; persistSaved(); return drawEvents(); }
     if(t.dataset.svall){ leaveSettings(); showSaved(); } });
 })();
-window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
+window.cseConnect = { go:go, upcomingEvents:upcomingEvents, registeredEvents:registeredEvents, pastRegistered:pastRegistered, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
 lvStart();
 try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   // Home may have rendered before Connect finished loading
 
@@ -20430,6 +20785,19 @@ function pct(){var c=[['Profile photo',!!IMG.photo],['Cover image',!!IMG.cover],
   return{c:c,p:Math.round(c.filter(function(x){return x[1]}).length/c.length*100)}}
 function connCount(){try{return window.cnConn&&window.cnConn.count?window.cnConn.count():0}catch(e){return 0}}
 function myPosts(){try{var a=window.cseConnect&&window.cseConnect.myPosts&&window.cseConnect.myPosts();return Array.isArray(a)?a:[]}catch(e){return[]}}
+/* ---- Hackathon results (hackResults): recorded by a team leader, shown on every member's profile ---- */
+var HR={mine:[],peer:[],un:null,pun:null,uid:''};
+var HR_L={won:['\uD83E\uDD47','Won'],finalist:['\uD83C\uDFC5','Finalist'],participated:['\uD83C\uDFAF','Participated']};
+function hrCard(list,own){
+  list=(list||[]).slice().sort(function(a,b){return (b.endAt||0)-(a.endAt||0)});
+  return '<div class="pf-card"><h3>Hackathon results</h3>'+(list.length?'<div class="pf-tl">'+list.map(function(r){var m=HR_L[r.result]||HR_L.participated;return'<div class="pf-it"><span class="pf-tag">'+m[0]+' '+m[1]+'</span> <b>'+esc(r.eventTitle)+'</b><div class="pf-sm">'+esc([r.teamName?'Team '+r.teamName:'',r.note].filter(Boolean).join(' \u00B7 '))+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">'+(own?'When your team leader records a result after a hackathon, it shows up here.':'No hackathon results yet.')+'</div>')+'</div>';
+}
+function hrWatch(uid,key,cb){var db=fdb();if(!db||!uid)return null;return LST(db.collection('hackResults').where('memberUids','array-contains',uid),function(s){HR[key]=s.docs.map(function(d){return d.data()});cb&&cb()},function(){})}
+function hrOwn(){
+  var u=null;try{u=firebase.auth().currentUser}catch(e){} var id=(u&&!u.isAnonymous)?u.uid:'';
+  if(id===HR.uid)return; if(HR.un){try{HR.un()}catch(e){}HR.un=null} HR.uid=id;HR.mine=[]; if(!id)return;
+  HR.un=hrWatch(id,'mine',function(){ if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')&&!document.querySelector('.pf-modal'))render() });
+}
 function render(){
   var posts=myPosts();
   var h='<div class="pf-card pf-top"><div class="pf-cover"><button class="pf-btn sm pf-cbtn" data-img="cover">📷 '+(IMG.cover?'Change':'Upload')+' cover</button></div>'+
@@ -20446,6 +20814,7 @@ function render(){
   h+=itemsSec('Projects &amp; Works','projects','Add Project',PROJ,function(o,i){return'<div class="pf-proj"><div class="th" style="'+(o.img?'background-image:url('+esc(o.img)+')':'')+'"></div><div class="bd"><b>'+esc(o.title)+'</b>'+(o.cat?'<span class="pf-tag">'+esc(o.cat)+'</span>':'')+'<div class="pf-sm">'+esc(o.desc)+'</div>'+(o.tech?'<div class="pf-sm">🛠 '+esc(o.tech)+'</div>':'')+'<div class="pf-sm">'+esc(o.date)+(o.link?' · <a href="'+esc(o.link)+'" target="_blank" rel="noopener">Link</a>':'')+(o.gh?' · <a href="'+esc(o.gh)+'" target="_blank" rel="noopener">GitHub</a>':'')+'</div>'+acts('projects',i)+'</div></div>'});
   h+=itemsSec('Education','education','Add Education',EDU,function(o,i){return'<div class="pf-it"><b>'+esc(o.college)+'</b><div>'+esc([o.degree,o.dept].filter(Boolean).join(' – '))+'</div><div class="pf-sm">'+esc([o.year,(o.start||'')+(o.grad?' – '+o.grad:'')].filter(Boolean).join(' · '))+'</div>'+acts('education',i)+'</div>'});
   h+=itemsSec('Experience &amp; Achievements','exp','Add Entry',EXP,function(o,i){return'<div class="pf-it"><span class="pf-tag">'+esc(o.type)+'</span> <b>'+esc(o.title)+'</b><div class="pf-sm">'+esc([o.org,o.date].filter(Boolean).join(' · '))+'</div><div>'+esc(o.desc)+'</div>'+acts('exp',i)+'</div>'});
+  h+=hrCard(HR.mine,true);
   h+='<div class="pf-card"><h3>Posts &amp; activity</h3>'+(posts.length?posts.map(function(p){return'<div class="pf-it" style="margin-bottom:10px">'+esc(p.text||p.title||'')+'</div>'}).join(''):'<div class="pf-empty">No posts yet. Posts you share in Connect will appear here.</div>')+'</div>';
   $('pfBody').innerHTML=h;applyImgs()}
 /* ---- events ---- */
@@ -20473,7 +20842,7 @@ function pick(which){fi.value='';fi.onchange=function(){var f=fi.files[0];if(!f)
   readImg(f,which==='cover'?1400:500,function(u){var im=document.createElement('img');im.src=u;im.className='pf-prev';var w=document.createElement('div');w.appendChild(im);
     modal('Preview '+(which==='cover'?'cover image':'profile photo'),w,function(){IMG[which]=u;idbSet(which,u);render();imgChanged(which)},'Apply')})};fi.click()}
 /* ---- Profile open/close ---- */
-function openProfile(){peerStop();prof.classList.remove('pf-peer');prof.querySelector('.cl-ovbar b').textContent='Profile';closeSettings();state.sy=window.pageYOffset||0;load();render();prof.classList.remove('hidden');prof.scrollTop=0;lock()}
+function openProfile(){peerStop();prof.classList.remove('pf-peer');prof.querySelector('.cl-ovbar b').textContent='Profile';closeSettings();state.sy=window.pageYOffset||0;load();hrOwn();render();prof.classList.remove('hidden');prof.scrollTop=0;lock()}
 function closeProfile(silent){peerStop();if(prof.classList.contains('hidden'))return;prof.classList.add('hidden');lock();if(!silent){try{window.scrollTo(0,state.sy)}catch(e){}}}
 $('pfBack').onclick=function(){closeProfile()};
 document.addEventListener('keydown',function(e){if(e.key!=='Escape'||document.querySelector('.pf-modal'))return;if(!prof.classList.contains('hidden'))closeProfile();else closeSettings()});
@@ -20486,13 +20855,14 @@ document.addEventListener('click',function(e){
 var peerUn=null,peerGen=0;
 function safeUrl(u){u=String(u||'');return /^https?:\/\/[^\s"'<>]+$/i.test(u)?u:''}
 function safePhoto(u){u=String(u||'');return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(u)&&u.length<30000?u:''}
-function peerStop(){if(peerUn){try{peerUn()}catch(e){}peerUn=null}}
+function peerStop(){if(peerUn){try{peerUn()}catch(e){}peerUn=null}if(HR.pun){try{HR.pun()}catch(e){}HR.pun=null}}
 function openPeer(p){
   if(p.mine){ peerStop(); openProfile(); return; }
   peerStop(); closeSettings(); state.sy=window.pageYOffset||0;
   var ck='csec_peer_conn',cn={};try{cn=JSON.parse(localStorage.getItem(ck))||{}}catch(e){}
   var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null, fc=null, gen=++peerGen;
   function chips(a,c){return a.length?'<div class="pf-chips">'+a.map(function(x){return'<span class="pf-chip'+(c?' hi':'')+'" style="padding:6px 12px">'+esc(x)+'</span>'}).join('')+'</div>':'<div class="pf-empty">Not shared yet.</div>'}
+  var lastX=null; HR.peer=[]; HR.pun=hrWatch(p.uid,'peer',function(){ if(gen===peerGen&&prof.classList.contains('pf-peer')&&!prof.classList.contains('hidden')){var y=prof.scrollTop;paint(lastX);prof.scrollTop=y} });
   function paint(x){
     x=x||{};var nm=x.name||p.name, ph=(STURL.test(x.photoUrl||'')?x.photoUrl:'')||safePhoto(x.photo), cv=STURL.test(x.coverUrl||'')?x.coverUrl:'', A=x.about||{};
     var sk=(x.skills||[]).map(function(a){return a.n||a}), hi=(x.skills||[]).filter(function(a){return a.h}).map(function(a){return a.n}),
@@ -20508,7 +20878,8 @@ function openPeer(p){
      '<div class="pf-card"><h3>Interests</h3>'+chips(it)+'</div>'+
      '<div class="pf-card"><h3>Projects &amp; Works</h3>'+(pr.length?'<div class="pf-grid">'+pr.map(function(o){var l=safeUrl(o.link),g=safeUrl(o.gh);return'<div class="pf-proj"><div class="th"></div><div class="bd"><b>'+esc(o.title)+'</b>'+(o.cat?'<span class="pf-tag">'+esc(o.cat)+'</span>':'')+'<div class="pf-sm">'+esc(o.desc)+'</div>'+(o.tech?'<div class="pf-sm">🛠 '+esc(o.tech)+'</div>':'')+'<div class="pf-sm">'+esc(o.date)+(l?' · <a href="'+esc(l)+'" target="_blank" rel="noopener noreferrer">Link</a>':'')+(g?' · <a href="'+esc(g)+'" target="_blank" rel="noopener noreferrer">GitHub</a>':'')+'</div></div></div>'}).join('')+'</div>':'<div class="pf-empty">No projects shared yet.</div>')+'</div>'+
      '<div class="pf-card"><h3>Education</h3>'+(ed.length?'<div class="pf-tl">'+ed.map(function(o){return'<div class="pf-it"><b>'+esc(o.college)+'</b><div>'+esc([o.degree,o.dept].filter(Boolean).join(' – '))+'</div><div class="pf-sm">'+esc([o.year,(o.start||'')+(o.grad?' – '+o.grad:'')].filter(Boolean).join(' · '))+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">'+esc([p.branch,p.year].filter(Boolean).join(' · ')||'Not shared yet.')+'</div>')+'</div>'+
-     '<div class="pf-card"><h3>Experience &amp; Achievements</h3>'+(ex.length?'<div class="pf-tl">'+ex.map(function(o){return'<div class="pf-it"><span class="pf-tag">'+esc(o.type)+'</span> <b>'+esc(o.title)+'</b><div class="pf-sm">'+esc([o.org,o.date].filter(Boolean).join(' · '))+'</div><div>'+esc(o.desc)+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">Nothing shared yet.</div>')+'</div>';
+     '<div class="pf-card"><h3>Experience &amp; Achievements</h3>'+(ex.length?'<div class="pf-tl">'+ex.map(function(o){return'<div class="pf-it"><span class="pf-tag">'+esc(o.type)+'</span> <b>'+esc(o.title)+'</b><div class="pf-sm">'+esc([o.org,o.date].filter(Boolean).join(' · '))+'</div><div>'+esc(o.desc)+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">Nothing shared yet.</div>')+'</div>'+hrCard(HR.peer,false);
+    lastX=x;
     prof.querySelector('.cl-ovbar b').textContent=nm;
     $('pfConn').onclick=function(){if(rc){rc.act(p.uid);return}sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'✓ Request sent':'Connect'};
   }

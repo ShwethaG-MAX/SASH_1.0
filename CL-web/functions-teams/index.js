@@ -69,14 +69,14 @@ exports.peerFollowers = onCall({ cors: true }, async (req) => {
   }
 });
 
-/* Phone push for invites + deadline/start reminders. Uses the phone's FCM token (deviceTokens/{uid}), the existing "Connections & Teams" channel,
-   and route 'connect' / sub 'teams', so tapping opens Connect -> Teams. No Android app update is needed. */
+/* Phone push for invites, join requests, removed/left/disbanded/transferred and deadline/start reminders. Uses the phone's FCM token (deviceTokens/{uid}), the existing "Connections & Teams" channel,
+   and route 'connect' (sub 'requests' for join requests, otherwise 'teams'), so tapping opens the right Connect tab. No Android app update is needed. */
 exports.teamNotifPush = onDocumentCreated({ document: 'teamNotifs/{uid}/items/{id}', region: 'asia-south1' }, async (event) => {
   const n = event.data && event.data.data(); if (!n || !core.PUSH_TYPES.includes(n.type)) return;
   const msg = core.pushText(n); if (!msg) return;
   const snap = await db.doc(`deviceTokens/${event.params.uid}`).get(); const token = snap.exists && snap.data().token; if (!token) return;
   try {
-    await getMessaging().send({ token, notification: msg, data: { route: 'connect', ref: '', sub: 'teams' }, android: { priority: 'high', notification: { channel_id: 'connections', tag: n.type === 'reminder' ? 'team_remind' : 'team_invite' } } });
+    await getMessaging().send({ token, notification: msg, data: { route: 'connect', ref: String(n.teamId || ''), sub: core.pushSub(n) }, android: { priority: 'high', notification: { channel_id: 'connections', tag: core.pushTag(n) } } });
   } catch (e) {
     if (/registration-token-not-registered|invalid-registration-token/.test(String((e && e.code) || (e && e.message) || ''))) { try { await snap.ref.delete(); } catch (x) { /* best effort */ } }
     else console.error('teamNotifPush failed', e);
