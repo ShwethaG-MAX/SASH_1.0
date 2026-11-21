@@ -2579,6 +2579,7 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-sum{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:32px;font-size:.84rem;color:var(--muted);margin:0 2px 8px}
 .cn-link{border:0;background:none;color:var(--text);font:inherit;font-weight:600;font-size:.84rem;text-decoration:underline;cursor:pointer;min-height:32px;padding:0 4px}
 .cn-cta{display:flex;gap:8px;margin-top:auto}.cn-cta .cn-btn{flex:1}
+.cn-cta3{flex-wrap:wrap}.cn-cta3 .cn-btn{flex:1 1 calc(50% - 8px);min-width:0;white-space:nowrap}.cn-cta3 .cn-btn.cn-mr.done{background:color-mix(in srgb,#16a34a 16%,var(--card));border-color:#16a34a}
 .cn-logo{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:1.5rem;background:color-mix(in srgb,var(--c) 18%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
 .cn-stack{display:flex}.cn-stack .cn-av{margin-left:-8px;border:2px solid var(--card)}.cn-stack .cn-av:first-child{margin-left:0}
 .cn-memrow{display:flex;align-items:center;gap:10px;font-size:.84rem;color:var(--muted)}
@@ -3597,6 +3598,9 @@ body[data-section="home"] :is(.mode-bar-wrap,#shxFab){display:none !important}
 .hm-ev-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:5px;font-size:.74rem;color:var(--muted)}
 .hm-ev-k{padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--brown-dark,#A9835C) 32%,transparent);color:var(--brown-dark,#A9835C);font-weight:600}
 .hm-ev-go{display:grid;place-items:center;color:var(--muted)}
+.hm-ev-sub{margin:10px 2px 6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.hm-ev-sub:first-child{margin-top:0}
+.hm-ev-ok{padding:1px 8px;border-radius:999px;background:color-mix(in srgb,#16a34a 16%,transparent);color:#15803d;font-weight:700}
+[data-theme="dark"] .hm-ev-ok{color:#4ade80}
 .hm-ev-go svg{width:16px;height:16px}
 
 /* Sheynix card: compact, centred character + one button (character, animations and chat are the existing ones) */
@@ -4317,7 +4321,7 @@ html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-n
 <div id="av-chat"><div id="av-log" aria-live="polite"></div><div class="av-chips"></div><form id="av-form" autocomplete="off"><input id="av-in" type="text" placeholder="Ask about your classes, tasks…" aria-label="Ask your guide"><button id="av-send" type="submit" aria-label="Send">🔥</button></form></div>
 </section>
       <section class="hm-card hm-dcard hm-events" id="hmEventsCard" aria-labelledby="hmEventsTitle">
-        <header class="hm-dhead"><h2 class="hm-dtitle" id="hmEventsTitle"><span class="hm-dico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Upcoming Events</h2></header>
+        <header class="hm-dhead"><h2 class="hm-dtitle" id="hmEventsTitle"><span class="hm-dico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Your Events</h2></header>
         <div class="hm-dmeta">From Connect → Events</div>
         <div class="hm-dbody" id="hmEventsList" aria-live="polite"></div>
         <div class="hm-dfoot"><button type="button" class="hm-dlink" id="hmEventsAll">View All Events <span aria-hidden="true">→</span></button></div>
@@ -5712,7 +5716,7 @@ const TOUR_STEPS = [
   {type:'mode-navigation', icon:'🏠', title:'Home', mode:'home', target:()=>tq('#secBtnHome'), text:'Your main dashboard, shared by Campus and Connect.'},
   {type:'feature', icon:'📚', title:'Next Classes', mode:'home', target:()=>tq('#hmNextCard'), text:'Your next classes from your own timetable, with time, room and faculty. The class in progress is highlighted and the list updates as the day goes on.'},
   {type:'feature', icon:'✨', title:'Sheynix', mode:'home', target:()=>tq('#living-avatar'), text:'Your study companion. Tap <b>Talk to Sheynix</b> to ask about your classes, tasks, calendar or attendance.'},
-  {type:'feature', icon:'📅', title:'Upcoming Events', mode:'home', target:()=>tq('#hmEventsCard'), text:'The next three events from <b>Connect → Events</b>. Tap one to open its details, or use <b>View All Events</b>.'},
+  {type:'feature', icon:'📅', title:'Your Events', mode:'home', target:()=>tq('#hmEventsCard'), text:'The next three events from <b>Connect → Events</b>. Tap one to open its details, or use <b>View All Events</b>.'},
   /* Schedule */
   {type:'mode-navigation', icon:'🗓️', title:'Schedule', mode:'schedule', target:()=>tq('#modeScheduleBtn'), text:'Your timetable, event calendar, tasks and attendance all live together here.'},
   {type:'feature', icon:'🗒️', title:'Timetable', mode:'schedule', target:()=>{schSetTab('timetable');const d=tq('#ttDesktop'),m=tq('#ttMobile');return tVis(d)?d:m;}, text:'This is your class schedule. Lab slots change with Batch 1 / Batch 2.'},
@@ -8565,18 +8569,25 @@ function renderHomeEvents(){
   if(!box) return;
   const api = window.cseConnect;
   if(!api || typeof api.upcomingEvents !== 'function'){ box.innerHTML = '<div class="hm-empty"><p>Loading events…</p></div>'; return; }
-  let list = [];
-  try{ list = api.upcomingEvents(3) || []; }catch(e){ console.warn('[Home] events unavailable', e); }
-  if(!list.length){ box.innerHTML = hmEmpty('cal', 'No upcoming events', 'New hackathons, workshops and fests from Connect will show up here.'); return; }
-  box.innerHTML = list.map(ev => {
+  let reg = [], up = [];
+  try{
+    reg = typeof api.registeredEvents === 'function' ? (api.registeredEvents(5) || []) : [];
+    const regIds = new Set(reg.map(e => e.id));
+    up = (api.upcomingEvents() || []).filter(e => !regIds.has(e.id)).slice(0, 3);   // registered ones are listed above, not twice
+  }catch(e){ console.warn('[Home] events unavailable', e); }
+  if(!reg.length && !up.length){ box.innerHTML = hmEmpty('cal', 'No upcoming events', 'New hackathons, workshops and fests from Connect will show up here.'); return; }
+  const row = (ev, isReg) => {
     const d = ev.start instanceof Date ? ev.start : new Date(ev.start);
     const pill = ev.ongoing ? '<b>Now</b><small>On</small>' : `<b>${d.getDate()}</b><small>${d.toLocaleDateString(undefined, {month:'short'})}</small>`;
-    return `<button type="button" class="hm-ev" data-hm-ev="${ev.id}" aria-label="${hmEsc(ev.title)}, ${hmEsc(ev.dateLabel)}${ev.kind ? ', ' + hmEsc(ev.kind) : ''}. Open details">
+    return `<button type="button" class="hm-ev${isReg ? ' hm-ev-reg' : ''}" data-hm-ev="${ev.id}" aria-label="${hmEsc(ev.title)}, ${hmEsc(ev.dateLabel)}${ev.kind ? ', ' + hmEsc(ev.kind) : ''}${isReg ? ', registered' : ''}. Open details">
       <span class="hm-ev-date" aria-hidden="true">${pill}</span>
       <span class="hm-ev-info"><span class="hm-ev-t">${hmEsc(ev.title)}</span>
-        <span class="hm-ev-m">${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span></span></span>
+        <span class="hm-ev-m">${isReg ? '<span class="hm-ev-ok">✓ Registered</span>' : ''}${ev.kind ? `<span class="hm-ev-k">${hmEsc(ev.kind)}</span>` : ''}<span>${hmEsc(ev.dateLabel)}</span></span></span>
       <span class="hm-ev-go" aria-hidden="true">${HM_IC.chev}</span></button>`;
-  }).join('');
+  };
+  box.innerHTML =
+    (reg.length ? `<div class="hm-ev-sub">Registered</div>${reg.map(e => row(e, true)).join('')}` : '') +
+    (up.length ? (reg.length ? '<div class="hm-ev-sub">Upcoming</div>' : '') + up.map(e => row(e, false)).join('') : '');
 }
 function renderHome(){
   renderNextClasses();
@@ -8586,7 +8597,8 @@ function initHome(){
   renderHome();
   setInterval(()=>{ if(!document.hidden) renderHome(); }, 15000);       // "now / next" and expired events roll over on their own
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && homeInited) renderHome(); });
-  window.addEventListener('cse:eventschange', renderHomeEvents);       // Connect added / edited / removed an event
+  window.addEventListener('cse:eventschange', renderHomeEvents);
+  window.addEventListener('cse:registered-events-sync', renderHomeEvents);       // Connect added / edited / removed an event
   const nextCard = document.getElementById('hmNextCard');
   if(nextCard) nextCard.addEventListener('click', e=>{
     const b = e.target.closest('[data-hm-go]'); if(!b) return;
@@ -14148,7 +14160,7 @@ var CR_DOMAIN=/@cr\.cse-hub\.app$/i;
 
 /* ---------- which keys sync ---------- */
 var SCOPED=['csec_attendance','csec_attendance_settings','csec_favorites','csec_recent'];   // second-year keys + the _fy1 first-year twins
-var DATA_KEYS=[]; SCOPED.forEach(function(k){ DATA_KEYS.push(k,k+'_fy1'); }); DATA_KEYS.push('csec_tasks','csec_daily_notes','csec_saved_events');   // csec_saved_events = bookmarked Connect events, now part of the account
+var DATA_KEYS=[]; SCOPED.forEach(function(k){ DATA_KEYS.push(k,k+'_fy1'); }); DATA_KEYS.push('csec_tasks','csec_daily_notes','csec_saved_events','csec_registered_events');   // csec_saved_events = bookmarked Connect events, now part of the account
 var PREF_KEYS=['csec_notif_cfg','csec_appearance','csec_theme','fyStudyCycle','csec_onboarding_completed'];   // pulled at login, pushed on change (not live: never flips another device's theme under the user)
 var SYNC_KEYS=DATA_KEYS.concat(PREF_KEYS);
 var KEEP_ON_WIPE=['csec_theme','csec_appearance','csec_element_theme','cse_analytics_optout','cse_analytics_notice','cse_analytics_debug','cse_base_url'];   // device display/diagnostic settings, not personal data
@@ -14226,6 +14238,7 @@ function memApply(k,raw){
     else if(k==='csec_tasks'){ tasks=Array.isArray(v)?v:[]; if(meInited) renderMe(); if(homeInited) renderHome(); try{ if(typeof requestSync==='function') requestSync(); }catch(e){} }
     else if(k==='csec_daily_notes'){ dailyNotes=isObj(v)?v:{}; if(meInited) renderMe(); }
     else if(k==='csec_saved_events'){ window.dispatchEvent(new CustomEvent('cse:saved-events-sync')); }   // Connect re-reads the bookmarks and redraws
+    else if(k==='csec_registered_events'){ window.dispatchEvent(new CustomEvent('cse:registered-events-sync')); }   // Connect + Home re-read the registered events and redraw
     else if(k==='csec_theme'){ applyTheme(v==='dark'?'dark':'light'); }
     else if(k==='csec_appearance'){ if(window.ThemeManager) { applying=true; try{ ThemeManager.set(v); } finally{ applying=false; } } }
   }catch(e){ console.warn('[Sync] could not refresh the screen for', k, e); }
@@ -19028,7 +19041,7 @@ function evCard(x, i){
    '<button type="button" class="cn-bm" data-bm="' + i + '" aria-pressed="' + !!bm[i] + '" aria-label="' + (bm[i] ? 'Remove from saved' : 'Save') + ': ' + esc(x.t) + '">' + ic('bookmark') + '</button><span class="cn-lab">' + esc(x.k) + '</span></div>' +
    '<div class="cn-evb"><div class="cn-chips"><span class="cn-chip' + (x.mode === 'tbv' ? ' cn-tbv' : '') + '">' + ic(x.mode === 'online' ? 'monitor' : 'pin') + modeLbl(x.mode) + '</span>' + (lvGeoLbl(x) ? '<span class="cn-chip cn-geo ' + lvGeo(x).t + '">' + esc(lvGeoLbl(x)) + '</span>' : '') + lvBadge(x) + x.tags.slice(0, 1).map(function(t){ return '<span class="cn-chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
    '<h3><button type="button" class="cn-tl" data-e="' + i + '">' + esc(x.t) + '</button></h3><div class="cn-org"><span class="cn-om" aria-hidden="true">' + esc(ini) + '</span>' + esc(x.org) + '</div>' + (lvPlain(x.d) ? '<p class="cn-desc">' + esc(lvPlain(x.d)) + '</p>' : '') + dlHtml(d) + metaHtml(x) + lvMoreFacts(x) +
-   (closed ? '' : '<div class="cn-cta"><button class="cn-btn" type="button" data-e="' + i + '">View Details</button><button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : x.live && hkUrl(x.reg) ? 'Register ↗' : 'Register') + '</button></div>') + '</div></article>';
+   '<div class="cn-cta cn-cta3">' + (closed ? '' : '<button class="cn-btn" type="button" data-e="' + i + '">View Details</button>') + mrBtn(i) + (closed ? '' : '<button class="cn-btn' + (reg[i] ? ' done' : ' pri') + '" type="button" data-r="' + i + '">' + (reg[i] ? '✓ Registered' : x.live && hkUrl(x.reg) ? 'Register ↗' : 'Register') + '</button>') + '</div></div></article>';
 }
 function updates(){
   var l = [];
@@ -19250,6 +19263,20 @@ function persistSaved(){ try{
 }catch(e){} renderSavedCard(); }
 /* Account sync pulled a newer list of saved events (login, or a save/removal on another device): re-read it and redraw. */
 window.addEventListener('cse:saved-events-sync', function(){ try{ for(var k in bm) delete bm[k]; loadSaved(); drawEvents(); reshow(); eventsChanged(); }catch(e){} });
+/* ---- "Mark as registered": the student's own record of events they registered for. Stored as a list of event ids in csec_registered_events,
+   which is part of the account sync (userData/{uid}/items/csec_registered_events), so it follows the signed-in account across devices. ---- */
+var MR_KEY = 'csec_registered_events';
+function mrList(){ try{ var a = JSON.parse(localStorage.getItem(MR_KEY) || '[]'); return Array.isArray(a) ? a.filter(function(id){ return typeof id === 'string'; }) : []; }catch(e){ return []; } }
+function mrHas(x){ return !!x && mrList().indexOf(evId(x)) > -1; }
+function mrBtn(i){ var on = mrHas(EV[i]); return '<button class="cn-btn cn-mr' + (on ? ' done' : '') + '" type="button" data-mr="' + i + '" aria-pressed="' + on + '">' + (on ? '✓ Registered' : 'Mark as registered') + '</button>'; }
+function toggleMr(i){
+  var x = EV[i]; if(!x) return; var id = evId(x), a = mrList(), at = a.indexOf(id);
+  if(at > -1) a.splice(at, 1); else a.push(id);
+  try{ localStorage.setItem(MR_KEY, JSON.stringify(a)); }catch(e){}
+  drawEvents(); try{ reshow(); }catch(e){} eventsChanged(); toast(at > -1 ? 'Removed from registered' : 'Marked as registered');
+}
+/* Account sync pulled a newer registered list (login, or a change on another device) */
+window.addEventListener('cse:registered-events-sync', function(){ try{ drawEvents(); eventsChanged(); }catch(e){} });
 function toggleSave(i){ bm[i] = !bm[i]; persistSaved(); drawEvents(); reshow(); toast(bm[i] ? 'Saved' : 'Removed from saved'); }
 function shareEv(i){ var x = EV[i], u = location.href.split('#')[0] + '#connect/events', f = function(){ toast('Link copied'); };
   if(navigator.share){ navigator.share({title:x.t, text:x.d, url:u}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(u).then(f, function(){ toast('Sharing not available'); }); } else toast('Sharing not available'); }
@@ -19442,6 +19469,7 @@ function initEvents(){
     if(b.dataset.reset){ ef = {q:'', kind:'', mode:'all', area:'all', more:{}, health:ef.health, sort:'closing', view:ef.view, dom:'', st:''}; $('#cnEq').value = ''; $('#cnEsort').value = 'closing'; $('#cnEdom').value = ''; $('#cnEst').value = ''; return drawEvents(); }
     if(b.dataset.bm != null) return toggleSave(+b.dataset.bm);
     if(b.dataset.e != null) return eventModal(+b.dataset.e);
+    if(b.dataset.mr != null) return toggleMr(+b.dataset.mr);
     if(b.dataset.r != null) toggleReg(+b.dataset.r);
   });
 }
@@ -20056,14 +20084,16 @@ sync();
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
 function evStart(x){ var d = new Date(now + x.off * D); d.setHours(0, 0, 0, 0); return d; }
 function evEnd(x){ var d = new Date(now + (x.ed != null ? x.ed : x.off) * D); d.setHours(23, 59, 59, 999); return d; }
-function upcomingEvents(n){
+function evShape(o){ var t = Date.now(), x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0, registered:mrHas(x)}; }
+function liveEvents(){
   var t = Date.now();
   return EV.map(function(x, i){ return {x:x, i:i}; })
     .filter(function(o){ return o.x && evEnd(o.x).getTime() >= t; })                         // expired events never show
-    .sort(function(a, b){ return (evStart(a.x) - evStart(b.x)) || (evEnd(a.x) - evEnd(b.x)) || (a.i - b.i); })
-    .slice(0, n == null ? EV.length : n)
-    .map(function(o){ var x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0}; });
+    .sort(function(a, b){ return (evStart(a.x) - evStart(b.x)) || (evEnd(a.x) - evEnd(b.x)) || (a.i - b.i); });
 }
+function upcomingEvents(n){ return liveEvents().slice(0, n == null ? EV.length : n).map(evShape); }
+/* Events this student marked as registered (still running or upcoming), soonest first */
+function registeredEvents(n){ return liveEvents().filter(function(o){ return mrHas(o.x); }).slice(0, n == null ? EV.length : n).map(evShape); }
 function openEvent(i){ go('events', null); if(EV[i]) eventModal(i); }
 function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
 /* ---------- Settings → Saved: list of saved events / hackathons ---------- */
@@ -20086,7 +20116,7 @@ function leaveSettings(){ try{ if(window.clShell && clShell.closeSettings) clShe
     if(t.dataset.svr != null){ var i = +t.dataset.svr; bm[i] = false; persistSaved(); return drawEvents(); }
     if(t.dataset.svall){ leaveSettings(); showSaved(); } });
 })();
-window.cseConnect = { go:go, upcomingEvents:upcomingEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
+window.cseConnect = { go:go, upcomingEvents:upcomingEvents, registeredEvents:registeredEvents, openEvent:openEvent, eventsChanged:eventsChanged, showSaved:showSaved, refreshEvents:function(){ lvSync(true); } };
 lvStart();
 try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){}   // Home may have rendered before Connect finished loading
 
