@@ -266,4 +266,112 @@ async function transferLeader(ctx, uid, data) {
   return { ok: true };
 }
 
-module.exports = { LIM, CoreError, cleanEmail, cleanPhone, cleanWa, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, setMemberRole, leaveTeam, transferLeader, reqId };
+/* ---------------- invites (leader -> a specific student from Find people) ---------------- */
+async function inviteSend(ctx, uid, data) {
+  const { db, FV, nowMs } = ctx; data = data || {};
+  if (!validId(data.teamId) || !validId(data.to)) throw E('invalid-argument', 'Unknown student or team.');
+  if (data.to === uid) throw E('invalid-argument', 'You cannot invite yourself.');
+  const leader = await profileOf(db, uid), invitee = await profileOf(db, data.to), message = clean(data.message, LIM.MSG_MAX);
+  if (!invitee.hasName) throw E('failed-precondition', 'This student has not finished their profile yet.');
+  if (await teamCount(db, 'memberUids', data.to) >= LIM.JOIN_MAX) throw E('resource-exhausted', 'This student is already in the maximum number of teams.');
+  if ((await db.collection('teamInvites').where('from', '==', uid).where('status', '==', 'pending').get()).size >= 30) throw E('resource-exhausted', 'You have 30 invitations waiting. Cancel some first.');
+  await db.runTransaction(async (tx) => {
+    const { t } = await mustTeam(tx, db, data.teamId); mustLead(t, uid);
+    if (t.memberUids.includes(data.to)) throw E('already-exists', 'This student is already in your team.');
+    if (t.memberCount >= t.maxMembers) throw E('failed-precondition', 'Your team is full.');
+    const iref = db.collection('teamInvites').doc(reqId(data.teamId, data.to)), is = await tx.get(iref);
+    const rs = await tx.get(db.collection('teamRequests').doc(reqId(data.teamId, data.to)));
+    if (is.exists) {
+      const r = is.data();
+      if (r.status === 'pending') throw E('already-exists', 'You already invited this student.');
+      if (r.status === 'declined' && nowMs - ms(r.updatedAt) < LIM.RETRY_AFTER_REJECT_MS) throw E('failed-precondition', 'This student declined recently. Try again later.');
+    }
+    if (rs.exists && rs.data().status === 'pending') throw E('already-exists', 'This student already asked to join. Accept their request in Manage.');
+    tx.set(iref, { teamId: data.teamId, teamName: t.name, from: uid, fromName: leader.name, to: data.to, toName: invitee.name, status: 'pending', message, createdAt: FV.serverTimestamp(), updatedAt: FV.serverTimestamp() });
+    notify(db, FV, tx, data.to, { type: 'invite', teamId: data.teamId, teamName: t.name, fromUid: uid, fromName: leader.name });
+  });
+  return { ok: true };
+}
+
+async function inviteCancel(ctx, uid, data) {
+  const { db, FV } = ctx; data = data || {};
+  if (!validId(data.teamId) || !validId(data.to)) throw E('invalid-argument', 'Unknown invitation.');
+  await db.runTransaction(async (tx) => {
+    const iref = db.collection('teamInvites').doc(reqId(data.teamId, data.to)), s = await tx.get(iref);
+    if (!s.exists || s.data().from !== uid) throw E('not-found', 'Invitation not found.');
+    if (s.data().status !== 'pending') throw E('failed-precondition', 'This invitation was already answered.');
+    tx.update(iref, { status: 'cancelled', updatedAt: FV.serverTimestamp() });
+  });
+  return { ok: true };
+}
+
+async function inviteDecide(ctx, uid, data) {
+  const { db, FV } = ctx; data = data || {};
+  if (!validId(data.teamId)) throw E('invalid-argument', 'Unknown invitation.');
+  if (data.accept !== true && data.accept !== false) throw E('invalid-argument', 'Choose accept or decline.');
+  const me = data.accept ? await profileOf(db, uid) : null;
+  if (data.accept && await teamCount(db, 'memberUids', uid) >= LIM.JOIN_MAX) throw E('resource-exhausted', `You can be in at most ${LIM.JOIN_MAX} teams.`);
+  await db.runTransaction(async (tx) => {
+    const { ref, t } = await mustTeam(tx, db, data.teamId);
+    const iref = db.collection('teamInvites').doc(reqId(data.teamId, uid)), is = await tx.get(iref);
+    if (!is.exists) throw E('not-found', 'Invitation not found.');
+    if (is.data().status !== 'pending') throw E('failed-precondition', 'This invitation was already answered or withdrawn.');
+    const rref = db.collection('teamRequests').doc(reqId(data.teamId, uid)), rs = await tx.get(rref);
+    if (!data.accept) {
+      tx.update(iref, { status: 'declined', updatedAt: FV.serverTimestamp() });
+      notify(db, FV, tx, t.leaderUid, { type: 'inviteDeclined', teamId: data.teamId, teamName: t.name, fromUid: uid, fromName: (is.data().toName || 'A student') });
+      return;
+    }
+    if (t.memberUids.includes(uid)) { tx.update(iref, { status: 'accepted', updatedAt: FV.serverTimestamp() }); return; }
+    if (t.memberCount >= t.maxMembers) throw E('failed-precondition', 'This team is full now.');
+    tx.update(ref, { memberUids: t.memberUids.concat([uid]), memberCount: t.memberCount + 1, updatedAt: FV.serverTimestamp() });
+    tx.create(ref.collection('members').doc(uid), { uid, name: me.name, branch: me.branch, year: me.year, role: 'member', email: '', phone: '', joinedAt: FV.serverTimestamp() });
+    tx.update(iref, { status: 'accepted', updatedAt: FV.serverTimestamp() });
+    if (rs.exists && rs.data().status === 'pending') tx.update(rref, Object.assign({ status: 'accepted', updatedAt: FV.serverTimestamp() }, SCRUB));   // they also asked to join: close that request too
+    notify(db, FV, tx, t.leaderUid, { type: 'inviteAccepted', teamId: data.teamId, teamName: t.name, fromUid: uid, fromName: me.name });
+  });
+  return { ok: true };
+}
+
+/* ---------------- deadline / start reminders (scheduled) ----------------
+   For every registered event whose registration deadline (dlAt) or start (startAt) is within 72 h (then again within 24 h), every member of the
+   team gets ONE notification per (registration, kind, window). The notification id is deterministic, so re-running never duplicates it. */
+const REMIND_WINDOWS_H = [24, 72];
+async function sendDeadlineReminders(ctx) {
+  const { db, FV, nowMs } = ctx; let sent = 0; const teams = {};
+  const snap = await db.collection('eventRegistrations').where('endAt', '>=', nowMs).limit(500).get();
+  for (const doc of snap.docs) {
+    const r = doc.data(), targets = [['deadline', r.dlAt], ['start', r.startAt]].filter((p) => typeof p[1] === 'number' && p[1] > nowMs);
+    if (!targets.length || !validId(r.teamId)) continue;
+    if (teams[r.teamId] === undefined) { const ts = await db.collection('teams').doc(r.teamId).get(); teams[r.teamId] = ts.exists ? ts.data() : null; }
+    const t = teams[r.teamId]; if (!t || !Array.isArray(t.memberUids)) continue;
+    for (const [kind, when] of targets) {
+      const left = when - nowMs, hrs = REMIND_WINDOWS_H.find((h) => left <= h * 3600e3); if (!hrs) continue;
+      for (const m of t.memberUids) {
+        const id = `rem_${doc.id}_${kind}_${hrs}_${m}`.slice(0, 300);
+        try {
+          await db.collection('teamNotifs').doc(m).collection('items').doc(id).create({ type: 'reminder', kind, teamId: r.teamId, teamName: t.name || r.teamName || '', eventTitle: String(r.eventTitle || ''), whenMs: when, hoursLeft: hrs, fromName: '', read: false, createdAt: FV.serverTimestamp() });
+          sent++;
+        } catch (e) { if (!(e && (e.code === 6 || /ALREADY_EXISTS/.test(String(e.message))))) throw e; }
+      }
+    }
+  }
+  return { sent };
+}
+
+/* ---------------- phone push text (FCM) ----------------
+   Only the NEW notification types are pushed from here (invites + reminders); request / accepted / rejected pushes already come from the Worker. */
+const PUSH_TYPES = ['invite', 'inviteAccepted', 'inviteDeclined', 'reminder'];
+function pushText(n) {
+  n = n || {}; const t = n.teamName || 'a team', f = n.fromName || 'Someone';
+  if (n.type === 'invite') return { title: '\uD83E\uDD1D Team invitation', body: `${f} invited you to join ${t}. Tap to accept or decline.` };
+  if (n.type === 'inviteAccepted') return { title: '\uD83C\uDF89 Invite accepted', body: `${f} joined ${t}.` };
+  if (n.type === 'inviteDeclined') return { title: 'Invite declined', body: `${f} declined your invite to ${t}.` };
+  if (n.type === 'reminder') {
+    const h = n.hoursLeft || 24, when = h <= 24 ? 'within 24 hours' : 'within 3 days', ev = n.eventTitle || 'your hackathon';
+    return n.kind === 'start' ? { title: '\u23F0 Hackathon starting soon', body: `${ev} (${t}) starts ${when}.` } : { title: '\u23F0 Deadline coming up', body: `Registration for ${ev} (${t}) closes ${when}.` };
+  }
+  return null;
+}
+
+module.exports = { PUSH_TYPES, pushText, inviteSend, inviteCancel, inviteDecide, sendDeadlineReminders, LIM, CoreError, cleanEmail, cleanPhone, cleanWa, validateTeam, cleanSkills, profileOf, createTeam, updateTeam, deleteTeam, sendRequest, cancelRequest, decideRequest, removeMember, setMemberRole, leaveTeam, transferLeader, reqId };

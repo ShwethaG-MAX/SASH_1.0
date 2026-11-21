@@ -177,4 +177,52 @@ t('whatsapp: validated, stored only in private/info, leader-only, clearable, del
   await rejects(core.updateTeam(c, 'alice', { teamId: none.teamId }), 'invalid-argument');   // still "nothing to update" when no field is sent
 });
 
+t('invite: leader invites, invitee accepts and joins, duplicates and non-leaders rejected', async () => {
+  const { db, ctx } = await world(); const c = ctx(); const { teamId } = await mk(c, 'alice');
+  await rejects(core.inviteSend(c, 'bob', { teamId, to: 'carol' }), 'permission-denied');
+  await rejects(core.inviteSend(c, 'alice', { teamId, to: 'alice' }), 'invalid-argument');
+  await core.inviteSend(c, 'alice', { teamId, to: 'bob', message: 'Join us' });
+  await rejects(core.inviteSend(c, 'alice', { teamId, to: 'bob' }), 'already-exists');
+  assert.strictEqual((await notifs(db, 'bob'))[0].type, 'invite');
+  await rejects(core.inviteDecide(c, 'carol', { teamId, accept: true }), 'not-found');
+  await core.inviteDecide(c, 'bob', { teamId, accept: true });
+  const tm = await team(db, teamId); assert.deepStrictEqual(tm.memberUids, ['alice', 'bob']); assert.strictEqual(tm.memberCount, 2);
+  assert.strictEqual((await db.doc(`teams/${teamId}/members/bob`).get()).data().name, 'Bob');
+  assert.strictEqual((await db.doc(`teamInvites/${teamId}_bob`).get()).data().status, 'accepted');
+  assert.ok((await notifs(db, 'alice')).some((n) => n.type === 'inviteAccepted'));
+  await rejects(core.inviteSend(c, 'alice', { teamId, to: 'bob' }), 'already-exists');
+});
+t('invite: decline, cancel, full team and pending join request', async () => {
+  const { db, ctx } = await world(); const c = ctx(); const { teamId } = await mk(c, 'alice', { maxMembers: 2 });
+  await core.inviteSend(c, 'alice', { teamId, to: 'bob' }); await core.inviteDecide(c, 'bob', { teamId, accept: false });
+  assert.strictEqual((await db.doc(`teamInvites/${teamId}_bob`).get()).data().status, 'declined');
+  await rejects(core.inviteSend(c, 'alice', { teamId, to: 'bob' }), 'failed-precondition');   // declined recently
+  await core.inviteSend(c, 'alice', { teamId, to: 'carol' }); await rejects(core.inviteCancel(c, 'bob', { teamId, to: 'carol' }), 'not-found');
+  await core.inviteCancel(c, 'alice', { teamId, to: 'carol' });
+  await rejects(core.inviteDecide(c, 'carol', { teamId, accept: true }), 'failed-precondition');
+  await core.sendRequest(c, 'dave', { teamId }); await rejects(core.inviteSend(c, 'alice', { teamId, to: 'dave' }), 'already-exists');
+  await core.decideRequest(c, 'alice', { teamId, from: 'dave', accept: true });
+  await rejects(core.inviteSend(c, 'alice', { teamId, to: 'carol' }), 'failed-precondition');   // team is now full
+});
+t('reminders: notify every member once per window, never twice', async () => {
+  const { db, ctx } = await world(); const c = ctx(1e12); const { teamId } = await mk(c, 'alice');
+  await core.sendRequest(c, 'bob', { teamId }); await core.decideRequest(c, 'alice', { teamId, from: 'bob', accept: true });
+  await db.doc(`eventRegistrations/hack1__${teamId}`).set({ ek: 'hack1', eventTitle: 'Hack One', teamId, teamName: 'Hack Squad', endAt: 1e12 + 9e8, dlAt: 1e12 + 40 * 3600e3, startAt: 1e12 + 200 * 3600e3 });
+  await db.doc(`eventRegistrations/far__${teamId}`).set({ ek: 'far', eventTitle: 'Far Away', teamId, teamName: 'Hack Squad', endAt: 1e12 + 9e8, dlAt: 1e12 + 500 * 3600e3 });
+  const r1 = await core.sendDeadlineReminders(c); assert.strictEqual(r1.sent, 2);
+  const a = (await notifs(db, 'alice')).filter((n) => n.type === 'reminder'), b = (await notifs(db, 'bob')).filter((n) => n.type === 'reminder');
+  assert.strictEqual(a.length, 1); assert.strictEqual(b.length, 1); assert.strictEqual(a[0].kind, 'deadline'); assert.strictEqual(a[0].eventTitle, 'Hack One');
+  const r2 = await core.sendDeadlineReminders(c); assert.strictEqual(r2.sent, 0);
+  const r3 = await core.sendDeadlineReminders(ctx(1e12 + 30 * 3600e3)); assert.strictEqual(r3.sent, 2);   // deadline now < 24 h away: second reminder
+  const r4 = await core.sendDeadlineReminders(ctx(1e12 + 31 * 3600e3)); assert.strictEqual(r4.sent, 0);   // never repeated
+});
+
+t('push text: only invites and reminders are pushed from here', () => {
+  assert.ok(core.PUSH_TYPES.includes('invite') && core.PUSH_TYPES.includes('reminder') && !core.PUSH_TYPES.includes('accepted') && !core.PUSH_TYPES.includes('request'));
+  assert.match(core.pushText({ type: 'invite', teamName: 'Squad', fromName: 'Alice' }).body, /Alice invited you to join Squad/);
+  assert.match(core.pushText({ type: 'reminder', kind: 'deadline', hoursLeft: 24, eventTitle: 'SIH', teamName: 'Squad' }).body, /closes within 24 hours/);
+  assert.match(core.pushText({ type: 'reminder', kind: 'start', hoursLeft: 72, eventTitle: 'SIH', teamName: 'Squad' }).title, /starting soon/);
+  assert.strictEqual(core.pushText({ type: 'accepted' }), null);
+});
+
 (async () => { let ok = 0; for (const [n, f] of tests) { try { await f(); ok++; console.log('ok  ' + n); } catch (e) { console.error('FAIL ' + n + '\n  ' + (e && e.stack || e)); process.exitCode = 1; } } console.log(`${ok}/${tests.length} passed`); })();

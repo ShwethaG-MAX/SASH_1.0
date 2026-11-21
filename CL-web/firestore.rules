@@ -545,6 +545,20 @@ service cloud.firestore{
         allow read: if isStudent() && isTeamMember(teamId) || isOwner();
         allow write: if false;
       }
+      // "Our hackathons": per-event checklist, links and notes shared by the team. Any member may edit; nobody outside the team can read it.
+      match /hackplans/{ek}{
+        allow read: if isStudent() && isTeamMember(teamId) || isOwner();
+        allow create, update: if isStudent() && isTeamMember(teamId)
+          && ek.matches('^[A-Za-z0-9_.-]{1,120}$')
+          && request.resource.data.keys().hasOnly(['ek','items','links','notes','updatedAt','updatedBy'])
+          && request.resource.data.ek == ek
+          && request.resource.data.items is list && request.resource.data.items.size() <= 40
+          && request.resource.data.links is list && request.resource.data.links.size() <= 10
+          && request.resource.data.notes is string && request.resource.data.notes.size() <= 600
+          && request.resource.data.updatedBy == request.auth.uid
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
     }
     // A join request is visible only to the student who sent it and the leader it was sent to (it can carry the applicant's optional email / phone;
     // the functions copy them to the members-only member doc on accept and wipe them from the request on reject / cancel / leave / remove).
@@ -567,7 +581,9 @@ service cloud.firestore{
     match /eventRegistrations/{id}{
       allow read: if isStudent() || isOwner();
       allow create: if isStudent()
-        && request.resource.data.keys().hasOnly(['eventId','ek','eventTitle','eventKind','endAt','dateLabel','teamId','teamName','leaderUid','leaderName','createdAt'])
+        && request.resource.data.keys().hasOnly(['eventId','ek','eventTitle','eventKind','endAt','dateLabel','teamId','teamName','leaderUid','leaderName','createdAt','dlAt','startAt'])
+        && (!('dlAt' in request.resource.data) || request.resource.data.dlAt is number)
+        && (!('startAt' in request.resource.data) || request.resource.data.startAt is number)
         && request.resource.data.eventId is string && request.resource.data.eventId.size()>0 && request.resource.data.eventId.size()<=200
         && request.resource.data.ek is string && request.resource.data.ek.matches('^[A-Za-z0-9_.-]{1,120}$')
         && request.resource.data.teamId is string && request.resource.data.teamId.size()>0 && request.resource.data.teamId.size()<=128
@@ -581,9 +597,44 @@ service cloud.firestore{
         && request.resource.data.leaderUid == request.auth.uid
         && get(/databases/$(db)/documents/teams/$(request.resource.data.teamId)).data.leaderUid == request.auth.uid
         && request.resource.data.createdAt == request.time;
-      allow update: if false;
+      // Only the leader may add / refresh the deadline + start time (used by the reminder pushes); nothing else can change.
+      allow update: if isStudent() && resource.data.leaderUid==request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dlAt','startAt'])
+        && (!('dlAt' in request.resource.data) || request.resource.data.dlAt is number)
+        && (!('startAt' in request.resource.data) || request.resource.data.startAt is number);
       allow delete: if request.auth!=null && (resource.data.leaderUid==request.auth.uid || isOwner()
         || get(/databases/$(db)/documents/teams/$(resource.data.teamId)).data.leaderUid==request.auth.uid);
+    }
+
+    // ===================== TEAM INVITES (Find people > Invite) =====================
+    // Read-only for clients: sending, cancelling and answering go through the 'teams' functions (teamInviteSend / teamInviteCancel / teamInviteDecide).
+    // An invite is visible only to the leader who sent it and the student it was sent to.
+    match /teamInvites/{id}{
+      allow read: if request.auth!=null && (resource.data.from==request.auth.uid || resource.data.to==request.auth.uid);
+      allow write: if false;
+    }
+
+    // ===================== HACKATHON RESULTS (Our hackathons > Result; shown on member profiles) =====================
+    // One doc per (event, team): id = <eventKey>__<teamId>, written by the team's leader for a registered event. memberUids is a copy of the team's
+    // members at save time so a profile can query 'results where I am a member'. Readable by every signed-in student (it appears on public profiles).
+    match /hackResults/{id}{
+      allow read: if isStudent() || isOwner();
+      allow create, update: if isStudent()
+        && request.resource.data.keys().hasOnly(['ek','eventTitle','teamId','teamName','memberUids','result','note','endAt','setBy','updatedAt'])
+        && request.resource.data.ek is string && request.resource.data.ek.matches('^[A-Za-z0-9_.-]{1,120}$')
+        && request.resource.data.teamId is string && request.resource.data.teamId.size()>0 && request.resource.data.teamId.size()<=128
+        && id == request.resource.data.ek + '__' + request.resource.data.teamId
+        && exists(/databases/$(db)/documents/eventRegistrations/$(id))
+        && request.resource.data.eventTitle is string && request.resource.data.eventTitle.size()<=160
+        && request.resource.data.teamName is string && request.resource.data.teamName.size()<=120
+        && request.resource.data.result in ['participated','finalist','won']
+        && request.resource.data.note is string && request.resource.data.note.size()<=80
+        && request.resource.data.endAt is number
+        && request.resource.data.setBy == request.auth.uid
+        && get(/databases/$(db)/documents/teams/$(request.resource.data.teamId)).data.leaderUid == request.auth.uid
+        && request.resource.data.memberUids == get(/databases/$(db)/documents/teams/$(request.resource.data.teamId)).data.memberUids
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if request.auth!=null && (resource.data.setBy==request.auth.uid || isOwner());
     }
 
     // ===================== CONNECTIONS (Connect > Connections: Received / Sent / My Connections) =====================

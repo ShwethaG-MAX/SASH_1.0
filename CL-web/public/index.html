@@ -18237,6 +18237,28 @@ setInterval(function(){
 })();
 </script>
 
+<style id="teamHubCss">
+.hk-ov{z-index:9600}.hk-box{max-width:660px;padding:18px}
+.hk-hd{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin-bottom:6px}.hk-hd h3{margin:0}.hk-hd p{margin:2px 0 0}
+.hk-x{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:1.3rem;line-height:1;cursor:pointer}
+.hk-c{border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;background:color-mix(in srgb,var(--card) 94%,#9D5EC9)}
+.hk-c h4{margin:0 0 6px;font-size:1.05rem}.hk-c .cn-sub{margin:14px 0 6px}
+.hk-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.hk-res.won{background:color-mix(in srgb,#f59e0b 24%,var(--card))}.hk-res.finalist{background:color-mix(in srgb,#9D5EC9 22%,var(--card))}
+.hk-dates{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:.88rem}.hk-dates li{display:flex;gap:8px}.hk-dates b{min-width:92px;color:var(--muted);font-weight:600}
+.hk-links{display:flex;flex-wrap:wrap;gap:8px}.hk-link{display:inline-block;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--text);font-size:.84rem;font-weight:600;text-decoration:none}
+.hk-lw{display:inline-flex;align-items:center;gap:2px}.hk-mut{color:var(--muted);font-size:.82rem}
+.hk-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.hk-add .cn-in{flex:1 1 140px;min-width:0}.hk-add .cn-btn{flex:none}
+.hk-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}.hk-it{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.hk-it label{display:flex;gap:8px;align-items:center;flex:1 1 180px;min-width:0;cursor:pointer}.hk-it.done label span{text-decoration:line-through;color:var(--muted)}
+.hk-w{flex:0 1 150px;min-width:0;padding:6px 8px;min-height:34px}
+.hk-rm{width:28px;height:28px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer}.hk-rm:hover{color:#dc2626}
+.hk-bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden}.hk-bar i{display:block;height:100%;background:#16a34a;border-radius:999px;transition:width .3s}
+.hk-c textarea{width:100%;min-height:70px;resize:vertical}
+.hk-f{margin:12px 0}.hk-f label{display:block;font-weight:600;font-size:.86rem;margin-bottom:4px}.hk-f textarea{width:100%;min-height:64px}
+.hk-btns{display:flex;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}.hk-btns .cn-btn{min-width:84px}
+.hk-soon{display:grid;gap:4px;margin:12px 0;padding:12px 14px;border-radius:16px;border:1px solid #f59e0b;background:color-mix(in srgb,#f59e0b 14%,var(--card))}
+.hk-sn{text-align:left;background:none;border:0;color:inherit;font:inherit;font-size:.88rem;cursor:pointer;padding:4px 0}.hk-sn span{color:var(--muted)}
+</style>
 <script id="connectJs">
 /* Connect — Posting, Teams, Discover (Articles + Events).
    Find people lists real students from Firestore (publicProfiles: name, year, branch of every signed-in, non-guest student).
@@ -18888,7 +18910,7 @@ function personCard(x){
   var p = x.p, k = x.k, w = P.skills, mine = !!p[7] && p[7] === myUid();
   var meta = [p[9] ? '@' + esc(p[9]) : '', yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
   return '<article class="cn-urow">' + av(p[0], k, '', p[8]) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
-   (mine ? '' : connBtn(k, 'data-k')) + '</article>';
+   (mine ? '' : '<span class="hk-btns">' + ivBtn(k) + connBtn(k, 'data-k') + '</span>') + '</article>';
 }
 var pSkSig = null;
 function fltN(id, n){ var e = document.getElementById(id); if(e) e.textContent = n ? n + ' active' : ''; }
@@ -18952,7 +18974,7 @@ function drawTeams(){
   $('#cnTsum').innerHTML = all ? '<span>' + tot + ' ' + (tot === 1 ? 'team' : 'teams') + (T.q ? ' for “' + esc(T.q) + '”' : '') + (T.chips.length ? ' with ' + T.chips.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '') : '';
   $('#cnTgrid').innerHTML = (TM.uid && !TM.ok.all && !TM.err && !crows.length) ? mtSkel(3) : crows.map(ctCard).join('');
   $('#cnTempty').innerHTML = tot ? '' : (all ? empty('🧩', 'No teams found', 'Try a different skill, or search by another keyword.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>')
-    : '');
+    : empty('\ud83e\udde9', 'No teams yet', 'Be the first: create a team for a hackathon, then invite people from Find people. Or check back soon to join one.', '<button class="cn-btn pri" type="button" data-hk-new="1">Create a team</button> <button class="cn-btn" type="button" data-hk-go="events">Browse events</button>'));
   fltN('cnTfn', T.chips.length);
   if(typeof drawReqs === 'function') drawReqs();
 }
@@ -19117,8 +19139,8 @@ function drawEvents(){
         (lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
   });
   $('#cnEgrid').innerHTML = html + (l.length && !saved ? '<div class="cn-evsec cn-discall"><div class="cn-evsec-h"><div><h3>Browse more hackathons</h3><p>Official listing pages, including sites without a live feed.</p></div></div>' + lvDiscHtml(LV_DISCOVER.local.concat(LV_DISCOVER.india, LV_DISCOVER.world.slice(0, 1).concat(LV_DISCOVER.online.slice(1, 2)))) + '</div>' : '');
-  $('#cnEempty').innerHTML = l.length ? '' : regv && !registeredCount() ? empty('✅', 'No registered events yet', 'Tap “Mark as registered” on an event and pick the team that is registering.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') : ef.view === 'saved' && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
-    empty(regv ? '✅' : saved ? '🔖' : '📅', regv ? 'No registered events match' : saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. Check back soon.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '');
+  $('#cnEempty').innerHTML = l.length ? '' : regv && !registeredCount() ? empty('✅', 'No registered events yet', 'Register on an event’s official page, then tap “Mark as registered” and pick the team you lead. Registered events get deadline reminders and a team checklist.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') : ef.view === 'saved' && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
+    empty(regv ? '✅' : saved ? '🔖' : '📅', regv ? 'No registered events match' : saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. New hackathons appear here as soon as they are found. Meanwhile you can find teammates or start a team so you are ready.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '<div class="cn-row" style="justify-content:center;flex-wrap:wrap"><button class="cn-btn pri" type="button" data-hk-go="people">Find people</button><button class="cn-btn" type="button" data-hk-new="1">Create a team</button></div>');
 }
 function evSec(t, h){ return '<div><div class="cn-sub">' + t + '</div>' + h + '</div>'; }
 function evFact(l, v){ return v ? '<div class="cn-fact"><span>' + l + '</span><b>' + esc(v) + '</b></div>' : ''; }
@@ -19303,8 +19325,9 @@ function erChanged(){ try{ eventsChanged(); }catch(e){} try{ reshow(); }catch(e)
 function erSet(x, t, on){
   var db = fb(); if(!db || !TM.uid){ toast('Sign in with your student account to register a team.', 'err'); return Promise.resolve(false); }
   var ref = db.collection('eventRegistrations').doc(erKey(x) + '__' + t.id);
-  var p = on ? ref.set({eventId: String(evId(x)).slice(0, 200), ek: erKey(x), eventTitle: String(x.t).slice(0, 160), eventKind: String(x.k || '').slice(0, 40), endAt: evEnd(x).getTime(), dateLabel: String(fdr(x)).slice(0, 60),
-      teamId: t.id, teamName: String(t.name).slice(0, 120), leaderUid: TM.uid, leaderName: String(t.owner || '').slice(0, 60), createdAt: firebase.firestore.FieldValue.serverTimestamp()}) : ref.delete();
+  var base = {eventId: String(evId(x)).slice(0, 200), ek: erKey(x), eventTitle: String(x.t).slice(0, 160), eventKind: String(x.k || '').slice(0, 40), endAt: evEnd(x).getTime(), dateLabel: String(fdr(x)).slice(0, 60),
+      teamId: t.id, teamName: String(t.name).slice(0, 120), leaderUid: TM.uid, leaderName: String(t.owner || '').slice(0, 60), createdAt: firebase.firestore.FieldValue.serverTimestamp()};
+  var p = on ? ref.set(hkRegExtra(x, Object.assign({}, base))).catch(function(e){ if(e && e.code === 'permission-denied') return ref.set(base); throw e; }) : ref.delete();
   return p.then(function(){ toast(on ? t.name + ' is registered for ' + x.t : t.name + ' is no longer registered'); return true; }, function(e){ toast(cErr(e), 'err'); return false; });
 }
 /* Team picker: the leader chooses which of their teams is registering for this event */
@@ -19565,7 +19588,7 @@ ICN.minus = '<path d="M5 12h14"/>';
 /* ---------- Teams (real): Firestore listeners + `teams` Cloud Functions (asia-south1). Replaces the old localStorage layer. ----------
    Reads: teams (all), teams where I am a member, teams/{id}/members (my teams only), teamRequests (to me / from me), teamNotifs/{uid}/items.
    Writes: ONLY through callables (teamCreate, teamUpdate, teamDelete, teamRequestSend/Cancel/Decide, teamRemoveMember, teamLeave, teamTransfer). */
-var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}, fnT = null, tmT = 0;
+var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], invIn: [], invOut: [], ok: {}, err: 0, nfirst: true}, fnT = null, tmT = 0;
 function tCall(name, data){ return cFns().then(function(){ if(!fnT) fnT = firebase.app().functions('asia-south1'); return fnT.httpsCallable(name, {timeout: 30000})(data || {}); }).then(function(r){ return r.data; }); }
 function tAct(name, data, okMsg){
   if(!TM.uid){ toast('Sign in with your student account to use Teams.', 'err'); return Promise.resolve(false); }
@@ -19586,13 +19609,13 @@ function tmBuild(){
   });
   out.sort(function(a, b){ return b.created - a.created; }); myTeams = out;
 }
-function tmPending(){ return TM.inc.filter(function(r){ return r.status === 'pending' && TM.all[r.teamId] || r.status === 'pending' && TM.mine[r.teamId]; }).length; }
+function tmPending(){ return TM.inc.filter(function(r){ return r.status === 'pending' && TM.all[r.teamId] || r.status === 'pending' && TM.mine[r.teamId]; }).length + TM.invIn.filter(function(r){ return r.status === 'pending'; }).length; }
 function tmBadge(){ var b = document.getElementById('cnTmN'); if(!b) return; var n = tmPending(); try{ n += (CS.incL.length + unreadN()); }catch(e){}   /* Network = team requests + connection requests/updates */
   b.setAttribute('aria-label', 'Pending team and connection activity'); b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; }
 function tmPaint(){
   if(tmT) return;
   tmT = setTimeout(function(){
-    tmT = 0; tmBuild(); drawMyTeam(); drawTeams(); tmBadge();
+    tmT = 0; tmBuild(); drawMyTeam(); drawTeams(); tmBadge(); try{ hkBackfill(); }catch(e){}
     var sg = Object.keys(TM.mine).sort().join(',') + '|' + Object.keys(ER).sort().join(',') + '|' + Object.keys(TM.all).length; if(sg !== erSig){ erSig = sg; erChanged(); }   // registrations or my teams changed: redraw Events, event page and Home
     if(mtDash && mtM && !mtM.classList.contains('hidden')){
       var t = tById(mtDash.id), ed = document.activeElement && document.activeElement.closest && document.activeElement.closest('#mtEdit,.mt-role-cu');
@@ -19612,6 +19635,10 @@ function tmSyncMembers(db){
 }
 function tmNote(n){
   var t = n.teamName || 'a team', f = n.fromName || 'Someone';
+  if(n.type === 'invite') return f + ' invited you to join ' + t;
+  if(n.type === 'inviteAccepted') return f + ' accepted your invite to ' + t;
+  if(n.type === 'inviteDeclined') return f + ' declined your invite to ' + t;
+  if(n.type === 'reminder') return (n.kind === 'start' ? 'Starting soon: ' : 'Deadline soon: ') + (n.eventTitle || 'a hackathon') + ' \u00b7 ' + t + (n.whenMs ? ' (' + new Date(n.whenMs).toLocaleDateString(undefined, {day: 'numeric', month: 'short'}) + ')' : '');
   return n.type === 'request' ? f + ' wants to join ' + t : n.type === 'accepted' ? 'You are in! ' + t + ' accepted your request' : n.type === 'rejected' ? t + ' declined your request' :
     n.type === 'removed' ? 'You were removed from ' + t : n.type === 'left' ? f + ' left ' + t : n.type === 'disbanded' ? t + ' was deleted by its leader' : n.type === 'transferred' ? 'You are now the leader of ' + t : 'Team update: ' + t;
 }
@@ -19622,6 +19649,8 @@ function tmStart(uid){
   tmLis('er', db.collection('eventRegistrations'), function(s){ ER = {}; s.docs.forEach(function(d){ ER[d.id] = d.data(); }); });
   tmLis('inc', db.collection('teamRequests').where('to', '==', uid), function(s){ TM.inc = s.docs.map(tmReq); });
   tmLis('out', db.collection('teamRequests').where('from', '==', uid), function(s){ TM.out = s.docs.map(tmReq); });
+  TM.un.push(clListen(db.collection('teamInvites').where('to', '==', uid), function(s){ TM.invIn = s.docs.map(ivMap); ivChanged(); }, function(e, n){ console.warn('[Invites] inbox listener', n, e && e.code); }));
+  TM.un.push(clListen(db.collection('teamInvites').where('from', '==', uid), function(s){ TM.invOut = s.docs.map(ivMap); ivChanged(); }, function(e, n){ console.warn('[Invites] sent listener', n, e && e.code); }));
   tmLis('n', db.collection('teamNotifs').doc(uid).collection('items').orderBy('createdAt', 'desc').limit(30), function(s){
     var fresh = [];
     s.docChanges().forEach(function(c){ if(c.type !== 'added') return; var n = c.doc.data(); if(TM.nfirst ? n.read === false : !c.doc.metadata.hasPendingWrites){ fresh.push(n); } if(n.read === false){ try{ c.doc.ref.update({read: true}).catch(function(){}); }catch(e){} } });
@@ -19631,9 +19660,184 @@ function tmStart(uid){
 }
 function tmStop(){
   TM.un.forEach(function(f){ try{ f(); }catch(e){} }); Object.keys(TM.mun).forEach(function(k){ try{ TM.mun[k](); }catch(e){} });
-  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], ok: {}, err: 0, nfirst: true}; ER = {}; tmPaint();
+  TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], invIn: [], invOut: [], ok: {}, err: 0, nfirst: true}; ER = {}; tmPaint();
 }
 function tmTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id === TM.uid) return; tmStop(); if(id) tmStart(id); }
+/* ---------- Team Hub additions: team invites · deadline reminders · "Our hackathons" · past results · empty-state help ---------- */
+var HK = {plans: {}, res: {}, un: [], tid: '', ov: null, dirty: 0};
+var HK_RES = {won: ['\ud83e\udd47', 'Won'], finalist: ['\ud83c\udfc5', 'Finalist'], participated: ['\ud83c\udfaf', 'Participated']};
+var HK_STARTER = ['Register on the official page', 'Finalise the idea and problem statement', 'Split the work between members', 'Build the prototype', 'Prepare the presentation / pitch', 'Record the demo video', 'Submit before the deadline'];
+function hkPend(r){ return r.status === 'pending'; }
+function hkId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function hkSafeUrl(u){ return /^https:\/\/[^\s"'<>]{3,300}$/i.test(String(u || '')); }
+function ivMap(d){ var x = d.data(); return {id: d.id, teamId: x.teamId, teamName: x.teamName || 'Team', from: x.from, fromName: x.fromName || 'Team leader', to: x.to, toName: x.toName || 'Student', status: x.status, msg: x.message || '', at: tms(x.createdAt) || Date.now()}; }
+function ivChanged(){ tmPaint(); try{ drawPeople(); }catch(e){} }
+function ivPend(tid, u){ return TM.invOut.some(function(r){ return r.teamId === tid && r.to === u && hkPend(r); }); }
+function ivTeamsFor(u){ return myTeams.filter(function(t){ return isOwner(t) && !full(t) && t.uids.indexOf(u) < 0 && !ivPend(t.id, u); }); }
+function ivBtn(k){
+  var u = pkey(k); if(typeof u !== 'string' || !TM.uid || u === TM.uid) return '';
+  if(!myTeams.some(isOwner)) return '';
+  if(!ivTeamsFor(u).length) return TM.invOut.some(function(r){ return r.to === u && hkPend(r); }) ? '<button class="cn-btn done" type="button" disabled>\u2713 Invited</button>' : '';
+  return '<button class="cn-btn" type="button" data-hk-inv="' + k + '">Invite</button>';
+}
+function ivOpen(k){
+  var p = PF[k], u = pkey(k); if(!p || typeof u !== 'string') return;
+  if(!TM.uid){ toast('Sign in with your student account to invite people.', 'err'); return; }
+  var free = ivTeamsFor(u); if(!free.length){ toast('None of your teams can invite ' + p[0] + ' right now.', 'err'); return; }
+  var o = document.createElement('div'), busy = false; o.className = 'rg-ov hk-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+  o.innerHTML = '<div class="rg-box"><h3>Invite ' + esc(p[0]) + '</h3><p>Choose the team they are invited to. They get a notification and can accept or decline.</p>' +
+    free.map(function(t){ return '<button type="button" class="rg-opt" data-t="' + esc(t.id) + '"><span class="e">\ud83d\udc65</span><span><b>' + esc(t.name) + '</b><small>' + cnt(t) + ' of ' + t.max + ' members' + (t.project ? ' \u00b7 ' + esc(mtProjOf(t)) : '') + '</small></span></button>'; }).join('') +
+    '<div class="hk-f"><label for="hkIvMsg">Message (optional)</label><textarea id="hkIvMsg" class="cn-in" maxlength="140" placeholder="Why would you like them on the team?"></textarea></div><div class="rg-act"><button type="button" data-c>Cancel</button></div></div>';
+  o.addEventListener('click', function(e){
+    if(e.target === o || e.target.closest('[data-c]')){ o.remove(); return; }
+    var b = e.target.closest('[data-t]'); if(!b || busy) return; busy = true;
+    tAct('teamInviteSend', {teamId: b.dataset.t, to: u, message: (o.querySelector('#hkIvMsg').value || '').trim().slice(0, 140)}, 'Invite sent to ' + p[0] + '.').then(function(r){ busy = false; if(r){ o.remove(); ivChanged(); } });
+  });
+  document.body.appendChild(o);
+}
+function ivInHTML(){
+  var l = TM.invIn.filter(hkPend).sort(function(a, b){ return b.at - a.at; }); if(!l.length) return '';
+  return '<h3 class="mt-h">' + ic('users') + 'Team invitations<span class="n">' + l.length + '</span></h3><div class="cn-grid">' + l.map(function(r, i){
+    return '<article class="cn-card mt-card" data-iv="' + esc(r.teamId) + '"><div class="mt-top">' + mtLogo(r.teamName, i) + '<div><h3>' + esc(r.teamName) + '</h3><span class="mt-proj">Invited by ' + esc(r.fromName) + ' \u00b7 ' + ago(r.at) + '</span></div><span class="mt-s mt-s-pending mt-joined">Invitation</span></div>' +
+      (r.msg ? '<p class="mt-quote">' + esc(r.msg) + '</p>' : '') +
+      '<div class="cn-cta"><button class="cn-btn pri" type="button" data-hk-ivacc="' + esc(r.teamId) + '">Accept</button><button class="cn-btn" type="button" data-hk-vt="' + esc(r.teamId) + '">View team</button><button class="cn-btn" type="button" data-hk-ivdec="' + esc(r.teamId) + '">Decline</button></div></article>'; }).join('') + '</div>';
+}
+function ivSentHTML(t){
+  var l = TM.invOut.filter(function(r){ return r.teamId === t.id && hkPend(r); }); if(!l.length) return '';
+  return '<div><div class="cn-sub">Invitations sent \u00b7 ' + l.length + '</div><div class="mt-list">' + l.map(function(r, i){
+    return '<div class="mt-req"><div class="mt-ph">' + av(r.toName, i, 'sm') + '<div><b>' + esc(r.toName) + '</b><small>Invited ' + ago(r.at) + ' \u00b7 waiting for a reply</small></div></div><div class="cn-row"><button class="cn-btn" type="button" data-hk-ivcan="' + esc(t.id) + '" data-to="' + esc(r.to) + '">Cancel invite</button></div></div>'; }).join('') + '</div></div>';
+}
+/* ---- deadline / start reminders ---- */
+function hkTs(x){ if(!x || x.dl == null || x.dl < 0) return 0; var d = new Date(now + x.dl * D); d.setHours(23, 59, 0, 0); return d.getTime(); }
+function hkRegExtra(x, o){ var a = hkTs(x), s = evStart(x).getTime(); if(a) o.dlAt = a; if(s) o.startAt = s; return o; }
+function hkEvOf(ek){ for(var i = 0; i < EV.length; i++){ if(erKey(EV[i]) === ek) return EV[i]; } return null; }
+function hkLeft(ms){ var h = Math.floor(ms / 36e5); return h < 1 ? 'less than an hour' : h < 24 ? h + ' hour' + (h === 1 ? '' : 's') : Math.ceil(ms / 864e5) + ' day' + (Math.ceil(ms / 864e5) === 1 ? '' : 's'); }
+function hkSoon(){
+  var out = [], t0 = Date.now();
+  erAll().forEach(function(d){
+    var tm = TM.mine[d.teamId]; if(!tm) return; var x = hkEvOf(d.ek), dl = d.dlAt || hkTs(x), st = d.startAt || (x ? evStart(x).getTime() : 0);
+    [['deadline', dl], ['start', st]].forEach(function(p){ var diff = p[1] - t0; if(p[1] && diff > 0 && diff <= 3 * 864e5) out.push({d: d, kind: p[0], ts: p[1], left: diff, team: tm.name}); });
+  });
+  return out.sort(function(a, b){ return a.ts - b.ts; });
+}
+var HK_BF = {};
+/* Older registrations were saved without a deadline. The team leader's app adds it once, so the server can send the reminder pushes for them too. */
+function hkBackfill(){
+  var db = fb(); if(!db || !TM.uid) return;
+  erAll().forEach(function(d){
+    if(d.leaderUid !== TM.uid || d.dlAt != null || d.startAt != null || HK_BF[d.id] || (d.endAt && d.endAt < Date.now())) return;
+    var x = hkEvOf(d.ek); if(!x) return; var u = hkRegExtra(x, {}); delete u.nothing; if(!u.dlAt && !u.startAt) return;
+    HK_BF[d.id] = 1; db.collection('eventRegistrations').doc(d.id).update(u).catch(function(e){ console.warn('[Reminders] backfill', e && e.code); });
+  });
+}
+function hkBanner(){
+  var l = hkSoon(); if(!l.length) return '';
+  return '<div class="hk-soon" role="status"><b>\u23f0 Coming up for your teams</b>' + l.map(function(r){ return '<button type="button" class="hk-sn" data-hk-open="' + esc(r.d.teamId) + '"><span>' + (r.kind === 'deadline' ? 'Registration deadline' : 'Starts') + ':</span> <b>' + esc(r.d.eventTitle) + '</b> \u00b7 ' + esc(r.team) + ' \u2014 in ' + hkLeft(r.left) + '</button>'; }).join('') + '</div>';
+}
+/* ---- empty-state help ---- */
+function hkStart(){
+  if(!TM.uid) return empty('\ud83d\udd10', 'Sign in to build a team', 'Create or join teams with your student account. Guests can browse events but cannot use Teams.');
+  return empty('\ud83d\ude80', 'New here? Start in 3 steps', '1) Browse hackathons in Events and pick one you like. 2) Find teammates in Find people, or create your own team. 3) Open the event, register on the official page, then tap \u201cMark as registered\u201d to track dates and tasks with your team.',
+    '<div class="cn-row" style="justify-content:center;flex-wrap:wrap"><button class="cn-btn pri" type="button" data-hk-go="events">Browse events</button><button class="cn-btn" type="button" data-hk-go="people">Find people</button><button class="cn-btn" type="button" data-hk-new="1">Create a team</button></div>');
+}
+/* ---- "Our hackathons" (members only) ---- */
+function hkStop(){ HK.un.forEach(function(f){ try{ f(); }catch(e){} }); HK.un = []; HK.plans = {}; HK.res = {}; }
+function hkClose(){ hkStop(); if(HK.ov){ HK.ov.remove(); HK.ov = null; } HK.tid = ''; }
+function hkOpen(tid){
+  var t = tById(tid), db = fb(); if(!db) return;
+  if(!t || !(isOwner(t) || isMem(t))){ toast('Only members of this team can open this.', 'err'); return; }
+  hkClose(); HK.tid = tid; var o = document.createElement('div'); o.className = 'rg-ov hk-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Our hackathons: ' + t.name);
+  document.body.appendChild(o); HK.ov = o; hkDraw();
+  HK.un.push(clListen(db.collection('teams').doc(tid).collection('hackplans'), function(s){ HK.plans = {}; s.docs.forEach(function(d){ HK.plans[d.id] = d.data(); }); hkDraw(); }, function(e, n){ console.warn('[Hackathons] plans listener', n, e && e.code); }));
+  HK.un.push(clListen(db.collection('hackResults').where('teamId', '==', tid), function(s){ HK.res = {}; s.docs.forEach(function(d){ var x = d.data(); HK.res[x.ek] = x; }); hkDraw(); }, function(e, n){ console.warn('[Hackathons] results listener', n, e && e.code); }));
+}
+function hkWho(t, sel){
+  var l = [{uid: t.ownerUid, name: t.owner}].concat(t.members.map(function(m){ return {uid: m.uid, name: m.name}; }));
+  return '<option value="">Unassigned</option>' + l.map(function(m){ return '<option value="' + esc(m.uid) + '"' + (m.uid === sel ? ' selected' : '') + '>' + esc(m.name) + '</option>'; }).join('');
+}
+function hkCard(t, d, lead){
+  var x = hkEvOf(d.ek), pl = HK.plans[d.ek] || {}, items = pl.items || [], res = HK.res[d.ek], k = esc(d.ek), done = items.filter(function(i){ return i.done; }).length, dl = x ? dlInfo(x) : null;
+  var started = (x ? evStart(x).getTime() : (d.startAt || 0)) <= Date.now();
+  var h = '<section class="hk-c" data-ek="' + k + '"><h4>' + esc(d.eventTitle) + '</h4><div class="hk-meta"><span class="cn-chip">' + esc(d.eventKind || 'Event') + '</span>' + (res ? '<span class="cn-chip hk-res ' + esc(res.result) + '">' + (HK_RES[res.result] || HK_RES.participated).join(' ') + '</span>' : '') + '</div>' +
+    '<ul class="hk-dates"><li><b>Dates</b><span>' + esc(x ? fdr(x) : d.dateLabel || 'Not listed') + '</span></li>' + (dl ? '<li><b>Registration</b><span>' + esc(dl.l) + (dl.s ? ' \u00b7 ' + esc(dl.s) : '') + '</span></li>' : '') + (x && x.loc ? '<li><b>Where</b><span>' + esc(x.loc) + '</span></li>' : '') + '</ul>';
+  var links = [], custom = pl.links || [];
+  if(x){ if(hkUrl(x.reg)) links.push('<a class="hk-link" href="' + esc(x.reg) + '" target="_blank" rel="noopener noreferrer">Registration page</a>'); if(hkUrl(x.url) && x.url !== x.reg) links.push('<a class="hk-link" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">Official website</a>'); }
+  custom.forEach(function(l, i){ if(hkSafeUrl(l.url)) links.push('<span class="hk-lw"><a class="hk-link" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label || l.url) + '</a><button type="button" class="hk-rm" data-hk-lrm="' + i + '" aria-label="Remove link">\u00d7</button></span>'); });
+  h += '<div class="cn-sub">Links</div><div class="hk-links">' + (links.join('') || '<small class="hk-mut">No links yet. Add the submission page, Drive folder or Figma file.</small>') + '</div>' +
+    '<div class="hk-add"><input class="cn-in" data-hk-ll maxlength="30" placeholder="Label (e.g. Devpost)" aria-label="Link label"><input class="cn-in" data-hk-lu maxlength="300" inputmode="url" placeholder="https://\u2026" aria-label="Link address"><button type="button" class="cn-btn" data-hk-ladd="1">Add link</button></div>';
+  h += '<div class="cn-sub">Submission checklist' + (items.length ? ' \u00b7 ' + done + '/' + items.length + ' done' : '') + '</div>' + (items.length ? '<div class="hk-bar"><i style="width:' + Math.round(100 * done / items.length) + '%"></i></div>' : '') +
+    '<ul class="hk-list">' + items.map(function(it){ return '<li class="hk-it' + (it.done ? ' done' : '') + '"><label><input type="checkbox" data-hk-tg="' + esc(it.id) + '"' + (it.done ? ' checked' : '') + '><span>' + esc(it.t) + '</span></label><select class="cn-in cn-sel hk-w" data-hk-as="' + esc(it.id) + '" aria-label="Who is doing this">' + hkWho(t, it.w) + '</select><button type="button" class="hk-rm" data-hk-rm="' + esc(it.id) + '" aria-label="Remove task">\u00d7</button></li>'; }).join('') + '</ul>' +
+    '<div class="hk-add"><input class="cn-in" data-hk-ni maxlength="120" placeholder="Add a task, e.g. Record demo video" aria-label="New task"><select class="cn-in cn-sel hk-w" data-hk-nw aria-label="Assign to">' + hkWho(t, '') + '</select><button type="button" class="cn-btn pri" data-hk-nadd="1">Add</button></div>' +
+    (items.length ? '' : '<button type="button" class="cn-btn" data-hk-starter="1" style="margin-top:8px">Add a starter checklist</button>');
+  h += '<div class="cn-sub">Team notes</div><textarea class="cn-in" data-hk-notes="1" maxlength="600" placeholder="Idea, problem statement, submission details\u2026">' + esc(pl.notes || '') + '</textarea>';
+  h += '<div class="cn-sub">Result</div>' + (lead ? (started ? '<div class="hk-add"><select class="cn-in cn-sel" data-hk-rs aria-label="Result"><option value="">Not recorded</option>' + Object.keys(HK_RES).map(function(r){ return '<option value="' + r + '"' + (res && res.result === r ? ' selected' : '') + '>' + HK_RES[r][0] + ' ' + HK_RES[r][1] + '</option>'; }).join('') + '</select><input class="cn-in" data-hk-rn maxlength="80" placeholder="Optional, e.g. 2nd place" value="' + esc(res ? res.note : '') + '" aria-label="Result note"><button type="button" class="cn-btn pri" data-hk-rsave="1">Save result</button></div><small class="hk-mut">Saved results appear on every member\u2019s profile.</small>' : '<small class="hk-mut">You can record the result once the event has started.</small>')
+    : '<small class="hk-mut">' + (res ? (HK_RES[res.result] || HK_RES.participated).join(' ') + (res.note ? ' \u00b7 ' + esc(res.note) : '') : 'The team leader records the result after the event.') + '</small>');
+  return h + '</section>';
+}
+function hkDraw(){
+  var o = HK.ov; if(!o) return; var a = document.activeElement;
+  if(a && o.contains(a) && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox'))){ HK.dirty = 1; return; } HK.dirty = 0;
+  var t = tById(HK.tid); if(!t){ hkClose(); return; }
+  var regs = erTeam(t.id).sort(function(p, q){ return (p.endAt || 0) - (q.endAt || 0); }), lead = isOwner(t), old = o.querySelector('.rg-box'), sc = old ? old.scrollTop : 0;
+  o.innerHTML = '<div class="rg-box hk-box"><div class="hk-hd"><div><h3>\ud83c\udfc6 Our hackathons</h3><p>' + esc(t.name) + ' \u00b7 shared by every member</p></div><button type="button" class="hk-x" data-hk-close="1" aria-label="Close">\u00d7</button></div>' +
+    (regs.length ? regs.map(function(d){ return hkCard(t, d, lead); }).join('') : empty('\ud83c\udfc1', 'No hackathon registered yet', 'Open Events, register on the official page, then tap \u201cMark as registered\u201d and pick this team. It will appear here with dates, links, a checklist and who is doing what.', lead ? '<button class="cn-btn pri" type="button" data-hk-go="events">Browse events</button>' : '')) + '</div>';
+  var nb = o.querySelector('.rg-box'); if(nb) nb.scrollTop = sc;
+}
+function hkMut(ek, fn){
+  var db = fb(); if(!db || !HK.tid) return Promise.resolve(false); var ref = db.collection('teams').doc(HK.tid).collection('hackplans').doc(ek);
+  return db.runTransaction(function(tx){ return tx.get(ref).then(function(s){
+    var p = s.exists ? s.data() : {}, n = {items: (p.items || []).slice(), links: (p.links || []).slice(), notes: p.notes || ''}; fn(n);
+    tx.set(ref, {ek: ek, items: n.items, links: n.links, notes: String(n.notes).slice(0, 600), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: TM.uid});
+  }); }).then(function(){ return true; }, function(e){ toast(cErr(e), 'err'); return false; });
+}
+function hkSaveRes(ek, val, note){
+  var t = tById(HK.tid), db = fb(), reg = ER[ek + '__' + HK.tid]; if(!t || !isOwner(t) || !db || !reg){ toast('Only the team leader can record results.', 'err'); return; }
+  var ref = db.collection('hackResults').doc(ek + '__' + HK.tid);
+  var p = val ? ref.set({ek: ek, eventTitle: String(reg.eventTitle || '').slice(0, 160), teamId: HK.tid, teamName: String(t.name).slice(0, 120), memberUids: t.uids.slice(), result: val, note: String(note || '').slice(0, 80), endAt: +reg.endAt || 0, setBy: TM.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}) : ref.delete();
+  p.then(function(){ toast(val ? 'Result saved. It now shows on every member\u2019s profile.' : 'Result cleared.'); }, function(e){ toast(cErr(e), 'err'); });
+}
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && HK.ov && !document.querySelector('.rg-ov:not(.hk-ov)')) hkClose(); });
+document.addEventListener('click', function(e){
+  if(HK.ov && e.target === HK.ov){ hkClose(); return; }
+  var b = e.target.closest && e.target.closest('[data-hk-open],[data-hk-inv],[data-hk-ivacc],[data-hk-ivdec],[data-hk-ivcan],[data-hk-vt],[data-hk-go],[data-hk-new],[data-hk-close],[data-hk-nadd],[data-hk-ladd],[data-hk-lrm],[data-hk-rm],[data-hk-starter],[data-hk-rsave]');
+  if(!b || b.disabled) return; var d = b.dataset, card = b.closest('.hk-c'), ek = card ? card.dataset.ek : '';
+  if(d.hkOpen != null){ hkOpen(d.hkOpen); return; }
+  if(d.hkInv != null){ ivOpen(+d.hkInv); return; }
+  if(d.hkIvacc != null){ tAct('teamInviteDecide', {teamId: d.hkIvacc, accept: true}, 'You joined the team!').then(function(){ ivChanged(); }); return; }
+  if(d.hkIvdec != null){ tAct('teamInviteDecide', {teamId: d.hkIvdec, accept: false}, 'Invitation declined.').then(function(){ ivChanged(); }); return; }
+  if(d.hkIvcan != null){ tAct('teamInviteCancel', {teamId: d.hkIvcan, to: d.to}, 'Invitation cancelled.').then(function(){ ivChanged(); }); return; }
+  if(d.hkVt != null){ mtView(d.hkVt); return; }
+  if(d.hkGo != null){ hkClose(); if(d.hkGo === 'events') go('events'); else go('teams', d.hkGo === 'people' ? 'people' : 'teams'); return; }
+  if(d.hkNew != null){ hkClose(); go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); return; }
+  if(d.hkClose != null){ hkClose(); return; }
+  if(!ek) return;
+  var t = tById(HK.tid); if(!t) return;
+  if(d.hkNadd != null){
+    var ti = card.querySelector('[data-hk-ni]'), tw = card.querySelector('[data-hk-nw]'), txt = ti.value.trim(); if(!txt){ toast('Type the task first.', 'err'); ti.focus(); return; }
+    if(((HK.plans[ek] || {}).items || []).length >= 40){ toast('A checklist can hold up to 40 tasks.', 'err'); return; }
+    var wn = tw.value ? String(tw.options[tw.selectedIndex].text).slice(0, 40) : ''; ti.value = '';
+    hkMut(ek, function(n){ n.items.push({id: hkId(), t: txt.slice(0, 120), done: false, w: tw.value, wn: wn}); });
+  } else if(d.hkStarter != null){
+    hkMut(ek, function(n){ if(n.items.length) return; HK_STARTER.forEach(function(s){ n.items.push({id: hkId(), t: s, done: false, w: '', wn: ''}); }); });
+  } else if(d.hkRm != null){
+    hkMut(ek, function(n){ n.items = n.items.filter(function(i){ return i.id !== d.hkRm; }); });
+  } else if(d.hkLadd != null){
+    var li = card.querySelector('[data-hk-ll]'), lu = card.querySelector('[data-hk-lu]'), url = lu.value.trim(); if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    if(!hkSafeUrl(url)){ toast('Enter a valid https:// link.', 'err'); lu.focus(); return; }
+    if(((HK.plans[ek] || {}).links || []).length >= 10){ toast('You can save up to 10 links.', 'err'); return; }
+    var lab = li.value.trim().slice(0, 30); li.value = ''; lu.value = ''; hkMut(ek, function(n){ n.links.push({label: lab, url: url}); });
+  } else if(d.hkLrm != null){
+    hkMut(ek, function(n){ n.links.splice(+d.hkLrm, 1); });
+  } else if(d.hkRsave != null){
+    hkSaveRes(ek, card.querySelector('[data-hk-rs]').value, card.querySelector('[data-hk-rn]').value.trim());
+  }
+});
+document.addEventListener('change', function(e){
+  var el = e.target; if(!HK.ov || !HK.ov.contains(el)) return; var card = el.closest('.hk-c'), ek = card ? card.dataset.ek : ''; if(!ek) return;
+  if(el.dataset.hkTg != null){ var on = el.checked; hkMut(ek, function(n){ n.items.forEach(function(i){ if(i.id === el.dataset.hkTg) i.done = on; }); }); }
+  else if(el.dataset.hkAs != null){ var w = el.value, wn = w ? String(el.options[el.selectedIndex].text).slice(0, 40) : ''; hkMut(ek, function(n){ n.items.forEach(function(i){ if(i.id === el.dataset.hkAs){ i.w = w; i.wn = wn; } }); }); }
+  else if(el.dataset.hkNotes != null){ var v = el.value; hkMut(ek, function(n){ n.notes = v.slice(0, 600); }); }
+});
 var MT_KEY = 'csec_myteams', MT_SKILLS = ['React', 'Python', 'Node.js', 'UI/UX', 'Machine Learning', 'Flutter', 'Figma', 'C++', 'Firebase', 'Arduino'];
 var mtc = $('#cnMyTeam'), myTeams = [], mtM = null, mtSk = [], mtAsk = '', mtAskL = '', mtAskR = '', mtBack = null, mtOk = true, mtSeen = {};
 function mtIn(k){ if(mtSeen[k]) return ''; mtSeen[k] = 1; return ' mt-in'; }
@@ -19650,7 +19854,7 @@ function mtCreated(t, i){
   var st = full(t) ? '<span class="cn-chip mt-joined">Team full</span>' : t.open ? '<span class="mt-s mt-s-open mt-joined">Applications open</span>' : '<span class="mt-s mt-s-closed mt-joined">Applications closed</span>';
   var acts = mtAsk === t.id
     ? '<p class="mt-warn" role="alert">Delete “' + esc(t.name) + '”? Its members and ' + (t.requests.length ? t.requests.length + ' request' + (t.requests.length === 1 ? '' : 's') : 'requests') + ' will be removed too. This cannot be undone.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-delok="' + id + '">Confirm delete</button><button class="cn-btn" type="button" data-mt-delno="1">Keep team</button>'
-    : '<button class="cn-btn pri" type="button" data-ct-manage="' + id + '">Manage' + (pend ? '<span class="mt-dot" aria-label="' + pend + ' pending requests">' + pend + '</span>' : '') + '</button><button class="cn-btn" type="button" data-mt-view="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-del="' + id + '" aria-label="Delete team ' + esc(t.name) + '">Delete</button>';
+    : '<button class="cn-btn pri" type="button" data-ct-manage="' + id + '">Manage' + (pend ? '<span class="mt-dot" aria-label="' + pend + ' pending requests">' + pend + '</span>' : '') + '</button><button class="cn-btn" type="button" data-hk-open="' + id + '">Our hackathons</button><button class="cn-btn" type="button" data-mt-view="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-del="' + id + '" aria-label="Delete team ' + esc(t.name) + '">Delete</button>';
   return '<article class="cn-card mt-card' + mtIn('c' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div>' + st + '</div>' +
     '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members · ' + open + (open === 1 ? ' spot' : ' spots') + ' open' + (pend ? ' · ' + pend + ' pending' : '') + '</span></div>' +
@@ -19664,6 +19868,7 @@ function drawMyTeam(){
   var sub = !TM.uid ? 'Sign in with your student account to create or join teams.' : TM.err ? 'Reconnecting to Campus Loop… your teams and requests will appear automatically.' : pendAll ? 'You have <b>' + pendAll + '</b> join request' + (pendAll === 1 ? '' : 's') + ' waiting for your review.' : total ? 'The teams you lead, the teams you have joined and your join requests, all in one place.' : 'Lead your own team for a hackathon or competition, or join one from Find Teams.';
   var html = '<div class="mt-hero"><div><h2>' + ic('users') + 'MY TEAM</h2><p>' + sub + '</p></div>' +
     '<button type="button" class="mt-create" data-mt-new="1">' + ic('plus') + 'Create Team</button></div>';
+  html += hkBanner() + ivInHTML();
   if(total){
     var h = function(icon, t, n){ return '<h3 class="mt-h">' + ic(icon) + t + '<span class="n">' + n + '</span></h3>'; };
     if(led.length) html += h('crown', 'Teams I lead', led.length) + '<div class="cn-grid">' + led.map(function(t){ return mtCreated(t, myTeams.indexOf(t)); }).join('') + '</div>';
@@ -19671,6 +19876,7 @@ function drawMyTeam(){
     if(rq.length) html += h('clock', 'My join requests', rq.length) + '<div class="cn-grid">' + rq.map(function(t){ return mtReqCard(t, myTeams.indexOf(t)); }).join('') + '</div>';
   }
   if(!total && TM.uid && !TM.ok.mine && !TM.err) html += '<div class="cn-grid">' + mtSkel(2) + '</div>';
+  else if(!total && !TM.invIn.some(hkPend) && (!TM.uid || TM.ok.mine) && !TM.err) html += hkStart();
   mtc.innerHTML = html;
 }
 /* ---- Team Chat (frontend only, localStorage "csec_teamchat_<id>"). Only the leader and accepted members can open it. ---- */
@@ -19883,7 +20089,7 @@ function mtCustomJoined(t, i){
   var n = cnt(t), id = esc(t.id), pct = Math.min(100, Math.round(n / t.max * 100));
   var acts = mtAskL === t.id
     ? '<p class="mt-warn" role="alert">Leave “' + esc(t.name) + '”? You can send a new request later if the team is still open.</p><button class="cn-btn mt-btn-danger pri" type="button" data-mt-lvok="' + id + '">Confirm leave</button><button class="cn-btn" type="button" data-mt-lvno="1">Stay</button>'
-    : waBtn(t) + '<button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
+    : waBtn(t) + '<button class="cn-btn" type="button" data-hk-open="' + id + '">Our hackathons</button><button class="cn-btn" type="button" data-ct-vt="' + id + '">View Team</button><button class="cn-btn mt-btn-danger" type="button" data-mt-lv="' + id + '">Leave Team</button>';
   return '<article class="cn-card mt-card' + mtIn('j' + t.id) + '" data-tid="' + id + '"><div class="mt-top">' + mtLogo(t.name, i) + '<div><h3>' + esc(t.name) + '</h3><span class="mt-proj">' + esc(mtProjOf(t)) + '</span></div><span class="mt-s mt-s-accepted mt-joined">Joined</span></div>' +
     '<p class="mt-desc">' + esc(t.desc) + '</p>' + mtChips(t.skills) + mtEvents(t) + mtLeader(t.owner, i) +
     '<div><div class="mt-bar" role="img" aria-label="' + n + ' of ' + t.max + ' members"><i style="width:' + pct + '%"></i></div><span class="mt-cap">' + n + ' of ' + t.max + ' members</span></div>' +
@@ -20044,6 +20250,7 @@ function dashHTML(t){
       mtField('mtEMax', 'Maximum members', '<input class="cn-in" id="mtEMax" type="number" inputmode="numeric" min="' + Math.max(2, n) + '" max="20" value="' + t.max + '" aria-describedby="mtEMaxErr" style="max-width:140px">', false, '<p class="mt-help">Includes you. Cannot be lower than the current ' + n + '.</p>') +
       '<div class="cn-row" style="margin-top:6px"><button type="submit" class="cn-btn pri">Save changes</button></div></form>';
   }
+  if(tab === 'req') body += ivSentHTML(t);
   mtDash.fresh = false;
   return head + tabs + '<div class="mt-dl" role="tabpanel" data-tab="' + tab + '">' + body + '</div>';
 }
@@ -20557,6 +20764,19 @@ function pct(){var c=[['Profile photo',!!IMG.photo],['Cover image',!!IMG.cover],
   return{c:c,p:Math.round(c.filter(function(x){return x[1]}).length/c.length*100)}}
 function connCount(){try{return window.cnConn&&window.cnConn.count?window.cnConn.count():0}catch(e){return 0}}
 function myPosts(){try{var a=window.cseConnect&&window.cseConnect.myPosts&&window.cseConnect.myPosts();return Array.isArray(a)?a:[]}catch(e){return[]}}
+/* ---- Hackathon results (hackResults): recorded by a team leader, shown on every member's profile ---- */
+var HR={mine:[],peer:[],un:null,pun:null,uid:''};
+var HR_L={won:['\uD83E\uDD47','Won'],finalist:['\uD83C\uDFC5','Finalist'],participated:['\uD83C\uDFAF','Participated']};
+function hrCard(list,own){
+  list=(list||[]).slice().sort(function(a,b){return (b.endAt||0)-(a.endAt||0)});
+  return '<div class="pf-card"><h3>Hackathon results</h3>'+(list.length?'<div class="pf-tl">'+list.map(function(r){var m=HR_L[r.result]||HR_L.participated;return'<div class="pf-it"><span class="pf-tag">'+m[0]+' '+m[1]+'</span> <b>'+esc(r.eventTitle)+'</b><div class="pf-sm">'+esc([r.teamName?'Team '+r.teamName:'',r.note].filter(Boolean).join(' \u00B7 '))+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">'+(own?'When your team leader records a result after a hackathon, it shows up here.':'No hackathon results yet.')+'</div>')+'</div>';
+}
+function hrWatch(uid,key,cb){var db=fdb();if(!db||!uid)return null;return LST(db.collection('hackResults').where('memberUids','array-contains',uid),function(s){HR[key]=s.docs.map(function(d){return d.data()});cb&&cb()},function(){})}
+function hrOwn(){
+  var u=null;try{u=firebase.auth().currentUser}catch(e){} var id=(u&&!u.isAnonymous)?u.uid:'';
+  if(id===HR.uid)return; if(HR.un){try{HR.un()}catch(e){}HR.un=null} HR.uid=id;HR.mine=[]; if(!id)return;
+  HR.un=hrWatch(id,'mine',function(){ if(!prof.classList.contains('hidden')&&!prof.classList.contains('pf-peer')&&!document.querySelector('.pf-modal'))render() });
+}
 function render(){
   var posts=myPosts();
   var h='<div class="pf-card pf-top"><div class="pf-cover"><button class="pf-btn sm pf-cbtn" data-img="cover">📷 '+(IMG.cover?'Change':'Upload')+' cover</button></div>'+
@@ -20573,6 +20793,7 @@ function render(){
   h+=itemsSec('Projects &amp; Works','projects','Add Project',PROJ,function(o,i){return'<div class="pf-proj"><div class="th" style="'+(o.img?'background-image:url('+esc(o.img)+')':'')+'"></div><div class="bd"><b>'+esc(o.title)+'</b>'+(o.cat?'<span class="pf-tag">'+esc(o.cat)+'</span>':'')+'<div class="pf-sm">'+esc(o.desc)+'</div>'+(o.tech?'<div class="pf-sm">🛠 '+esc(o.tech)+'</div>':'')+'<div class="pf-sm">'+esc(o.date)+(o.link?' · <a href="'+esc(o.link)+'" target="_blank" rel="noopener">Link</a>':'')+(o.gh?' · <a href="'+esc(o.gh)+'" target="_blank" rel="noopener">GitHub</a>':'')+'</div>'+acts('projects',i)+'</div></div>'});
   h+=itemsSec('Education','education','Add Education',EDU,function(o,i){return'<div class="pf-it"><b>'+esc(o.college)+'</b><div>'+esc([o.degree,o.dept].filter(Boolean).join(' – '))+'</div><div class="pf-sm">'+esc([o.year,(o.start||'')+(o.grad?' – '+o.grad:'')].filter(Boolean).join(' · '))+'</div>'+acts('education',i)+'</div>'});
   h+=itemsSec('Experience &amp; Achievements','exp','Add Entry',EXP,function(o,i){return'<div class="pf-it"><span class="pf-tag">'+esc(o.type)+'</span> <b>'+esc(o.title)+'</b><div class="pf-sm">'+esc([o.org,o.date].filter(Boolean).join(' · '))+'</div><div>'+esc(o.desc)+'</div>'+acts('exp',i)+'</div>'});
+  h+=hrCard(HR.mine,true);
   h+='<div class="pf-card"><h3>Posts &amp; activity</h3>'+(posts.length?posts.map(function(p){return'<div class="pf-it" style="margin-bottom:10px">'+esc(p.text||p.title||'')+'</div>'}).join(''):'<div class="pf-empty">No posts yet. Posts you share in Connect will appear here.</div>')+'</div>';
   $('pfBody').innerHTML=h;applyImgs()}
 /* ---- events ---- */
@@ -20600,7 +20821,7 @@ function pick(which){fi.value='';fi.onchange=function(){var f=fi.files[0];if(!f)
   readImg(f,which==='cover'?1400:500,function(u){var im=document.createElement('img');im.src=u;im.className='pf-prev';var w=document.createElement('div');w.appendChild(im);
     modal('Preview '+(which==='cover'?'cover image':'profile photo'),w,function(){IMG[which]=u;idbSet(which,u);render();imgChanged(which)},'Apply')})};fi.click()}
 /* ---- Profile open/close ---- */
-function openProfile(){peerStop();prof.classList.remove('pf-peer');prof.querySelector('.cl-ovbar b').textContent='Profile';closeSettings();state.sy=window.pageYOffset||0;load();render();prof.classList.remove('hidden');prof.scrollTop=0;lock()}
+function openProfile(){peerStop();prof.classList.remove('pf-peer');prof.querySelector('.cl-ovbar b').textContent='Profile';closeSettings();state.sy=window.pageYOffset||0;load();hrOwn();render();prof.classList.remove('hidden');prof.scrollTop=0;lock()}
 function closeProfile(silent){peerStop();if(prof.classList.contains('hidden'))return;prof.classList.add('hidden');lock();if(!silent){try{window.scrollTo(0,state.sy)}catch(e){}}}
 $('pfBack').onclick=function(){closeProfile()};
 document.addEventListener('keydown',function(e){if(e.key!=='Escape'||document.querySelector('.pf-modal'))return;if(!prof.classList.contains('hidden'))closeProfile();else closeSettings()});
@@ -20613,13 +20834,14 @@ document.addEventListener('click',function(e){
 var peerUn=null,peerGen=0;
 function safeUrl(u){u=String(u||'');return /^https?:\/\/[^\s"'<>]+$/i.test(u)?u:''}
 function safePhoto(u){u=String(u||'');return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(u)&&u.length<30000?u:''}
-function peerStop(){if(peerUn){try{peerUn()}catch(e){}peerUn=null}}
+function peerStop(){if(peerUn){try{peerUn()}catch(e){}peerUn=null}if(HR.pun){try{HR.pun()}catch(e){}HR.pun=null}}
 function openPeer(p){
   if(p.mine){ peerStop(); openProfile(); return; }
   peerStop(); closeSettings(); state.sy=window.pageYOffset||0;
   var ck='csec_peer_conn',cn={};try{cn=JSON.parse(localStorage.getItem(ck))||{}}catch(e){}
   var key=p.uid||p.name, sent=!!cn[key], rc=(window.cnConn&&p.uid&&!p.mine)?window.cnConn:null, fc=null, gen=++peerGen;
   function chips(a,c){return a.length?'<div class="pf-chips">'+a.map(function(x){return'<span class="pf-chip'+(c?' hi':'')+'" style="padding:6px 12px">'+esc(x)+'</span>'}).join('')+'</div>':'<div class="pf-empty">Not shared yet.</div>'}
+  var lastX=null; HR.peer=[]; HR.pun=hrWatch(p.uid,'peer',function(){ if(gen===peerGen&&prof.classList.contains('pf-peer')&&!prof.classList.contains('hidden')){var y=prof.scrollTop;paint(lastX);prof.scrollTop=y} });
   function paint(x){
     x=x||{};var nm=x.name||p.name, ph=(STURL.test(x.photoUrl||'')?x.photoUrl:'')||safePhoto(x.photo), cv=STURL.test(x.coverUrl||'')?x.coverUrl:'', A=x.about||{};
     var sk=(x.skills||[]).map(function(a){return a.n||a}), hi=(x.skills||[]).filter(function(a){return a.h}).map(function(a){return a.n}),
@@ -20635,7 +20857,8 @@ function openPeer(p){
      '<div class="pf-card"><h3>Interests</h3>'+chips(it)+'</div>'+
      '<div class="pf-card"><h3>Projects &amp; Works</h3>'+(pr.length?'<div class="pf-grid">'+pr.map(function(o){var l=safeUrl(o.link),g=safeUrl(o.gh);return'<div class="pf-proj"><div class="th"></div><div class="bd"><b>'+esc(o.title)+'</b>'+(o.cat?'<span class="pf-tag">'+esc(o.cat)+'</span>':'')+'<div class="pf-sm">'+esc(o.desc)+'</div>'+(o.tech?'<div class="pf-sm">🛠 '+esc(o.tech)+'</div>':'')+'<div class="pf-sm">'+esc(o.date)+(l?' · <a href="'+esc(l)+'" target="_blank" rel="noopener noreferrer">Link</a>':'')+(g?' · <a href="'+esc(g)+'" target="_blank" rel="noopener noreferrer">GitHub</a>':'')+'</div></div></div>'}).join('')+'</div>':'<div class="pf-empty">No projects shared yet.</div>')+'</div>'+
      '<div class="pf-card"><h3>Education</h3>'+(ed.length?'<div class="pf-tl">'+ed.map(function(o){return'<div class="pf-it"><b>'+esc(o.college)+'</b><div>'+esc([o.degree,o.dept].filter(Boolean).join(' – '))+'</div><div class="pf-sm">'+esc([o.year,(o.start||'')+(o.grad?' – '+o.grad:'')].filter(Boolean).join(' · '))+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">'+esc([p.branch,p.year].filter(Boolean).join(' · ')||'Not shared yet.')+'</div>')+'</div>'+
-     '<div class="pf-card"><h3>Experience &amp; Achievements</h3>'+(ex.length?'<div class="pf-tl">'+ex.map(function(o){return'<div class="pf-it"><span class="pf-tag">'+esc(o.type)+'</span> <b>'+esc(o.title)+'</b><div class="pf-sm">'+esc([o.org,o.date].filter(Boolean).join(' · '))+'</div><div>'+esc(o.desc)+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">Nothing shared yet.</div>')+'</div>';
+     '<div class="pf-card"><h3>Experience &amp; Achievements</h3>'+(ex.length?'<div class="pf-tl">'+ex.map(function(o){return'<div class="pf-it"><span class="pf-tag">'+esc(o.type)+'</span> <b>'+esc(o.title)+'</b><div class="pf-sm">'+esc([o.org,o.date].filter(Boolean).join(' · '))+'</div><div>'+esc(o.desc)+'</div></div>'}).join('')+'</div>':'<div class="pf-empty">Nothing shared yet.</div>')+'</div>'+hrCard(HR.peer,false);
+    lastX=x;
     prof.querySelector('.cl-ovbar b').textContent=nm;
     $('pfConn').onclick=function(){if(rc){rc.act(p.uid);return}sent=!sent;if(sent)cn[key]=1;else delete cn[key];try{localStorage.setItem(ck,JSON.stringify(cn))}catch(e){}this.textContent=sent?'✓ Request sent':'Connect'};
   }
