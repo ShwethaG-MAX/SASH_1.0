@@ -18602,10 +18602,31 @@ function lvSync(manual){
     LIVE.had = true;
   });
 }
+/* Ended events leave the list on their own. Day offsets are recalculated, whatever is over is removed (a manual listing stays only
+   while one of my teams is registered for it), and the position-keyed state (saved, registered, open popup) is re-mapped by event id. */
+var EV_DAY = '';
+function evPrune(){
+  try{
+    if(!EV.length) return;
+    var day = new Date().toDateString(), rolled = day !== EV_DAY; EV_DAY = day;
+    EV.forEach(function(x){ try{ if(x && x.iso && x.iso.date) lvDates(x); }catch(e){} });
+    var drop = EV.filter(function(x){ return !x || (lvEnded(x) && !(x.manual && mrHas(x))); });
+    if(drop.length){
+      var sv = {}, rg = {}, cid = cur && cur.t === 'e' && EV[cur.i] ? evId(EV[cur.i]) : '';
+      EV.forEach(function(x, i){ if(!x) return; if(bm[i]) sv[evId(x)] = 1; if(reg[i]) rg[evId(x)] = 1; });
+      EV = EV.filter(function(x){ return drop.indexOf(x) < 0; });
+      bm = {}; reg = {}; EV.forEach(function(x, i){ var id = evId(x); if(sv[id]) bm[i] = true; if(rg[id]) reg[i] = true; });
+      if(cid){ var k = -1; EV.forEach(function(x, i){ if(evId(x) === cid) k = i; }); cur = k < 0 ? null : {t:'e', i:k}; }
+    }
+    if(drop.length || rolled) eventsChanged();
+  }catch(e){ console.warn('[Events] prune failed', e); }
+}
 function lvStart(){
   try{ var hc = JSON.parse(localStorage.getItem('csec_live_health') || 'null'); if(hc){ LIVE.health = hc.h || []; LIVE.feedHealth = hc.f || []; } }catch(e){}
   setTimeout(function(){ lvSync(false); }, 1500);
   setInterval(function(){ if(!document.hidden) lvSync(false); }, LV_POLL);
+  setInterval(function(){ if(!document.hidden) evPrune(); }, 6e4);   // ended events drop out within a minute
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) evPrune(); });
   document.addEventListener('visibilitychange', function(){ if(!document.hidden && Date.now() - LIVE.tried > LV_POLL) lvSync(false); });
   window.addEventListener('online', function(){ if(LIVE.st === 'error') lvSync(false); });
 }
@@ -19105,13 +19126,13 @@ function lvPager(id, pg, pages){
 function drawEvents(){
   var regv = ef.view === 'registered', saved = ef.view === 'saved' || regv;
   var sig = [ef.q, ef.kind, ef.dom, ef.st, ef.area, ef.view].join('|'); if(ef._sig !== sig){ ef._sig = sig; ef.pg = {}; }
-  var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return regv ? mrHas(o.x) : !saved || bm[o.i]; }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
+  var all = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return regv ? mrHas(o.x) : !lvEnded(o.x) && (!saved || bm[o.i]); }), base = all.filter(function(o){ return modeOk(o.x); }), q = ef.q.toLowerCase();
   var ac = {}, kc = {}; LV_AREAS.forEach(function(a){ ac[a[0]] = all.filter(function(o){ return lvArea(o.x, a[0]); }).length; });
   base.forEach(function(o){ kc[o.x.k] = (kc[o.x.k] || 0) + 1; });
   /* Search covers event name, college/organiser, city, state, venue and technology domain. */
   var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!ef.dom || lvDoms(x).indexOf(ef.dom) > -1) && lvPass(x, ef.st) && (!q || [x.t, x.org, x.k, x.d, x.loc, x.venue || '', x.city || '', x.state || '', x.country || '', lvGeo(x).place || '', (x.tags || []).join(' '), (x.themes || []).join(' '), lvDoms(x).join(' '), x.srcName || ''].join(' ').toLowerCase().indexOf(q) > -1); });
   var up = [];   /* Updates card removed from Events */
-  $('#cnEview').innerHTML = [['all', 'All events', EV.length], ['saved', 'Saved', savedCount()], ['registered', 'Registered', registeredCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
+  $('#cnEview').innerHTML = [['all', 'All events', EV.filter(function(x){ return !lvEnded(x); }).length], ['saved', 'Saved', savedCount()], ['registered', 'Registered', registeredCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
   $('#cnEupd').innerHTML = up.length ? '<div class="cn-card cn-upd"><h3>' + ic('clock') + 'Updates</h3>' + up.map(function(u){ return '<button type="button" data-e="' + u.i + '">' + ic(u.ic) + '<span><b>' + esc(u.t) + '</b><em>' + u.s + '</em></span></button>'; }).join('') + '</div>' : '';
   $('#cnEmode').innerHTML = LV_AREAS.map(function(m){ return '<button type="button" data-ea="' + m[0] + '" aria-pressed="' + (ef.area === m[0]) + '">' + m[1] + '<span class="n">' + ac[m[0]] + '</span></button>'; }).join('');
   var ceb = $('#cnEchips .cn-chipbar'), csl = ceb ? ceb.scrollLeft : 0;
@@ -20373,8 +20394,8 @@ var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], bo
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
-function evStart(x){ var d = new Date(now + x.off * D); d.setHours(0, 0, 0, 0); return d; }
-function evEnd(x){ var d = new Date(now + (x.ed != null ? x.ed : x.off) * D); d.setHours(23, 59, 59, 999); return d; }
+function evStart(x){ var d = new Date(Date.now() + x.off * D); d.setHours(0, 0, 0, 0); return d; }
+function evEnd(x){ var d = new Date(Date.now() + (x.ed != null ? x.ed : x.off) * D); d.setHours(23, 59, 59, 999); return d; }
 function evShape(o){ var t = Date.now(), x = o.x, st = evStart(x); return {id:o.i, title:x.t, kind:x.k, mode:modeLbl(x.mode), loc:x.loc, start:st, end:evEnd(x), dateLabel:fdr(x), ongoing:st.getTime() < t && x.off < 0, registered:mrHas(x), teams:erMine(x).map(function(d){ return d.teamName; })}; }
 function liveEvents(){
   var t = Date.now();
