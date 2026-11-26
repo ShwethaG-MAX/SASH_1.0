@@ -5059,6 +5059,9 @@ const SY_BRANCHES = [
   { id: 'CSE',     name: 'CSE – Computer Science and Engineering', sections: ['A','B','C','D','E','F','G'] },
   { id: 'CSEAIML', name: 'CSE AIML – Computer Science and Engineering (Artificial Intelligence and Machine Learning)', sections: ['H'] },
   { id: 'ISE',     name: 'ISE – Information Science and Engineering', sections: ['A','B','C'] },
+  // Every other branch offered in first year is also selectable in second year. They have no sections, timetable or study materials yet
+  // ('Available in future'); quizOnly = name-only profile, every other Campus Loop feature (quiz, chats, Connect, events, calendar …) works as usual.
+  ...FY_BRANCHES.filter(b => ['CSE','CSEAIML','ISE'].indexOf(b.id) === -1).map(b => ({ id: b.id, name: b.name, sections: [], quizOnly: true })),
 ];
 
 // Internal (stored / Firestore) section key. Second-year keys stay the plain letters A–G (unchanged, backward compatible).
@@ -5468,13 +5471,14 @@ function studyScopeApply(){
     syllabus.splice(0, syllabus.length, ...(SY_SYLLABUS_ALL[ACAD.branch] || []));
     return;
   }
+  if(isQuizOnlyBranch()){ subjects.splice(0, subjects.length); resources.splice(0, resources.length); syllabus.splice(0, syllabus.length); return; }   // 2nd-year branches without material yet
   if(!ACAD || ACAD.year !== '1') return;
   const fyc = fyStudyCycle();
   subjects.splice(0, subjects.length, ...fyStudySubjects(fyc, ACAD.branch));
   resources.splice(0, resources.length, ...fyStudyResources(fyc, ACAD.branch));
   syllabus.splice(0, syllabus.length);
 }
-function smScopeKey(){ if(ACAD && ACAD.year === '1') return 'FY1'; if(ACAD && String(ACAD.year) === '2' && (ACAD.branch === 'ISE' || ACAD.branch === 'CSEAIML')) return 'SY-' + ACAD.branch; return 'SY'; }
+function smScopeKey(){ if(ACAD && ACAD.year === '1') return 'FY1'; if(isQuizOnlyBranch()) return 'SY-NONE-' + ACAD.branch; if(ACAD && String(ACAD.year) === '2' && (ACAD.branch === 'ISE' || ACAD.branch === 'CSEAIML')) return 'SY-' + ACAD.branch; return 'SY'; }
 function smScopeOk(r){ return (r.scope || 'SY') === smScopeKey(); }
 
 const subjects = [
@@ -6049,7 +6053,13 @@ function resCard(r){
 // subject grid: clean subject picker (no counts, no folders)
 const subjectGrid = document.getElementById('subjectGrid');
 function renderSubjectGrid(){
-  subjectGrid.querySelectorAll('.sm-subj').forEach(n=>n.remove());   // keep the syllabus placeholder that is appended after the cards
+  subjectGrid.querySelectorAll('.sm-subj, .sm-future').forEach(n=>n.remove());   // keep the syllabus placeholder that is appended after the cards
+  const smFuture = isQuizOnlyBranch();
+  ['smMainSearch','smSubjectsTitle'].forEach(id=>{ const e = document.getElementById(id); const t = e && (id === 'smMainSearch' ? e.closest('.search-row') : e); if(t) t.classList.toggle('hidden', smFuture); });
+  if(smFuture){
+    subjectGrid.insertAdjacentHTML('afterbegin', `<div class="hm-card sm-future" style="text-align:center;grid-column:1/-1"><h3 style="margin:0 0 6px">📚 Study Materials — Available in future</h3><p class="hm-sub">Study materials for your branch are not added yet. All other features of Campus Loop are available to you.</p></div>`);
+    return;
+  }
   subjectGrid.insertAdjacentHTML('afterbegin', subjects.map(s=>{
   const sy = syllabus.find(x=>!x.highlight && x.subject===s.name);
   const syLink = sy && sy.url
@@ -6979,7 +6989,7 @@ function updateSectionLabels(){
   if(sub){
     // Timetable header shows ONLY the room number (no semester / section / cycle / academic-year metadata)
     const room = getActiveSection() ? activeRoom() : '';
-    sub.innerHTML = room ? `<span class="tt-badge tt-room">Room No. ${escapeHtml(room)}</span>` : (getActiveSection() ? '' : 'Select your section on the Home page');
+    sub.innerHTML = room ? `<span class="tt-badge tt-room">Room No. ${escapeHtml(room)}</span>` : (getActiveSection() ? '' : (isQuizOnlyBranch() ? 'Available in future' : 'Select your section on the Home page'));
   }
 }
 
@@ -6994,7 +7004,7 @@ function profileSectionChoices(){
   if(sb && sb.id !== 'CSE') return sb.sections.map(l=>({value:sySecKey(sb.id, l), text:l}));      // CSE AIML → H · ISE → A, B, C
   return SECTIONS.map(s=>({value:s, text:s}));
 }
-// Second-year branches without academic content (CSE AIML, ISE): name only. Their quiz group comes from year+branch in userProfiles.
+// Second-year branches without academic content yet (every branch except CSE / CSE AIML / ISE): name only. Their quiz group comes from year+branch in userProfiles.
 function renderQuizOnlyProfile(card, opts){
   const wantU = !opts.guest && !!window.cseUname && (cseUname.eligible() || (card.id === 'lgStudentForm' && !opts.editing));
   const p = 'pq' + card.id, br = (SY_BRANCHES.find(b=>b.id === ACAD.branch) || {}).name || ACAD.branch, saved = !!currentUser.name;
@@ -7149,6 +7159,11 @@ function syncLabBatch(){
 }
 function renderTimetableAll(){
   updateSectionLabels();
+  if(isQuizOnlyBranch()){
+    ['ttStats','ttMobile','ttNext','ttLegend'].forEach(id=>{ const e=document.getElementById(id); if(e) e.innerHTML=''; });
+    document.getElementById('ttDesktop').innerHTML = `<div class="hm-card" style="text-align:center"><h3 style="margin:0 0 6px">🗓️ Timetable — Available in future</h3><p class="hm-sub">The timetable for your branch is not added yet. All other features of Campus Loop are available to you.</p></div>`;
+    ttLastSig = ttNowSig(); return;
+  }
   if(!getActiveSection()){
     ['ttStats','ttMobile','ttNext','ttLegend'].forEach(id=>{ const e=document.getElementById(id); if(e) e.innerHTML=''; });
     document.getElementById('ttDesktop').innerHTML = `<div class="hm-card" style="text-align:center"><h3 style="margin:0 0 6px">Set up your profile first</h3><p class="hm-sub">Choose your section on the Home page to see your timetable.</p><button class="btn btn-primary" id="ttGoHome" style="margin-top:12px">Go to Home</button></div>`;
@@ -8553,6 +8568,11 @@ function hmNextClassDay(dateStr){
 function renderNextClasses(){
   const box = document.getElementById('hmNextList'), meta = document.getElementById('hmNextMeta');
   if(!box) return;
+  if(isQuizOnlyBranch()){
+    if(meta) meta.textContent = '';
+    box.innerHTML = hmEmpty('cal', 'Timetable — Available in future', 'Your branch timetable is not added yet. Everything else in Campus Loop works as usual.');
+    return;
+  }
   if(!getActiveSection()){
     if(meta) meta.textContent = '';
     box.innerHTML = hmEmpty('user', 'Set up your profile', 'Choose your section and batch to see your upcoming classes here.', '<button type="button" class="hm-dlink" data-hm-go="profile">Set up profile</button>');
