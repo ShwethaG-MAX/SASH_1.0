@@ -240,8 +240,8 @@ service cloud.firestore{
       allow delete: if request.auth!=null && resource.data.uid==request.auth.uid
         && getAfter(/databases/$(db)/documents/userProfiles/$(request.auth.uid)).data.get('username','')!=name;
     }
-    // Public student directory (Connect > Teams > Find people): ONE doc per signed-in (non-guest) student holding only name / year / branch.
-    // Readable by any signed-in non-guest student, written only by its owner. userProfiles (section, batch, etc.) stays private.
+    // Public student directory (Connect > Teams > Find people): ONE doc per student (guests included) holding only name / year / branch.
+    // Readable by any signed-in user, written only by its owner. userProfiles (section, batch, etc.) stays private.
     match /publicProfiles/{uid}{
       function ppStr(d,k,n){ return !(k in d) || (d[k] is string && d[k].size()<=n); }
       function ppList(d,k,n){ return !(k in d) || (d[k] is list && d[k].size()<=n); }
@@ -268,9 +268,9 @@ service cloud.firestore{
           && ppImg(d,'photoUrl','photoPath','photo',uid) && ppImg(d,'coverUrl','coverPath','cover',uid)
           && d.updatedAt==request.time;
       }
-      // Any signed-in (non-guest) student can read profiles (People list + full profile, live). Only the owner can write their own.
-      allow read: if request.auth!=null && request.auth.token.firebase.sign_in_provider!='anonymous';
-      allow create, update: if request.auth!=null && request.auth.uid==uid && request.auth.token.firebase.sign_in_provider!='anonymous'
+      // Every signed-in user, guests included, can read profiles (People list + full profile, live). Only the owner can write their own.
+      allow read: if request.auth!=null;
+      allow create, update: if request.auth!=null && request.auth.uid==uid
         && ppOk(request.resource.data);
       allow delete: if (request.auth!=null && request.auth.uid==uid) || isOwner();
     }
@@ -529,7 +529,8 @@ service cloud.firestore{
     // ===================== TEAM BUILDING (Connect > Teams) =====================
     // Read-only for clients. EVERY write (create / edit / delete team, join requests, accept / reject, remove / leave, notifications) is made by the
     // 'teams' Cloud Functions codebase (Admin SDK, transactional), so capacity, membership and request status cannot be forged from the browser.
-    function isStudent(){ return request.auth!=null && request.auth.token.firebase.sign_in_provider!='anonymous'; }
+    // Guests (Firebase anonymous accounts) now count as students for Teams, Connect and Events.
+    function isStudent(){ return request.auth!=null; }
     function isTeamMember(teamId){ return request.auth!=null && request.auth.uid in get(/databases/$(db)/documents/teams/$(teamId)).data.memberUids; }
     // Team cards are public to signed-in students (that is what Find Teams lists).
     match /teams/{teamId}{

@@ -14611,7 +14611,9 @@ function logout(){
       loggingOut=true;
       stopSync();
       try{ document.querySelectorAll('.me-modal-overlay.show').forEach(function(o){ o.classList.remove('show'); o.classList.add('hidden'); }); }catch(e){}
-      return firebase.auth().signOut().then(function(){
+      var unlist=Promise.resolve();
+      if(kind==='guest'){ try{ var gu=cu(); if(gu && hasDb()) unlist=race(Promise.resolve(fbDb.collection('publicProfiles').doc(gu.uid).delete()),3000,false).catch(function(){}); }catch(e){} }   // a guest leaves the People list when they log out (the anonymous account is gone for good)
+      return unlist.then(function(){ return firebase.auth().signOut(); }).then(function(){
         try{ roleCacheClear(); setOwner(false); }catch(e){}
         try{ if(window.AndroidBridge && typeof window.AndroidBridge.googleSignOut!=='undefined') window.AndroidBridge.googleSignOut(); }catch(e){}   // Android: clear the native Google credential state so the next sign-in shows the account chooser
         wipeUserData();
@@ -18284,7 +18286,7 @@ setInterval(function(){
 </style>
 <script id="connectJs">
 /* Connect — Posting, Teams, Discover (Articles + Events).
-   Find people lists real students from Firestore (publicProfiles: name, year, branch of every signed-in, non-guest student).
+   Find people lists real students from Firestore (publicProfiles: name, year, branch of every student, guests included).
    Posts, events, likes, comments and connection requests are in-memory only. Articles is the existing Discover (#discoverMode), moved here unchanged. */
 (function(){
 'use strict';
@@ -18747,12 +18749,12 @@ function fbUser(){ try{ return firebase.auth().currentUser || null; }catch(e){ r
 function myUid(){ var u = fbUser(); return u ? u.uid : ''; }
 function wantPeople(){ return active() && st.tab === 'teams' && st.tsub === 'people'; }
 function setPS(v){ if(PS !== v){ PS = v; drawPeople(); } }
-/* Publishes THIS signed-in (non-guest) student's name / year / branch so other students can find them. Guests are never listed. */
+/* Publishes THIS student's (signed-in or guest) name / year / branch so other students can find them. */
 var NEW_MS = 7 * 864e5, joinKey = '';   /* accounts younger than 7 days get a "New" badge */
 function newBadge(u){ var x = u && PD[u], t = x && +x.joinedAt; return t && Date.now() - t >= 0 && Date.now() - t < NEW_MS ? ' <span class="cn-newb">New</span>' : ''; }
 function publishMe(){
   try{
-    var db = fb(), u = fbUser(); if(!db || !u || u.isAnonymous) return;
+    var db = fb(), u = fbUser(); if(!db || !u) return;   /* guests (anonymous accounts) are listed too, with the name they entered */
     var nm = '', yr = '', br = '';
     try{ nm = String((typeof currentUser !== 'undefined' && currentUser.name) || '').trim().slice(0, 40); yr = String(currentUser.year || ''); br = String(currentUser.branch || ''); }catch(e){}
     if(!nm) return;
@@ -18786,7 +18788,6 @@ function lookupUname(q){
 function loadPeople(){
   var db = fb(), u = fbUser();
   if(!db || !u) return setPS('wait');                 /* Firebase / sign-in not ready yet: retried by the timer below */
-  if(u.isAnonymous) return setPS('guest');
   if(PL && PLuid === u.uid) return;
   if(PL){ try{ PL(); }catch(e){} PL = null; }
   PLuid = u.uid; if(PS !== 'ok') setPS('loading');
@@ -18831,7 +18832,7 @@ function connStart(uid){
       toast(n.type === 'request' ? n.fromName + ' sent you a connection request' : n.type === 'accepted' ? n.fromName + ' accepted your connection request' : n.fromName + ' declined your connection request'); }); });
 }
 function connRetry(){ var u = CS.uid; cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS.ok = {}; CS.errs = {}; CS.err = 0; if(u) connStart(u); paintConn(); }
-function connTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id && id === CS.uid && CS.ok.conn && (wantPeople() || connVisible()) && Date.now() - SUGt > 60000) loadSug(); if(id === CS.uid) return; connStop(); if(id) connStart(id); }
+function connTick(){ var u = fbUser(), id = (u && fb()) ? u.uid : ''; if(id && id === CS.uid && CS.ok.conn && (wantPeople() || connVisible()) && Date.now() - SUGt > 60000) loadSug(); if(id === CS.uid) return; connStop(); if(id) connStart(id); }
 function unreadN(){ return CS.notifs.filter(function(n){ return !n.read && n.type !== 'request'; }).length; }
 function connVisible(){ return active() && st.tab === 'teams' && st.tsub === 'connections'; }
 function setBadge(el, n){ if(!el) return; el.textContent = n ? (n > 99 ? '99+' : String(n)) : ''; el.classList.toggle('hidden', !n); }
@@ -18868,7 +18869,7 @@ function sugHtml(){
 }
 function drawSug(){ var h = (P.q || P.skills.length) ? '' : sugHtml(), a = $('#cnPsug'), b = $('#cnConSug'); if(a) a.innerHTML = h; if(b) b.innerHTML = sugHtml(); }
 function doConnect(u){
-  var uu = fbUser(); if(!uu || uu.isAnonymous) return toast('Sign in with your student account to connect', 'err');
+  var uu = fbUser(); if(!uu) return toast('Still connecting to Campus Loop. Please try again in a moment.', 'err');
   if(!u || CS.busy[u]) return; var s = cState(u); if(s === 'conn') return; if(s === 'inc'){ closeM(); return go('teams', 'connections'); }
   if(s !== 'out') SND.sent();
   CS.busy[u] = 1; paintConn();
@@ -18888,7 +18889,7 @@ function drawConn(){
   var ek = cTab === 'received' ? 'inc' : cTab === 'sent' ? 'out' : 'conn', ec = CS.errs && CS.errs[ek];
   if(ec && !CS.ok[ek]) h = empty('⏳', 'Reconnecting…', 'Campus Loop could not be reached. This reconnects by itself, or tap Try again.', '<button class="cn-btn pri" type="button" data-cretry="1">Try again</button>');
   else if(CS.uid && !CS.ok[ek]) h = '<div class="cn-ulist" aria-busy="true" aria-label="Loading">' + [0, 1, 2].map(function(){ return '<div class="cn-urow mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i></div>'; }).join('') + '</div>';
-  else if(!CS.uid) h = empty('🔒', 'Sign in to connect', 'Connections are available to signed-in students. Guests cannot send or receive requests.');
+  else if(!CS.uid) h = empty('⏳', 'Connecting…', 'Campus Loop is getting ready. Connections will appear here in a moment.');
   else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
       return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i, r.u); }).join('') + '</div>'
     : empty('📥', 'No received requests', 'When a student sends you a connection request it appears here.');
@@ -18974,7 +18975,7 @@ function drawPeople0(){
   if(chs){ if(sig !== pSkSig){ pSkSig = sig; chs.innerHTML = sk.length ? chipbar('Filter by skill', [''].concat(sk), P.skills, 'data-sk') : ''; } else syncChips(chs, P.skills, 'data-sk'); }
   if(PS !== 'ok'){
     $('#cnPsum').innerHTML = ''; $('#cnPgrid').innerHTML = ''; $('#cnPgrid').className = '';
-    $('#cnPempty').innerHTML = PS === 'guest' ? empty('\uD83D\uDD12', 'Sign in to see students', 'Students who have signed in to Campus Loop are listed here. Guests cannot see the list.')
+    $('#cnPempty').innerHTML = PS === 'guest' ? empty('\uD83D\uDD12', 'Sign in to see students', 'Connecting to Campus Loop. The list will appear in a moment.')
       : PS === 'err' ? empty('\u23F3', 'Reconnecting\u2026', 'Campus Loop could not be reached. This reconnects by itself as soon as you are online.')
       : empty('\u23F3', 'Loading students\u2026', 'Fetching the list from Campus Loop.');
     return;
@@ -18983,7 +18984,7 @@ function drawPeople0(){
   rows.sort(function(a, b){ return (newBadge(b.p[7]) ? 1 : 0) - (newBadge(a.p[7]) ? 1 : 0) || b.hit.length - a.hit.length || pct(b) - pct(a) || a.p[0].localeCompare(b.p[0]); });
   $('#cnPsum').innerHTML = '<span>' + rows.length + ' ' + (rows.length === 1 ? 'student' : 'students') + (P.q ? ' for \u201c' + esc(P.q) + '\u201d' : '') + (P.years.length ? ' in ' + P.years.map(esc).join(' or ') : '') + (P.skills.length ? ' with ' + P.skills.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
   $('#cnPgrid').innerHTML = rows.length ? rows.map(personCard).join('') : ''; $('#cnPgrid').className = rows.length ? 'cn-ulist' : '';
-  $('#cnPempty').innerHTML = rows.length ? '' : (PF.length ? empty('\uD83D\uDD0D', 'No students match', 'Try a different name or clear your filters.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>') : empty('\uD83D\uDC65', 'No students yet', 'Students appear here after they sign in to Campus Loop.'));
+  $('#cnPempty').innerHTML = rows.length ? '' : (PF.length ? empty('\uD83D\uDD0D', 'No students match', 'Try a different name or clear your filters.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>') : empty('\uD83D\uDC65', 'No students yet', 'Students appear here after they join Campus Loop.'));
 }
 function personModal(k){
   var p = PF[k]; if(!p) return closeM();
@@ -19713,7 +19714,7 @@ function tmStop(){
   TM.un.forEach(function(f){ try{ f(); }catch(e){} }); Object.keys(TM.mun).forEach(function(k){ try{ TM.mun[k](); }catch(e){} });
   TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [], out: [], invIn: [], invOut: [], ok: {}, err: 0, nfirst: true}; ER = {}; tmPaint();
 }
-function tmTick(){ var u = fbUser(), id = (u && !u.isAnonymous && fb()) ? u.uid : ''; if(id === TM.uid) return; tmStop(); if(id) tmStart(id); }
+function tmTick(){ var u = fbUser(), id = (u && fb()) ? u.uid : ''; if(id === TM.uid) return; tmStop(); if(id) tmStart(id); }
 /* ---------- Team Hub additions: team invites · deadline reminders · "Our hackathons" · past results · empty-state help ---------- */
 var HK = {plans: {}, res: {}, un: [], tid: '', ov: null, dirty: 0};
 var HK_RES = {won: ['\ud83e\udd47', 'Won'], finalist: ['\ud83c\udfc5', 'Finalist'], participated: ['\ud83c\udfaf', 'Participated']};
@@ -19787,7 +19788,7 @@ function hkBanner(){
 }
 /* ---- empty-state help ---- */
 function hkStart(){
-  if(!TM.uid) return empty('\ud83d\udd10', 'Sign in to build a team', 'Create or join teams with your student account. Guests can browse events but cannot use Teams.');
+  if(!TM.uid) return empty('\u23f3', 'Getting your teams ready\u2026', 'Campus Loop is connecting. Your teams will appear here in a moment.');
   return empty('\ud83d\ude80', 'New here? Start in 3 steps', '1) Browse hackathons in Events and pick one you like. 2) Find teammates in Find people, or create your own team. 3) Open the event, register on the official page, then tap \u201cMark as registered\u201d to track dates and tasks with your team.',
     '<div class="cn-row" style="justify-content:center;flex-wrap:wrap"><button class="cn-btn pri" type="button" data-hk-go="events">Browse events</button><button class="cn-btn" type="button" data-hk-go="people">Find people</button><button class="cn-btn" type="button" data-hk-new="1">Create a team</button></div>');
 }

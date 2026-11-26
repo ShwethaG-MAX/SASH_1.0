@@ -19,7 +19,7 @@ const FV = FieldValue;
 
 const student = (req) => {
   if (!req.auth) throw new HttpsError('unauthenticated', 'Please sign in to use Teams.');
-  if (req.auth.token.firebase && req.auth.token.firebase.sign_in_provider === 'anonymous') throw new HttpsError('permission-denied', 'Sign in with your student account to use Teams (guests cannot).');
+  // Guests (anonymous accounts) may use Teams too.
   return req.auth.uid;
 };
 const call = (fn) => onCall({ cors: true }, async (req) => {
