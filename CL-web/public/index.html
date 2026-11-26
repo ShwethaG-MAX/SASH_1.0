@@ -2603,6 +2603,7 @@ textarea.cn-in{min-height:96px;resize:vertical;line-height:1.5}
 .cn-umain{flex:1;min-width:0;display:grid;gap:1px}
 .cn-umain small{color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cn-uname{border:0;background:none;padding:0;min-height:28px;text-align:left;font:inherit;font-weight:700;color:var(--text);cursor:pointer;justify-self:start}
+.cn-newb{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;vertical-align:middle;background:var(--sage);color:#fff}
 .cn-uname:hover{text-decoration:underline}.cn-uname:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .cn-urow .cn-btn{flex:none;min-width:92px}
 .cn-ev .cn-ban{display:block;height:156px;font-size:inherit;background:linear-gradient(135deg,var(--sage),color-mix(in srgb,var(--cyan) 75%,var(--sage)));border-bottom:0;overflow:hidden}
@@ -18745,6 +18746,8 @@ function myUid(){ var u = fbUser(); return u ? u.uid : ''; }
 function wantPeople(){ return active() && st.tab === 'teams' && st.tsub === 'people'; }
 function setPS(v){ if(PS !== v){ PS = v; drawPeople(); } }
 /* Publishes THIS signed-in (non-guest) student's name / year / branch so other students can find them. Guests are never listed. */
+var NEW_MS = 7 * 864e5, joinKey = '';   /* accounts younger than 7 days get a "New" badge */
+function newBadge(u){ var x = u && PD[u], t = x && +x.joinedAt; return t && Date.now() - t >= 0 && Date.now() - t < NEW_MS ? ' <span class="cn-newb">New</span>' : ''; }
 function publishMe(){
   try{
     var db = fb(), u = fbUser(); if(!db || !u || u.isAnonymous) return;
@@ -18757,6 +18760,9 @@ function publishMe(){
     var key = u.uid + '|' + nm + '|' + yr + '|' + br + '|' + un; if(key === pubKey) return; pubKey = key;
     var doc = {name:nm, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}; if(yr) doc.year = yr; if(br) doc.branch = br; if(un) doc.username = un;
     db.collection('publicProfiles').doc(u.uid).set(doc, {merge:true}).catch(function(e){ pubKey = ''; console.warn('[Connect] could not publish profile', e && e.code); });
+    var ct = u.metadata && u.metadata.creationTime ? Date.parse(u.metadata.creationTime) : 0;
+    if(ct && Date.now() - ct < NEW_MS && !(PD[u.uid] && PD[u.uid].joinedAt) && joinKey !== u.uid){ joinKey = u.uid;
+      db.collection('publicProfiles').doc(u.uid).set({joinedAt:ct, updatedAt:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}).catch(function(e){ console.warn('[Connect] could not save join date', e && e.code); }); }
   }catch(e){ pubKey = ''; }
 }
 var PD = {}, PL = null, PLuid = '', UT = {};
@@ -18855,7 +18861,7 @@ function loadSug(){
 function sugHtml(){
   if(!SUG) return ''; var rows = SUG.filter(function(s){ return !cState(s.uid); }).slice(0, 5); if(!rows.length) return '';
   return '<section class="cn-sug" aria-label="People you may know"><h3>People you may know</h3><div class="cn-ulist">' + rows.map(function(s, i){
-    return '<article class="cn-urow">' + av(s.name, i, '', photoOf(s.uid)) + '<div class="cn-umain"><span class="cn-uname">' + esc(s.name) + '</span><small>' + [yl(+s.year), esc(s.branch)].filter(Boolean).join(' · ') + (s.mutual ? ' · ' + s.mutual + ' mutual connection' + (s.mutual > 1 ? 's' : '') : '') + '</small></div>' +
+    return '<article class="cn-urow">' + av(s.name, i, '', photoOf(s.uid)) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vu="' + esc(s.uid) + '" aria-label="View profile of ' + esc(s.name) + '">' + esc(s.name) + '</button><small>' + [yl(+s.year), esc(s.branch)].filter(Boolean).join(' · ') + (s.mutual ? ' · ' + s.mutual + ' mutual connection' + (s.mutual > 1 ? 's' : '') : '') + '</small></div>' +
      '<button class="cn-btn pri" type="button" data-sgc="' + esc(s.uid) + '"' + (CS.busy[s.uid] ? ' disabled' : '') + '>Connect</button></article>'; }).join('') + '</div></section>';
 }
 function drawSug(){ var h = (P.q || P.skills.length) ? '' : sugHtml(), a = $('#cnPsug'), b = $('#cnConSug'); if(a) a.innerHTML = h; if(b) b.innerHTML = sugHtml(); }
@@ -18868,7 +18874,7 @@ function doConnect(u){
     : cCall('connSend', {to:u}).then(function(){ CS.out[u] = 'pending'; toast('Connection request sent'); }))
    .catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); reshow(); });
 }
-function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.busy[u]) return; if(fn === 'connSend') SND.sent(); CS.busy[u] = 1; CS.ask = ''; paintConn();
+function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.busy[u]) return; if(fn === 'connSend' || (fn === 'connRespond' && data.accept)) SND.sent(); CS.busy[u] = 1; CS.ask = ''; paintConn();
   cCall(fn, data).then(function(){ toast(ok); }).catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); }); }
 function photoOf(u){ return u && PD[u] ? peerPhoto(PD[u]) : ''; }
 function crow(name, sub, acts, i, u){ return '<article class="cn-urow">' + av(name, i, '', photoOf(u)) + '<div class="cn-umain">' + (u ? '<button type="button" class="cn-uname" data-vu="' + esc(u) + '" aria-label="View profile of ' + esc(name) + '">' + esc(name) + '</button>' : '<span class="cn-uname">' + esc(name) + '</span>') + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
@@ -18907,8 +18913,8 @@ function initConn(){
     var b = e.target.closest('button'); if(!b) return; var d = b.dataset;
     if(d.cretry) return connRetry();
     if(d.vu){ var vi = -1; for(var q = 0; q < PF.length; q++) if(PF[q][7] === d.vu){ vi = q; break; }
-      var vp = vi > -1 ? PF[vi] : null, pd = PD[d.vu] || {};
-      if(window.clShell && window.clShell.openPeer){ window.clShell.openPeer(vp ? {name:vp[0], branch:vp[1], year:yl(vp[2]), skills:vp[3] || [], interests:vp[4] || [], bio:vp[5] || '', project:vp[6], mine:vp[7] === myUid(), uid:vp[7]} : {name:String(pd.name || 'Student'), branch:'', year:'', skills:[], interests:[], bio:'', mine:d.vu === myUid(), uid:d.vu}); }
+      var vp = vi > -1 ? PF[vi] : null, pd = PD[d.vu] || {}, sg = null; (SUG || []).forEach(function(z){ if(z.uid === d.vu) sg = z; });
+      if(window.clShell && window.clShell.openPeer){ window.clShell.openPeer(vp ? {name:vp[0], branch:vp[1], year:yl(vp[2]), skills:vp[3] || [], interests:vp[4] || [], bio:vp[5] || '', project:vp[6], mine:vp[7] === myUid(), uid:vp[7]} : {name:String(pd.name || (sg && sg.name) || 'Student'), branch:sg ? String(sg.branch || '') : '', year:sg ? yl(+sg.year) : '', skills:[], interests:[], bio:'', mine:d.vu === myUid(), uid:d.vu}); }
       return; }
     if(d.ccon){ cTab = d.ccon; CS.ask = ''; return drawConn(); }
     if(d.cacc) return cAct('connRespond', {from:d.cacc, accept:true}, 'Connected');
@@ -18950,7 +18956,7 @@ function pct(x){ return P.skills.length ? Math.round(100 * x.hit.length / P.skil
 function personCard(x){
   var p = x.p, k = x.k, w = P.skills, mine = !!p[7] && p[7] === myUid();
   var meta = [p[9] ? '@' + esc(p[9]) : '', yl(p[2]), esc(p[1])].filter(Boolean).join(' \u00b7 ') + mutTxt(p[7]) + (w.length ? ' \u00b7 has ' + x.hit.length + ' of ' + w.length + ' selected' : '');
-  return '<article class="cn-urow">' + av(p[0], k, '', p[8]) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
+  return '<article class="cn-urow">' + av(p[0], k, '', p[8]) + '<div class="cn-umain"><button type="button" class="cn-uname" data-vp="' + k + '" aria-label="View profile of ' + esc(p[0]) + '">' + esc(p[0]) + (mine ? ' (you)' : '') + '</button>' + newBadge(p[7]) + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
    (mine ? '' : '<span class="hk-btns">' + ivBtn(k) + connBtn(k, 'data-k') + '</span>') + '</article>';
 }
 var pSkSig = null;
@@ -18971,7 +18977,7 @@ function drawPeople0(){
     return;
   }
   var rows = peopleRows(), any = P.q || P.skills.length || P.years.length;
-  rows.sort(function(a, b){ return b.hit.length - a.hit.length || pct(b) - pct(a) || a.p[0].localeCompare(b.p[0]); });
+  rows.sort(function(a, b){ return (newBadge(b.p[7]) ? 1 : 0) - (newBadge(a.p[7]) ? 1 : 0) || b.hit.length - a.hit.length || pct(b) - pct(a) || a.p[0].localeCompare(b.p[0]); });
   $('#cnPsum').innerHTML = '<span>' + rows.length + ' ' + (rows.length === 1 ? 'student' : 'students') + (P.q ? ' for \u201c' + esc(P.q) + '\u201d' : '') + (P.years.length ? ' in ' + P.years.map(esc).join(' or ') : '') + (P.skills.length ? ' with ' + P.skills.map(esc).join(' or ') : '') + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
   $('#cnPgrid').innerHTML = rows.length ? rows.map(personCard).join('') : ''; $('#cnPgrid').className = rows.length ? 'cn-ulist' : '';
   $('#cnPempty').innerHTML = rows.length ? '' : (PF.length ? empty('\uD83D\uDD0D', 'No students match', 'Try a different name or clear your filters.', '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>') : empty('\uD83D\uDC65', 'No students yet', 'Students appear here after they sign in to Campus Loop.'));
@@ -19633,6 +19639,7 @@ var TM = {uid: '', un: [], mun: {}, all: {}, mine: {}, mem: {}, wa: {}, inc: [],
 function tCall(name, data){ return cFns().then(function(){ if(!fnT) fnT = firebase.app().functions('asia-south1'); return fnT.httpsCallable(name, {timeout: 30000})(data || {}); }).then(function(r){ return r.data; }); }
 function tAct(name, data, okMsg){
   if(!TM.uid){ toast('Sign in with your student account to use Teams.', 'err'); return Promise.resolve(false); }
+  if(name === 'teamInviteSend' || name === 'teamRequestSend' || ((name === 'teamInviteDecide' || name === 'teamRequestDecide') && data && data.accept)) SND.sent();
   return tCall(name, data).then(function(r){ if(okMsg) toast(okMsg); return r || true; }, function(e){ toast(cErr(e), 'err'); return false; });
 }
 function tmDis(){ try{ return JSON.parse(localStorage.getItem('csec_team_dismissed')) || {}; }catch(e){ return {}; } }
