@@ -19235,6 +19235,7 @@ function drawEvents(){
         (lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id).length ? '<p>Check the official listings:</p>' + lvDiscHtml(lvDiscFor(ef.area === 'mysuru' ? 'mysuru' : id)) : '<p>Nothing needs checking.</p>') + '</div>') + '</section>';
   });
   $('#cnEgrid').innerHTML = html + (l.length && !saved ? '<div class="cn-evsec cn-discall"><div class="cn-evsec-h"><div><h3>Browse more hackathons</h3><p>Official listing pages, including sites without a live feed.</p></div></div>' + lvDiscHtml(LV_DISCOVER.local.concat(LV_DISCOVER.india, LV_DISCOVER.world.slice(0, 1).concat(LV_DISCOVER.online.slice(1, 2)))) + '</div>' : '');
+  if(typeof evp !== 'undefined' && evp && evp.open) evpRender();
   $('#cnEempty').innerHTML = l.length ? '' : regv && !registeredCount() ? empty('✅', 'No registered events yet', 'Register on an event’s official page, then tap “Mark as registered” and pick the team you lead. Registered events get deadline reminders and a team checklist.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') : ef.view === 'saved' && !savedCount() ? empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-ev="all">Browse events</button>') :
     empty(regv ? '✅' : saved ? '🔖' : '📅', regv ? 'No registered events match' : saved ? 'No saved events match' : 'No events found', any ? 'Nothing matches right now. Try another filter or clear the filters.' : 'No events are listed yet. New hackathons appear here as soon as they are found. Meanwhile you can find teammates or start a team so you are ready.', any ? '<button class="cn-btn pri" type="button" data-reset="1">Clear filters</button>' : '<div class="cn-row" style="justify-content:center;flex-wrap:wrap"><button class="cn-btn pri" type="button" data-hk-go="people">Find people</button><button class="cn-btn" type="button" data-hk-new="1">Create a team</button></div>');
 }
@@ -19613,7 +19614,8 @@ function initEvents(){
     var b = e.target.closest('button');
     if(!b){ var cd = e.target.closest('.cn-ev'); if(cd && cd.dataset.i != null && !e.target.closest('a')) eventModal(+cd.dataset.i); return; }
     if(b.dataset.lsync) return lvSync(true);
-    if(b.dataset.ev){ ef.view = b.dataset.ev; return drawEvents(); }
+    if(b.dataset.evpBack != null) return evpClose();
+    if(b.dataset.ev){ if(b.dataset.ev === 'all'){ ef.view = 'all'; return drawEvents(); } return evpOpen(b.dataset.ev); }
     if(b.dataset.ea){ ef.area = b.dataset.ea; ef.more = {}; return drawEvents(); }
     if(b.dataset.pgsec){ ef.pg = ef.pg || {}; ef.pg[b.dataset.pgsec] = +b.dataset.pg; drawEvents(); var ps = ec.querySelector('[data-sec="' + b.dataset.pgsec + '"]'); if(ps) ps.scrollIntoView({block:'start', behavior:'smooth'}); return; }
     if(b.dataset.emore){ ef.more[b.dataset.emore] = !ef.more[b.dataset.emore]; drawEvents(); var sc = ec.querySelector('[data-sec="' + b.dataset.emore + '"]'); if(sc && !ef.more[b.dataset.emore]) sc.scrollIntoView({block:'nearest'}); return; }
@@ -19663,7 +19665,7 @@ function applyNav(tab, sub){
   else if(st.tab === 'teams' && (sub === 'teams' || sub === 'requests')) st.tsub = sub;
 }
 function go(tab, sub, o){
-  o = o || {}; applyNav(tab, sub);
+  o = o || {}; try{ evpClose(true); }catch(e){} applyNav(tab, sub);
   if(!active() && window.cseSection) window.cseSection.go('connect', {noHash:true, noAnim:o.noAnim});
   sync(); if(!o.noHash) setHash();
 }
@@ -19684,7 +19686,7 @@ root.addEventListener('click', function(e){
   var s = e.target.closest('[data-cnsub]'), ts = e.target.closest('[data-cntsub]');
   var ps = e.target.closest('[data-cnpsub]'), bk = e.target.closest('[data-cnback]');
   var evb = e.target.closest('#cnEview [data-ev]'), mk = e.target.closest('[data-cncreate]');
-  if(evb){ ef.view = evb.dataset.ev; drawEvents(); return; }   /* Saved / Registered icons (tap again to go back to all events) */
+  if(evb){ evpOpen(evb.dataset.ev); return; }   /* Saved / Registered icons: open their own window (Back button to exit) */
   if(mk){ mtOpenForm(); return; }
   if(bk){ go(bk.dataset.cnback, bk.dataset.cnback); return; }   /* Back from Requests: People → Discover, Teams → My Team */
   if(s) go(s.dataset.cnsub, null); else if(ps) go('people', ps.dataset.cnpsub); else if(ts) go('teams', (ts.dataset.cntsub === 'requests' && st.tab === 'teams' && st.tsub === 'requests') ? 'teams' : ts.dataset.cntsub);   /* Requests is a toggle: tap again to go back to the teams */
@@ -20510,9 +20512,68 @@ function pastRegistered(n){
 /* Events one of my teams is registered for (still running or upcoming), soonest first */
 function registeredEvents(n){ return liveEvents().filter(function(o){ return mrHas(o.x); }).slice(0, n == null ? EV.length : n).map(evShape); }
 function openEvent(i){ go('events', null); if(EV[i]) eventModal(i); }
+/* ---------- Saved / Registered: each opens as its own full-screen window, with a Back button ----------
+   Only transform + opacity are animated (GPU composited), backdrop blurs are switched off while it moves,
+   and the page underneath is never touched, so opening and closing stay smooth. */
+var evp = {open:false, kind:'', el:null, body:null, sub:null, ttl:null, pushed:false, prev:null, timer:0};
+var EVP_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+function evpReduced(){ try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
+function evpList(kind){
+  var l = [];
+  EV.forEach(function(x, i){ if(kind === 'registered' ? mrHas(x) : (bm[i] && !lvEnded(x))) l.push({x:x, i:i}); });
+  l.sort(function(a, b){
+    var ca = dlInfo(a.x).k === 'closed' ? 1 : 0, cb = dlInfo(b.x).k === 'closed' ? 1 : 0; if(ca !== cb) return ca - cb;
+    var xa = a.x.dl == null ? 1e6 : a.x.dl, xb = b.x.dl == null ? 1e6 : b.x.dl; return xa - xb || a.i - b.i;
+  });
+  return l;
+}
+function evpMake(){
+  var el = document.createElement('div');
+  el.id = 'cnEvPage'; el.className = 'cn-evp'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'cnEvpT'); el.setAttribute('data-no-motion', '');
+  el.innerHTML = '<div class="cn-evp-in"><div class="cn-evp-head"><button type="button" class="cn-btn cn-back" data-evp-back="1" aria-label="Back to events">' + EVP_BACK + 'Back</button><div class="cn-evp-t"><h2 id="cnEvpT"></h2><p></p></div></div><div class="cn-evp-body"></div></div>';
+  ec.appendChild(el);
+  evp.el = el; evp.ttl = el.querySelector('h2'); evp.sub = el.querySelector('.cn-evp-t p'); evp.body = el.querySelector('.cn-evp-body');
+}
+function evpRender(){
+  if(!evp.el) return;
+  var reg = evp.kind === 'registered', l = evpList(evp.kind);
+  evp.ttl.textContent = reg ? 'Registered events' : 'Saved events';
+  evp.sub.textContent = l.length ? l.length + (l.length === 1 ? ' event' : ' events') + (reg ? ' you have registered for' : ' you have saved') : (reg ? 'Nothing registered yet' : 'Nothing saved yet');
+  evp.body.innerHTML = l.length ? '<div class="cn-grid">' + l.map(function(o){ return evCard(o.x, o.i); }).join('') + '</div>' :
+    reg ? empty('✅', 'No registered events yet', 'Register on an event’s official page, then tap “Mark as registered” and pick the team you lead. Registered events get deadline reminders and a team checklist.', '<button class="cn-btn pri" type="button" data-evp-back="1">Browse events</button>')
+        : empty('🔖', 'Nothing saved yet', 'Tap the bookmark on any event to keep it here for later.', '<button class="cn-btn pri" type="button" data-evp-back="1">Browse events</button>');
+}
+function evpOpen(kind){
+  if(kind !== 'saved' && kind !== 'registered') return;
+  if(!evp.el || !evp.el.isConnected) evpMake();
+  clearTimeout(evp.timer);
+  var was = evp.open, el = evp.el; evp.kind = kind; evp.open = true;
+  evpRender();
+  el.classList.remove('is-out'); el.classList.add('is-open');
+  if(!was){
+    evp.prev = document.activeElement;
+    document.body.classList.add('cn-evp-open');
+    el.scrollTop = 0;
+    if(!evpReduced()){ el.classList.remove('is-in'); void el.offsetWidth; el.classList.add('is-in'); evp.timer = setTimeout(function(){ el.classList.remove('is-in'); }, 420); }
+    try{ history.pushState({cnEvp:1}, '', location.href); evp.pushed = true; }catch(e){ evp.pushed = false; }
+  }
+  var bk = el.querySelector('[data-evp-back]'); if(bk){ try{ bk.focus({preventScroll:true}); }catch(e){} }
+}
+function evpClose(instant, fromPop){
+  if(!evp.open) return;
+  evp.open = false; clearTimeout(evp.timer);
+  var el = evp.el, pushed = evp.pushed; evp.pushed = false;
+  document.body.classList.remove('cn-evp-open');
+  if(pushed && !fromPop){ try{ if(history.state && history.state.cnEvp) history.back(); }catch(e){} }
+  function done(){ el.classList.remove('is-open', 'is-out', 'is-in'); }
+  if(instant || evpReduced()) done(); else { el.classList.remove('is-in'); el.classList.add('is-out'); evp.timer = setTimeout(done, 230); }
+  var tgt = $('#cnEview [data-ev="' + evp.kind + '"]') || evp.prev; if(tgt){ try{ tgt.focus({preventScroll:true}); }catch(e){} }
+}
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && evp.open && !document.body.classList.contains('cn-modal-open') && !document.querySelector('#evPage.on, .rg-ov')) evpClose(); }, true);   /* capture phase: runs before a popup's own Esc handler closes it, so Esc closes the popup first and the window only on the next press */
+window.addEventListener('popstate', function(){ if(evp.open) evpClose(false, true); });
 function eventsChanged(){ try{ drawEvents(); renderSavedCard(); }catch(e){} try{ mtPjRefresh(); }catch(e){} try{ window.dispatchEvent(new CustomEvent('cse:eventschange')); }catch(e){} }
 /* ---------- Settings → Saved: list of saved events / hackathons ---------- */
-function showSaved(){ ef.view = 'saved'; go('events', null); drawEvents(); }
+function showSaved(){ ef.view = 'all'; go('events', null); drawEvents(); evpOpen('saved'); }
 function renderSavedCard(){
   var box = document.getElementById('svBody'); if(!box) return;
   var l = EV.map(function(x, i){ return {x:x, i:i}; }).filter(function(o){ return bm[o.i]; });
@@ -22056,6 +22117,32 @@ html body #sectionConnect .cn-shell:has(#cnTsub:not(.hidden)) .cn-intro{padding-
   animation-duration:2s;
   box-shadow:0 0 0 3px rgba(138,155,74,.28),0 0 16px 3px rgba(111,167,126,.55),0 0 32px 8px rgba(79,143,224,.40),inset 0 1px 0 rgba(255,255,255,.4)}
 @media (prefers-reduced-motion:reduce){:root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk{animation:none}}
+
+/* ===== 5) Events: Saved / Registered open as their own full-screen window (with Back) ===== */
+body.cn-evp-open #cnModeWrap{visibility:hidden}
+/* lift the Connect layer above the site header / bottom bar while the window is open (same trick the site uses for its popups) */
+body.cn-evp-open:not(.cn-modal-open) #sectionConnect{z-index:8000 !important}
+body.cn-evp-open:not(.cn-modal-open) nav,body.cn-evp-open:not(.cn-modal-open) .mode-bar-wrap{z-index:1 !important}
+body.cn-evp-open .cn-toast{z-index:9500}
+.cn-evp{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  background:radial-gradient(900px 520px at 12% 8%,rgba(167,139,250,.16),transparent 70%),var(--bg);color:var(--text);backface-visibility:hidden}
+[data-theme="dark"] .cn-evp{background:radial-gradient(900px 520px at 12% 8%,rgba(121,80,217,.22),transparent 70%),var(--bg)}
+.cn-evp.is-open{display:block}
+.cn-evp-in{max-width:1180px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+.cn-evp-head{display:flex;align-items:center;gap:14px;margin:0 0 18px;padding:2px 0}
+html body #sectionConnect .cn-evp .cn-back{flex:0 0 auto;min-height:0;padding:10px 18px 10px 14px;font-size:.92rem;font-weight:700;border-radius:999px;gap:8px}
+html body #sectionConnect .cn-evp .cn-back svg{width:18px;height:18px;transition:transform .2s ease}
+html body #sectionConnect .cn-evp .cn-back:hover svg{transform:translateX(-3px)}
+.cn-evp-t h2{margin:0;font-family:"Space Grotesk",Inter,sans-serif;font-size:1.3rem;line-height:1.2;color:var(--cn-ink,var(--text))}
+.cn-evp-t p{margin:2px 0 0;font-size:.86rem;color:var(--cn-tx2,var(--muted))}
+/* the animation touches only transform + opacity; blurred glass is switched off while it runs so every frame stays cheap */
+.cn-evp.is-in{animation:cnEvpIn .36s cubic-bezier(.22,1,.36,1) both;will-change:transform,opacity}
+.cn-evp.is-out{animation:cnEvpOut .2s cubic-bezier(.4,0,1,1) both;will-change:transform,opacity;pointer-events:none}
+.cn-evp.is-in *,.cn-evp.is-out *{-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+@keyframes cnEvpIn{from{opacity:0;transform:translate3d(0,22px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes cnEvpOut{from{opacity:1;transform:translate3d(0,0,0) scale(1)}to{opacity:0;transform:translate3d(0,16px,0) scale(.99)}}
+@media (max-width:560px){.cn-evp-in{padding-left:12px;padding-right:12px}.cn-evp-t h2{font-size:1.15rem}}
+@media (prefers-reduced-motion:reduce){.cn-evp.is-in,.cn-evp.is-out{animation:none}html body #sectionConnect .cn-evp .cn-back svg{transition:none}}
 </style>
 </body>
 </html>
