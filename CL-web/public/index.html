@@ -3099,7 +3099,7 @@ html:root #sectionConnect .mt-hero p{margin:3px 0 0;font-size:.85rem;line-height
 #sectionConnect .rq-team{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--muted)}
 #sectionConnect .rq-team b{color:var(--text)}
 #sectionConnect .rq-team .cn-logo{width:28px;height:28px;font-size:.8rem;border-radius:9px}
-#cnTreq .mt-h:not(:first-child){margin-top:22px}
+#cnTreq .mt-h:not(:first-child),#cnPreq .mt-h:not(:first-child){margin-top:22px}
 /* Campus Loop wordmark follows the active section (colour only) */
 nav .brand .bw,nav .brand .cl-inf{transition:color .35s ease}
 body[data-section="campus"] nav .brand .bw,body[data-section="campus"] nav .brand .cl-inf{color:#1B3A8C}
@@ -3814,9 +3814,41 @@ body.cn-modal-open nav,body.cn-modal-open .mode-bar-wrap{z-index:1 !important}
 .ev-more{margin-top:14px;border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:color-mix(in srgb,#E8A2FB 10%,transparent)}
 .ev-more h4{margin:0 0 8px;font-size:1rem}.ev-more ol,.ev-more ul{margin:0;padding-left:20px;font-size:.92rem;line-height:1.6}
 </style>
+<style id="cnTsubMini">
+html body #sectionConnect #cnTsub{justify-content:flex-end !important;align-items:flex-start;margin:0 0 6px !important;padding:0 !important;min-height:0;height:auto;overflow:visible}
+html body #sectionConnect #cnTsub>.cn-tab{margin:0 0 0 auto !important}
+html body #sectionConnect #cnPsub{justify-content:flex-start !important;align-items:center}
+html body #sectionConnect #cnPsub>.cn-tab:first-child{margin-left:0 !important}
+html body #sectionConnect #cnPsub>.cn-tab.cn-rq-mini{position:absolute;top:4px;right:0;margin:0 !important;z-index:2}   /* People: Requests sits in the header row, same spot as Teams */
+html body #cnPsub .cn-tab.cn-rq-mini,html body #cnTsub .cn-tab.cn-rq-mini,html body #cnEview .cn-tab.cn-rq-mini{min-height:0;padding:5px 11px;font-size:.78rem;gap:5px;border-radius:999px}
+html body #cnPsub .cn-tab.cn-rq-mini svg,html body #cnTsub .cn-tab.cn-rq-mini svg,html body #cnEview .cn-tab.cn-rq-mini svg{width:14px;height:14px}
+html body #cnPsub .cn-tab.cn-rq-mini .rq-n,html body #cnTsub .cn-tab.cn-rq-mini .rq-n,html body #cnEview .cn-tab.cn-rq-mini .n{min-width:16px;height:16px;font-size:.62rem}
+#cnPreq .cn-backrow,#cnTreq .cn-backrow{margin:0 0 12px}
+html body #sectionConnect .cn-back{display:inline-flex;align-items:center;gap:6px;min-height:0;padding:6px 13px;font-size:.82rem;border-radius:999px}
+html body #sectionConnect .cn-back svg{width:15px;height:15px}
+/* Teams: Requests pill sits in the header row (top-right), outside the My Team card; My Team card made compact; gaps closed by moving things up */
+html body #sectionConnect .cn-shell{position:relative}
+html body #sectionConnect #cnTsub{position:absolute;top:4px;right:0;left:auto;width:auto;margin:0 !important;padding:0 !important;z-index:2;flex-direction:column;align-items:flex-end !important;gap:6px}
+html body #sectionConnect #cnTsub .cn-mk{display:inline-flex;align-items:center;gap:5px;min-height:0;padding:6px 13px;font:inherit;font-size:.78rem;font-weight:700;border:0;border-radius:999px;background:var(--cn-grad);color:#fff;cursor:pointer;white-space:nowrap}
+html body #sectionConnect #cnTsub .cn-mk svg{width:14px;height:14px}
+html body #sectionConnect #cnEview{position:absolute;top:4px;right:0;display:flex;gap:6px;margin:0;z-index:2}
+html body #sectionConnect #cnEview.hidden{display:none !important}
+html body #sectionConnect #cnEview .cn-tab.cn-rq-mini{padding:6px 10px}
+html body #sectionConnect .cn-shell:has(#cnTsub:not(.hidden)) .cn-intro{padding-right:130px;margin-bottom:8px}
+html body #sectionConnect .cn-shell:has(#cnPsub:not(.hidden)) .cn-intro{padding-right:112px;margin-bottom:8px}
+html body #sectionConnect .cn-shell:has(#cnEview:not(.hidden)) .cn-intro{padding-right:104px;margin-bottom:8px}
+html body #sectionConnect #cnMyTeam:empty{margin:0}
+html body #sectionConnect #cnMyTeam.mt-wrap{margin:0 0 12px}
+html body #sectionConnect #cnMyTeam .mt-hero{padding:8px 14px;gap:6px 12px;border-radius:15px}
+html body #sectionConnect #cnMyTeam .mt-hero h2{font-size:1rem;gap:7px}
+html body #sectionConnect #cnMyTeam .mt-hero h2 .cn-ic{width:17px;height:17px}
+html body #sectionConnect #cnMyTeam .mt-hero p{margin:2px 0 0;font-size:.76rem;line-height:1.3}
+html body #sectionConnect #cnMyTeam .mt-create{min-height:0;padding:7px 15px;font-size:.84rem;gap:6px}
+html body #sectionConnect #cnMyTeam .mt-create .cn-ic,html body #sectionConnect #cnMyTeam .mt-create svg{width:15px;height:15px}
+</style>
 <style id="clIntro">
 .cn-intro{margin:6px 2px 14px}.cn-intro h2{margin:0;font-size:1.05rem;font-family:"Space Grotesk",Inter,sans-serif;color:var(--cn-ink,var(--text))}.cn-intro p{margin:2px 0 0;font-size:.88rem;color:var(--cn-tx2,var(--muted))}
-@media(max-width:600px){#cnTsub .cn-tab{min-height:42px;padding:8px 14px;font-size:.92rem;gap:7px}#cnTsub .cn-tab svg{width:17px;height:17px}}
+@media(max-width:600px){#cnPsub .cn-tab,#cnTsub .cn-tab{min-height:42px;padding:8px 14px;font-size:.92rem;gap:7px}#cnPsub .cn-tab svg,#cnTsub .cn-tab svg{width:17px;height:17px}}
 </style>
 <style id="clProfileLook">
 /* others' profiles use the Connect palette */
@@ -4252,7 +4284,8 @@ html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-n
 
 <div class="mode-bar-wrap" id="cnModeWrap">
   <div class="mode-bar" role="tablist" aria-label="Connect modes">
-    <button type="button" class="mode-btn active" role="tab" data-cn="teams" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span> <span class="mb-full">Network</span><span class="mt-dot" id="cnTmN" style="display:none" aria-label="Pending team requests"></span><span class="mb-short">Network</span></button>
+    <button type="button" class="mode-btn active" role="tab" data-cn="people" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></span> <span class="mb-full">People</span><span class="mt-dot" id="cnPeN" style="display:none" aria-label="Pending connection requests"></span><span class="mb-short">People</span></button>
+    <button type="button" class="mode-btn" role="tab" data-cn="teams" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span> <span class="mb-full">Teams</span><span class="mt-dot" id="cnTmN" style="display:none" aria-label="Pending team requests and invitations"></span><span class="mb-short">Teams</span></button>
     <button type="button" class="mode-btn" role="tab" data-cn="events" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> <span class="mb-full">Events</span><span class="mb-short">Events</span></button>
     <button type="button" class="mode-btn" role="tab" data-cn="articles" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg></span> <span class="mb-full">Articles</span><span class="mb-short">Articles</span></button>
   </div>
@@ -4266,12 +4299,16 @@ html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-n
       <button type="button" class="cn-tab active" role="tab" data-cnsub="events" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</button>
       <button type="button" class="cn-tab" role="tab" data-cnsub="articles" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z"/><path d="M18 8h2v10a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>Articles</button>
     </div>
-    <div class="cn-subtabs hidden" id="cnTsub" role="tablist" aria-label="Teams sections">
-      <button type="button" class="cn-tab active" role="tab" data-cntsub="people" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>People</button>
-      <button type="button" class="cn-tab" role="tab" data-cntsub="teams" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Teams</button>
-      <button type="button" class="cn-tab" role="tab" data-cntsub="connections" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>Connections<span class="rq-n hidden" id="cnConN" aria-label="pending connection requests"></span></button>
-      <button type="button" class="cn-tab" role="tab" data-cntsub="requests" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnRqN" aria-label="pending requests"></span></button>
+    <div class="cn-subtabs hidden" id="cnPsub" role="tablist" aria-label="People sections">
+      <button type="button" class="cn-tab active" role="tab" data-cnpsub="people" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9.5" cy="7.5" r="3.5"/><path d="M2.5 20v-.5a5 5 0 0 1 5-5H11"/><circle cx="16.5" cy="15.5" r="3.5"/><path d="m19.2 18.2 2.3 2.3"/></svg>Discover</button>
+      <button type="button" class="cn-tab" role="tab" data-cnpsub="connections" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>Connections</button>
+      <button type="button" class="cn-tab cn-rq-mini" role="tab" data-cnpsub="requests" title="Connection requests" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnConN" aria-label="pending connection requests"></span></button>
     </div>
+    <div class="cn-subtabs hidden" id="cnTsub" role="tablist" aria-label="Teams sections">
+      <button type="button" class="cn-tab cn-rq-mini" role="tab" data-cntsub="requests" title="Team requests and invitations" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnRqN" aria-label="pending team requests and invitations"></span></button>
+      <button type="button" class="cn-mk" data-cncreate="1" title="Create a team"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create Team</button>
+    </div>
+    <div class="cn-evicons hidden" id="cnEview" role="group" aria-label="Saved and registered events"></div>
     <section class="mt-wrap hidden" id="cnMyTeam" aria-label="My Team"></section>
     <div class="cn-pane hidden" id="cnTeams" role="tabpanel"></div>
     <div class="cn-pane hidden" id="cnDiscover" role="tabpanel">
@@ -18747,7 +18784,7 @@ var BR = ['CSE','CSEAIML','ISE','ECE','EEE','EI','CV','IP','ENV','BT','CTM','ME'
 function fb(){ try{ return (typeof fbDb !== 'undefined' && fbDb && window.firebase && firebase.auth && firebase.firestore) ? fbDb : null; }catch(e){ return null; } }
 function fbUser(){ try{ return firebase.auth().currentUser || null; }catch(e){ return null; } }
 function myUid(){ var u = fbUser(); return u ? u.uid : ''; }
-function wantPeople(){ return active() && st.tab === 'teams' && st.tsub === 'people'; }
+function wantPeople(){ return active() && st.tab === 'people' && st.psub === 'people'; }
 function setPS(v){ if(PS !== v){ PS = v; drawPeople(); } }
 /* Publishes THIS student's (signed-in or guest) name / year / branch so other students can find them. */
 var NEW_MS = 7 * 864e5, joinKey = '';   /* accounts younger than 7 days get a "New" badge */
@@ -18834,7 +18871,7 @@ function connStart(uid){
 function connRetry(){ var u = CS.uid; cUn.forEach(function(f){ try{ f(); }catch(e){} }); cUn = []; CS.ok = {}; CS.errs = {}; CS.err = 0; if(u) connStart(u); paintConn(); }
 function connTick(){ var u = fbUser(), id = (u && fb()) ? u.uid : ''; if(id && id === CS.uid && CS.ok.conn && (wantPeople() || connVisible()) && Date.now() - SUGt > 60000) loadSug(); if(id === CS.uid) return; connStop(); if(id) connStart(id); }
 function unreadN(){ return CS.notifs.filter(function(n){ return !n.read && n.type !== 'request'; }).length; }
-function connVisible(){ return active() && st.tab === 'teams' && st.tsub === 'connections'; }
+function connVisible(){ return active() && st.tab === 'people' && st.psub === 'requests'; }   /* connection requests + their activity live in People → Requests */
 function setBadge(el, n){ if(!el) return; el.textContent = n ? (n > 99 ? '99+' : String(n)) : ''; el.classList.toggle('hidden', !n); }
 function paintConn(){
   if(CS.ok.conn && (MUn !== CS.connL.length || Date.now() - MUt > 3e5)){ MUn = CS.connL.length; MUt = Date.now(); MU = {}; MUf = 0; }   /* mutuals are re-read when my connections change (and every 5 min) */
@@ -18870,7 +18907,7 @@ function sugHtml(){
 function drawSug(){ var h = (P.q || P.skills.length) ? '' : sugHtml(), a = $('#cnPsug'), b = $('#cnConSug'); if(a) a.innerHTML = h; if(b) b.innerHTML = sugHtml(); }
 function doConnect(u){
   var uu = fbUser(); if(!uu) return toast('Still connecting to Campus Loop. Please try again in a moment.', 'err');
-  if(!u || CS.busy[u]) return; var s = cState(u); if(s === 'conn') return; if(s === 'inc'){ closeM(); return go('teams', 'connections'); }
+  if(!u || CS.busy[u]) return; var s = cState(u); if(s === 'conn') return; if(s === 'inc'){ closeM(); return go('people', 'requests'); }
   if(s !== 'out') SND.sent();
   CS.busy[u] = 1; paintConn();
   (s === 'out' ? cCall('connCancel', {to:u}).then(function(){ delete CS.out[u]; CS.outL = CS.outL.filter(function(x){ return x.u !== u; }); toast('Request withdrawn'); })
@@ -18881,36 +18918,44 @@ function cAct(fn, data, ok){ var u = data.from || data.to || data.uid; if(CS.bus
   cCall(fn, data).then(function(){ toast(ok); }).catch(function(e){ toast(cErr(e), 'err'); }).then(function(){ delete CS.busy[u]; paintConn(); }); }
 function photoOf(u){ return u && PD[u] ? peerPhoto(PD[u]) : ''; }
 function crow(name, sub, acts, i, u){ return '<article class="cn-urow">' + av(name, i, '', photoOf(u)) + '<div class="cn-umain">' + (u ? '<button type="button" class="cn-uname" data-vu="' + esc(u) + '" aria-label="View profile of ' + esc(name) + '">' + esc(name) + '</button>' : '<span class="cn-uname">' + esc(name) + '</span>') + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="cn-row" style="gap:8px;flex-wrap:wrap">' + acts + '</div></article>'; }
+function connState(keys){
+  if(keys.some(function(k){ return CS.errs && CS.errs[k] && !CS.ok[k]; })) return empty('⏳', 'Reconnecting…', 'Campus Loop could not be reached. This reconnects by itself, or tap Try again.', '<button class="cn-btn pri" type="button" data-cretry="1">Try again</button>');
+  if(CS.uid && keys.some(function(k){ return !CS.ok[k]; })) return '<div class="cn-ulist" aria-busy="true" aria-label="Loading">' + [0, 1, 2].map(function(){ return '<div class="cn-urow mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i></div>'; }).join('') + '</div>';
+  if(!CS.uid) return empty('⏳', 'Connecting…', 'Campus Loop is getting ready. Connections will appear here in a moment.');
+  return '';
+}
 function drawConn(){
-  var body = $('#cnConBody'); if(!body) return; var D = {received:CS.incL.length, sent:CS.outL.length, mine:CS.connL.length};
-  [].forEach.call(root.querySelectorAll('[data-ccon]'), function(b){ var k = b.dataset.ccon, on = k === cTab, n = $('.rq-n', b); b.classList.toggle('active', on); b.setAttribute('aria-selected', on); setBadge(n, k === 'received' ? D.received : 0); });
+  var body = $('#cnConBody'), rq = $('#cnPreqBody'); if(!body && !rq) return;
   var uids = CS.incL.concat(CS.outL, CS.connL).map(function(x){ return x.u; }); loadMutuals(uids);
-  var h = '', dis = function(u){ return CS.busy[u] ? ' disabled' : ''; };
-  var ek = cTab === 'received' ? 'inc' : cTab === 'sent' ? 'out' : 'conn', ec = CS.errs && CS.errs[ek];
-  if(ec && !CS.ok[ek]) h = empty('⏳', 'Reconnecting…', 'Campus Loop could not be reached. This reconnects by itself, or tap Try again.', '<button class="cn-btn pri" type="button" data-cretry="1">Try again</button>');
-  else if(CS.uid && !CS.ok[ek]) h = '<div class="cn-ulist" aria-busy="true" aria-label="Loading">' + [0, 1, 2].map(function(){ return '<div class="cn-urow mt-skel" aria-hidden="true"><i class="l"></i><i class="m"></i></div>'; }).join('') + '</div>';
-  else if(!CS.uid) h = empty('⏳', 'Connecting…', 'Campus Loop is getting ready. Connections will appear here in a moment.');
-  else if(cTab === 'received') h = CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
-      return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i, r.u); }).join('') + '</div>'
-    : empty('📥', 'No received requests', 'When a student sends you a connection request it appears here.');
-  else if(cTab === 'sent') h = CS.outL.length ? '<div class="cn-ulist">' + CS.outL.map(function(r, i){ var u = esc(r.u);
-      return crow(r.name, [pinfo(r.u), r.st === 'rejected' ? 'Not accepted' : 'Pending', ago(r.at)].filter(Boolean).join(' · '), r.st === 'rejected' ? '<button class="cn-btn pri" type="button" data-cagain="' + u + '"' + dis(r.u) + '>Send again</button>' : '<button class="cn-btn" type="button" data-ccan="' + u + '"' + dis(r.u) + '>Cancel request</button>', i, r.u); }).join('') + '</div>'
-    : empty('📤', 'No sent requests', 'Requests you send from Find people show up here until they are answered.');
-  else h = CS.connL.length ? '<div class="cn-ulist">' + CS.connL.map(function(r, i){ var u = esc(r.u);
+  var dis = function(u){ return CS.busy[u] ? ' disabled' : ''; };
+  /* People → Connections: only the people I am connected with */
+  if(body){
+    var h = connState(['conn']);
+    if(!h) h = CS.connL.length ? '<div class="cn-ulist">' + CS.connL.map(function(r, i){ var u = esc(r.u);
       return crow(r.name, [pinfo(r.u), 'Connected ' + ago(r.at) + mutTxt(r.u)].filter(Boolean).join(' · '), CS.ask === r.u ? '<button class="cn-btn mt-btn-danger pri" type="button" data-crmok="' + u + '"' + dis(r.u) + '>Confirm remove</button><button class="cn-btn" type="button" data-crmno="1">Keep</button>' : '<button class="cn-btn" type="button" data-crm="' + u + '">Remove</button>', i, r.u); }).join('') + '</div>'
     : empty('🤝', 'No connections yet', 'Accepted requests become connections. Find students in Find people and tap Connect.');
-  body.innerHTML = h;
+    body.innerHTML = h;
+  }
+  /* People → Requests: connection requests only (received + sent). Team requests / invites live in Teams → Requests */
+  if(rq){
+    var hd = function(icon, t, c){ return '<h3 class="mt-h">' + ic(icon) + t + (c === '' ? '' : '<span class="n">' + c + '</span>') + '</h3>'; };
+    var sIn = connState(['inc']), sOut = connState(['out']);
+    var inH = sIn || (CS.incL.length ? '<div class="cn-ulist">' + CS.incL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), 'wants to connect' + mutTxt(r.u), ago(r.at)].filter(Boolean).join(' · '), '<button class="cn-btn pri" type="button" data-cacc="' + u + '"' + dis(r.u) + '>Accept</button><button class="cn-btn" type="button" data-crej="' + u + '"' + dis(r.u) + '>Reject</button>', i, r.u); }).join('') + '</div>'
+      : empty('📥', 'No received requests', 'When a student sends you a connection request it appears here.'));
+    var outH = sOut || (CS.outL.length ? '<div class="cn-ulist">' + CS.outL.map(function(r, i){ var u = esc(r.u);
+      return crow(r.name, [pinfo(r.u), r.st === 'rejected' ? 'Not accepted' : 'Pending', ago(r.at)].filter(Boolean).join(' · '), r.st === 'rejected' ? '<button class="cn-btn pri" type="button" data-cagain="' + u + '"' + dis(r.u) + '>Send again</button>' : '<button class="cn-btn" type="button" data-ccan="' + u + '"' + dis(r.u) + '>Cancel request</button>', i, r.u); }).join('') + '</div>'
+      : empty('📤', 'No sent requests', 'Requests you send from Find people show up here until they are answered.'));
+    rq.innerHTML = hd('users', 'Received requests', sIn ? '' : CS.incL.length) + inH + hd('clock', 'Sent requests', sOut ? '' : CS.outL.length) + outH;
+  }
   var act = $('#cnConAct'); if(act) act.innerHTML = CS.notifs.length ? '<section class="cn-recent"><h3 class="cn-sub">Recent activity</h3><ul style="list-style:none;margin:0;padding:0">' + CS.notifs.slice(0, 8).map(function(n){
     return '<li style="padding:6px 0;border-top:1px solid var(--line);' + (n.read ? '' : 'font-weight:700') + '">' + esc(n.fromName) + (n.type === 'request' ? ' sent you a connection request' : n.type === 'accepted' ? ' accepted your request' : ' declined your request') + ' <small>' + ago(tms(n.createdAt)) + '</small></li>'; }).join('') + '</ul></section>' : '';
   drawSug();
 }
 function initConn(){
-  var box = $('#cnTconn'); if(!box) return;
-  box.innerHTML = '<h2 class="cn-sr-h">Connections</h2><div class="cn-subtabs" role="tablist" aria-label="Connection sections">' +
-   '<button type="button" class="cn-tab active" role="tab" data-ccon="received" aria-selected="true">Received<span class="rq-n hidden" aria-label="pending requests"></span></button>' +
-   '<button type="button" class="cn-tab" role="tab" data-ccon="sent" aria-selected="false">Sent<span class="rq-n hidden"></span></button>' +
-   '<button type="button" class="cn-tab" role="tab" data-ccon="mine" aria-selected="false">My Connections<span class="rq-n hidden"></span></button></div>' +
-   '<div id="cnConBody"></div><div id="cnConSug"></div><div id="cnConAct"></div>';
+  var box = $('#cnTconn'), rbox = $('#cnPreq'); if(!box || !rbox) return;
+  box.innerHTML = '<h2 class="cn-sr-h">Connections</h2><div id="cnConBody"></div>';
+  rbox.innerHTML = '<div class="cn-backrow"><button type="button" class="cn-btn cn-back" data-cnback="people" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</button></div>' + '<h2 class="cn-sr-h">Connection requests</h2><div id="cnPreqBody"></div><div id="cnConAct"></div>';
   drawConn();
   root.addEventListener('click', function(e){
     var b = e.target.closest('button'); if(!b) return; var d = b.dataset;
@@ -18919,7 +18964,6 @@ function initConn(){
       var vp = vi > -1 ? PF[vi] : null, pd = PD[d.vu] || {}, sg = null; (SUG || []).forEach(function(z){ if(z.uid === d.vu) sg = z; });
       if(window.clShell && window.clShell.openPeer){ window.clShell.openPeer(vp ? {name:vp[0], branch:vp[1], year:yl(vp[2]), skills:vp[3] || [], interests:vp[4] || [], bio:vp[5] || '', project:vp[6], mine:vp[7] === myUid(), uid:vp[7]} : {name:String(pd.name || (sg && sg.name) || 'Student'), branch:sg ? String(sg.branch || '') : '', year:sg ? yl(+sg.year) : '', skills:[], interests:[], bio:'', mine:d.vu === myUid(), uid:d.vu}); }
       return; }
-    if(d.ccon){ cTab = d.ccon; CS.ask = ''; return drawConn(); }
     if(d.cacc) return cAct('connRespond', {from:d.cacc, accept:true}, 'Connected');
     if(d.crej) return cAct('connRespond', {from:d.crej, accept:false}, 'Request rejected');
     if(d.ccan) return cAct('connCancel', {to:d.ccan}, 'Request cancelled');
@@ -19000,7 +19044,7 @@ function initPeople(){
   var box = $('#cnTpeople');
   box.innerHTML = '<h2 class="cn-sr-h">Find people</h2>' +
    '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnPq">Search people</label><input class="cn-in" id="cnPq" type="search" placeholder="Search by name, @username, skill or interest" autocomplete="off"></div></div>' +
-   '<div id="cnPsug"></div><details class="cn-flt" id="cnPflt" open><summary><span>Filters</span><span class="cn-fn" id="cnPfn" aria-live="polite"></span></summary><div class="cn-sum" id="cnPyl"><span class="cn-sub" style="margin:0">Year</span></div><div id="cnPyears">' + chipbar('Filter by year', [''].concat(YRS), P.years, 'data-yr') + '</div><div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Skill</span></div><div id="cnPchips"></div></details><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
+   '<div id="cnPsug"></div><details class="cn-flt" id="cnPflt"><summary><span>Filters</span><span class="cn-fn" id="cnPfn" aria-live="polite"></span></summary><div class="cn-sum" id="cnPyl"><span class="cn-sub" style="margin:0">Year</span></div><div id="cnPyears">' + chipbar('Filter by year', [''].concat(YRS), P.years, 'data-yr') + '</div><div class="cn-sum" id="cnPskl"><span class="cn-sub" style="margin:0">Skill</span></div><div id="cnPchips"></div></details><div class="cn-sum" id="cnPsum" aria-live="polite"></div><div id="cnPgrid"></div><div id="cnPempty"></div>';
   drawPeople();
   var uqT = 0; $('#cnPq').addEventListener('input', function(e){ P.q = e.target.value.trim(); drawPeople(); clearTimeout(uqT); uqT = setTimeout(function(){ lookupUname(P.q); }, 350); });
   box.addEventListener('click', function(e){
@@ -19032,7 +19076,7 @@ function drawTeams(){
 function initTeamsTab(){
   var box = $('#cnTteams');
   box.innerHTML = '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnTq">Search teams</label><input class="cn-in" id="cnTq" type="search" placeholder="Search by team, project or skill" autocomplete="off"></div></div>' +
-   '<details class="cn-flt" id="cnTflt" open><summary><span>Filters</span><span class="cn-fn" id="cnTfn" aria-live="polite"></span></summary><div class="cn-sum"><span class="cn-sub" style="margin:0">Skill</span></div><div id="cnTchips">' + chipbar('Filter by skill', [''].concat(teamChips()), T.chips, 'data-tc') + '</div></details><div class="cn-sum" id="cnTsum" aria-live="polite"></div><div class="cn-grid" id="cnTgrid"></div><div id="cnTempty"></div>';
+   '<details class="cn-flt" id="cnTflt"><summary><span>Filters</span><span class="cn-fn" id="cnTfn" aria-live="polite"></span></summary><div class="cn-sum"><span class="cn-sub" style="margin:0">Skill</span></div><div id="cnTchips">' + chipbar('Filter by skill', [''].concat(teamChips()), T.chips, 'data-tc') + '</div></details><div class="cn-sum" id="cnTsum" aria-live="polite"></div><div class="cn-grid" id="cnTgrid"></div><div id="cnTempty"></div>';
   drawTeams();
   $('#cnTq').addEventListener('input', function(e){ T.q = e.target.value.trim(); drawTeams(); });
   box.addEventListener('click', function(e){
@@ -19041,7 +19085,7 @@ function initTeamsTab(){
     if(b.dataset.reset){ T = {q:'', chips:[]}; $('#cnTq').value = ''; syncChips($('#cnTchips'), T.chips, 'data-tc'); return drawTeams(); }
   });
 }
-function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div><div class="cn-pane hidden" id="cnTreq"></div><div class="cn-pane hidden" id="cnTconn"></div>'; initPeople(); initConn(); initTeamsTab(); }
+function initTeams(){ tc.innerHTML = '<div class="cn-pane" id="cnTpeople"></div><div class="cn-pane hidden" id="cnTteams"></div><div class="cn-pane hidden" id="cnTreq"></div><div class="cn-pane hidden" id="cnTconn"></div><div class="cn-pane hidden" id="cnPreq"></div>'; initPeople(); initConn(); initTeamsTab(); }
 /* Teams → Requests: one view over the SAME join requests stored on each team in "csec_myteams" (no second store).
    Incoming = requests to teams I lead (Accept / Reject reuse decide()); outgoing = my own requests (Withdraw / Dismiss reuse onAct()). */
 var rqAsk = '';
@@ -19061,9 +19105,9 @@ function drawReqs(){
   myTeams.forEach(function(t, i){ if(isOwner(t)) t.requests.forEach(function(r){ inc.push({t:t, r:r, i:i}); }); else { var r = myReq(t); if(r && !r.dismissed) out.push({t:t, i:i}); } });
   inc.sort(function(a, b){ return ((a.r.status === 'pending' ? 0 : 1) - (b.r.status === 'pending' ? 0 : 1)) || ((b.r.at2 || b.r.at) - (a.r.at2 || a.r.at)); });
   var pend = inc.filter(function(x){ return x.r.status === 'pending'; }).length, n = document.getElementById('cnRqN');
-  if(n){ n.textContent = pend; n.classList.toggle('hidden', !pend); }
+  var pendT = pend + TM.invIn.filter(hkPend).length; if(n){ n.textContent = pendT; n.classList.toggle('hidden', !pendT); }
   var h = function(icon, t, c){ return '<h3 class="mt-h">' + ic(icon) + t + '<span class="n">' + c + '</span></h3>'; };
-  box.innerHTML = h('users', 'Incoming requests', inc.length) +
+  box.innerHTML = '<div class="cn-backrow"><button type="button" class="cn-btn cn-back" data-cnback="teams" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</button></div>' + ivInHTML() + h('users', 'Incoming requests', inc.length) +
     (inc.length ? '<div class="cn-grid">' + inc.map(rqIn).join('') + '</div>' : empty('📬', 'No incoming requests', myTeams.some(isOwner) ? 'When students ask to join a team you lead, they will appear here for you to accept or reject.' : 'Create a team and the join requests it receives will appear here.')) +
     h('clock', 'Sent requests', out.length) +
     (out.length ? '<div class="cn-grid">' + out.map(function(x){ return mtReqCard(x.t, x.i); }).join('') + '</div>' : empty('📨', 'No sent requests', 'Requests you send from Find Teams will appear here with their status.', '<button class="cn-btn pri" type="button" data-mt-find="1">Find Teams</button>'));
@@ -19162,7 +19206,7 @@ function drawEvents(){
   /* Search covers event name, college/organiser, city, state, venue and technology domain. */
   var l = base.filter(function(o){ var x = o.x; return (!ef.kind || x.k === ef.kind) && (!ef.dom || lvDoms(x).indexOf(ef.dom) > -1) && lvPass(x, ef.st) && (!q || [x.t, x.org, x.k, x.d, x.loc, x.venue || '', x.city || '', x.state || '', x.country || '', lvGeo(x).place || '', (x.tags || []).join(' '), (x.themes || []).join(' '), lvDoms(x).join(' '), x.srcName || ''].join(' ').toLowerCase().indexOf(q) > -1); });
   var up = [];   /* Updates card removed from Events */
-  $('#cnEview').innerHTML = [['all', 'All events', EV.filter(function(x){ return !lvEnded(x); }).length], ['saved', 'Saved', savedCount()], ['registered', 'Registered', registeredCount()]].map(function(m){ return '<button type="button" data-ev="' + m[0] + '" aria-pressed="' + (ef.view === m[0]) + '">' + (m[0] === 'saved' ? ic('bookmark') : '') + m[1] + '<span class="n">' + m[2] + '</span></button>'; }).join('');
+  $('#cnEview').innerHTML = [['saved', 'Saved', savedCount()], ['registered', 'Registered', registeredCount()]].map(function(m){ var on = ef.view === m[0]; return '<button type="button" class="cn-tab cn-rq-mini' + (on ? ' active' : '') + '" data-ev="' + (on ? 'all' : m[0]) + '" aria-pressed="' + on + '" title="' + m[1] + ' events' + (m[2] ? ' (' + m[2] + ')' : '') + '" aria-label="' + m[1] + ' events, ' + m[2] + '">' + (m[0] === 'saved' ? ic('bookmark') : '<svg class="cn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>') + (m[2] ? '<span class="n">' + m[2] + '</span>' : '') + '<span class="cn-evl">' + m[1] + '</span></button>'; }).join('');
   $('#cnEupd').innerHTML = up.length ? '<div class="cn-card cn-upd"><h3>' + ic('clock') + 'Updates</h3>' + up.map(function(u){ return '<button type="button" data-e="' + u.i + '">' + ic(u.ic) + '<span><b>' + esc(u.t) + '</b><em>' + u.s + '</em></span></button>'; }).join('') + '</div>' : '';
   $('#cnEmode').innerHTML = LV_AREAS.map(function(m){ return '<button type="button" data-ea="' + m[0] + '" aria-pressed="' + (ef.area === m[0]) + '">' + m[1] + '<span class="n">' + ac[m[0]] + '</span></button>'; }).join('');
   var ceb = $('#cnEchips .cn-chipbar'), csl = ceb ? ceb.scrollLeft : 0;
@@ -19171,6 +19215,7 @@ function drawEvents(){
   var dsel = $('#cnEdom'); if(dsel){ var dc = {}; base.forEach(function(o){ lvDoms(o.x).forEach(function(t){ dc[t] = (dc[t] || 0) + 1; }); }); var dl_ = LV_DOMAINS.map(function(z){ return z[0]; }).filter(function(t){ return dc[t]; }); if(ef.dom && dl_.indexOf(ef.dom) < 0) dl_.push(ef.dom);
     dsel.innerHTML = '<option value="">All domains</option>' + dl_.map(function(t){ return '<option value="' + esc(t) + '"' + (ef.dom === t ? ' selected' : '') + '>' + esc(t) + ' (' + (dc[t] || 0) + ')</option>'; }).join(''); }
   var any = ef.q || ef.kind || ef.dom || ef.st || ef.area !== 'all';
+  fltN('cnEfn', (ef.kind ? 1 : 0) + (ef.dom ? 1 : 0) + (ef.st ? 1 : 0) + (ef.area !== 'all' ? 1 : 0) + (ef.sort !== 'closing' ? 1 : 0));
   $('#cnEsum').innerHTML = '<span>' + l.length + ' ' + (regv ? 'registered ' : saved ? 'saved ' : '') + (l.length === 1 ? 'event' : 'events') + '</span><span id="cnElive">' + lvStatusHtml() + '</span>' + (any ? '<button type="button" class="cn-link" data-reset="1">Clear filters</button>' : '');
   var hb = $('#cnEhealth'); if(hb) hb.innerHTML = ef.health ? '<div class="cn-card cn-hlbox"><h3>' + ic('flag') + 'Event sources</h3>' + lvHealthHtml() + '</div>' : '';
   /* Sections in strict order: Mysuru, nearby, Karnataka, rest of India, online, to verify, international. */
@@ -19297,7 +19342,7 @@ function evPage(i){
       else if(a === 'int'){ evFlag('csec_ev_interested', evId(EV[j]), !evFlag('csec_ev_interested', evId(EV[j]))); reshow(); }
       else if(a === 'rem'){ var on = !evFlag('csec_ev_remind', evId(EV[j])); evFlag('csec_ev_remind', evId(EV[j]), on); toast(on ? 'Reminder set on this device' : 'Reminder removed'); reshow(); }
       else if(a === 'cal') evIcs(j);
-      else if(a === 'mates'){ epClose(); go('teams', 'people'); }
+      else if(a === 'mates'){ epClose(); go('people', 'people'); }
       else if(a === 'newteam'){ epClose(); go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); } });
     document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !document.querySelector('.rg-ov') && ov.classList.contains('on')) epClose(); }); }
   cur = {t: 'e', i: i};
@@ -19551,13 +19596,14 @@ function mhInit(){
 }
 function initEvents(){
   ec.innerHTML = 
-   '<div class="cn-seg" id="cnEview" role="group" aria-label="Show events" style="margin-bottom:12px"></div>' +
    '<div class="cn-seg cn-areas" id="cnEmode" role="group" aria-label="Filter by mode or place" style="margin-bottom:12px"></div>' +
-   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search event, college, organiser, city or tech" autocomplete="off"></div>' +
+   '<div class="cn-toolbar"><div class="cn-search">' + ic('search') + '<label class="sr" style="position:absolute;left:-9999px" for="cnEq">Search events</label><input class="cn-in" id="cnEq" type="search" placeholder="Search event, college, organiser, city or tech" autocomplete="off"></div></div>' +
+   '<details class="cn-flt" id="cnEflt"><summary><span>Filters</span><span class="cn-fn" id="cnEfn" aria-live="polite"></span></summary>' +
+   '<div class="cn-toolbar">' +
    '<select class="cn-in cn-sel" id="cnEsort" aria-label="Sort events"><option value="closing">Closing soon</option><option value="upcoming">Starting soon</option><option value="recent">Recently added</option><option value="prize">Highest prize</option></select>' +
    '<select class="cn-in cn-sel" id="cnEdom" aria-label="Filter by domain"><option value="">All domains</option></select>' +
    '<select class="cn-in cn-sel" id="cnEst" aria-label="Filter by status, deadline or prize">' + lvFilterOpts() + '</select></div>' +
-   '<div id="cnEupd"></div><div id="cnEchips"></div><div class="cn-sum" id="cnEsum" aria-live="polite"></div><div id="cnEhealth"></div><div class="cn-evsecs" id="cnEgrid"></div><div id="cnEempty"></div>';
+   '<div id="cnEchips"></div></details><div id="cnEupd"></div><div class="cn-sum" id="cnEsum" aria-live="polite"></div><div id="cnEhealth"></div><div class="cn-evsecs" id="cnEgrid"></div><div id="cnEempty"></div>';
   loadSaved(); drawEvents();
   $('#cnEq').addEventListener('input', function(e){ ef.q = e.target.value.trim(); drawEvents(); });
   $('#cnEsort').addEventListener('change', function(e){ ef.sort = e.target.value; drawEvents(); });
@@ -19582,35 +19628,49 @@ function initEvents(){
 }
 
 /* ---------- Router: Posting | Teams | Discover → Articles | Events ---------- */
-var TABS = ['teams', 'events', 'articles'], st = {tab:'teams', sub:'events', tsub:'people'}, artOn = false;
+var TABS = ['people', 'teams', 'events', 'articles'], st = {tab:'people', sub:'events', psub:'people', tsub:'teams'}, artOn = false;
 function normTab(tab, sub){ return tab === 'discover' ? (sub === 'articles' ? 'articles' : 'events') : tab; }   // old #connect/discover/... links open the new Events / Articles tabs
 function active(){ return !!(window.cseSection && window.cseSection.current() === 'connect'); }
-function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
-var INTRO = {teams:['Network','Find people, build teams and manage your join requests in one place.'], events:['Events','Explore hackathons, competitions and tech events picked for students.'], articles:['Articles','Read articles and stories picked for students.']};
+function setHash(){ try{ var h = 'connect/' + st.tab + (st.tab === 'people' ? '/' + st.psub : st.tab === 'teams' ? '/' + st.tsub : ''); if(location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); }catch(e){} }
+var INTRO = {people:['People','Find students, grow your connections and manage connection requests.'], teams:['Teams','Create or join teams and manage team requests and invitations.'], events:['Events','Explore hackathons, competitions and tech events picked for students.'], articles:['Articles','Read articles and stories picked for students.']};
 function sync(){
   var it = INTRO[st.tab], ie = $('#cnIntro'); if(it && ie){ ie.querySelector('h2').textContent = it[0]; ie.querySelector('p').textContent = it[1]; }
   [].forEach.call(document.querySelectorAll('#cnModeWrap [data-cn]'), function(b){ var on = b.dataset.cn === st.tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
   [].forEach.call(root.querySelectorAll('[data-cnsub]'), function(b){ var on = b.dataset.cnsub === st.sub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
+  [].forEach.call(root.querySelectorAll('[data-cnpsub]'), function(b){ var on = b.dataset.cnpsub === st.psub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   [].forEach.call(root.querySelectorAll('[data-cntsub]'), function(b){ var on = b.dataset.cntsub === st.tsub; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
-  $('#cnTpeople').classList.toggle('hidden', st.tsub !== 'people'); $('#cnTteams').classList.toggle('hidden', st.tsub !== 'teams'); $('#cnTreq').classList.toggle('hidden', st.tsub !== 'requests'); $('#cnTconn').classList.toggle('hidden', st.tsub !== 'connections'); if(st.tab === 'teams' && st.tsub === 'connections' && active()) connOpened(); document.body.setAttribute('data-cnbg', st.tab === 'teams' && st.tsub === 'requests' ? 'requests' : (st.tab === 'events' || st.tab === 'articles') ? 'discover' : st.tab); $('#cnTsub').classList.toggle('hidden', st.tab !== 'teams');
+  var isP = st.tab === 'people', isT = st.tab === 'teams';
+  $('#cnTpeople').classList.toggle('hidden', !(isP && st.psub === 'people')); $('#cnTconn').classList.toggle('hidden', !(isP && st.psub === 'connections')); $('#cnPreq').classList.toggle('hidden', !(isP && st.psub === 'requests'));
+  $('#cnTteams').classList.toggle('hidden', !(isT && st.tsub === 'teams')); $('#cnTreq').classList.toggle('hidden', !(isT && st.tsub === 'requests'));
+  if(isP && st.psub === 'requests' && active()) connOpened(); else if(isP && st.psub === 'connections') drawConn();
+  document.body.setAttribute('data-cnbg', ((isP && st.psub === 'requests') || (isT && st.tsub === 'requests')) ? 'requests' : (isP || isT) ? 'teams' : 'discover'); $('#cnPsub').classList.toggle('hidden', !isP); $('#cnTsub').classList.toggle('hidden', !isT); $('#cnEview').classList.toggle('hidden', st.tab !== 'events');
   var disc = st.tab === 'events' || st.tab === 'articles'; if(disc) st.sub = st.tab;
-  $('#cnTeams').classList.toggle('hidden', st.tab !== 'teams'); $('#cnDiscover').classList.toggle('hidden', !disc);
-  $('#cnSub').classList.add('hidden'); if(mtc){ mtc.classList.toggle('hidden', !(st.tab === 'teams' && st.tsub === 'teams')); if(st.tab === 'teams'){ drawMyTeam(); drawTeams(); } }
+  $('#cnTeams').classList.toggle('hidden', !(isP || isT)); $('#cnDiscover').classList.toggle('hidden', !disc);
+  $('#cnSub').classList.add('hidden'); if(mtc){ mtc.classList.toggle('hidden', !(isT && st.tsub === 'teams')); if(isT){ drawMyTeam(); drawTeams(); } }
   $('#cnArticles').classList.toggle('hidden', st.sub !== 'articles'); $('#cnEvents').classList.toggle('hidden', st.sub !== 'events');
-  var want = active() && st.tab === 'articles';   // the existing Discover loads / listens only while on screen   // the existing Discover loads / listens only while on screen
+  var want = active() && st.tab === 'articles';   // the existing Discover loads / listens only while on screen
   if(want && !artOn){ artOn = true; try{ window.discoverShow && window.discoverShow(); }catch(e){ console.warn('[Connect] Articles failed to open', e); } }
   else if(!want && artOn){ artOn = false; try{ window.discoverHide && window.discoverHide(); }catch(e){} }
   if(wantPeople()) loadPeople();
 }
+/* Resolve a (tab, sub) pair into state. Old links (#connect/teams/people, go('teams','connections'), push routes) still land in the right place. */
+function applyNav(tab, sub){
+  tab = normTab(tab, sub);
+  if(tab === 'teams' && (sub === 'people' || sub === 'connections')){ tab = 'people'; if(sub === 'connections' && CS.incL.length) sub = 'requests'; }
+  st.tab = TABS.indexOf(tab) > -1 ? tab : 'people';
+  if(sub === 'articles' || sub === 'events') st.sub = sub;
+  else if(st.tab === 'people' && (sub === 'people' || sub === 'connections' || sub === 'requests')) st.psub = sub;
+  else if(st.tab === 'teams' && (sub === 'teams' || sub === 'requests')) st.tsub = sub;
+}
 function go(tab, sub, o){
-  o = o || {}; tab = normTab(tab, sub); st.tab = TABS.indexOf(tab) > -1 ? tab : 'teams'; if(sub === 'articles' || sub === 'events') st.sub = sub; else if(sub === 'people' || sub === 'teams' || sub === 'requests' || sub === 'connections') st.tsub = sub;
+  o = o || {}; applyNav(tab, sub);
   if(!active() && window.cseSection) window.cseSection.go('connect', {noHash:true, noAnim:o.noAnim});
   sync(); if(!o.noHash) setHash();
 }
 function parse(h){ var p = h.split('/'); if(h === 'discover') return ['articles', null]; if(p[0] !== 'connect') return null; return [p[1], p[2]]; }
 var cnBar = document.getElementById('cnModeWrap');
 if(cnBar){
-  cnBar.addEventListener('click', function(e){ var t = e.target.closest('[data-cn]'); if(t) go(t.dataset.cn, null); });
+  cnBar.addEventListener('click', function(e){ var t = e.target.closest('[data-cn]'); if(t) go(t.dataset.cn, t.dataset.cn === 'teams' ? 'teams' : null); });
   cnBar.addEventListener('keydown', function(e){
     var b = e.target.closest('.mode-btn'); if(!b || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
     var l = [].slice.call(cnBar.querySelectorAll('.mode-btn')), n = l[(l.indexOf(b) + (e.key === 'ArrowRight' ? 1 : l.length - 1)) % l.length]; e.preventDefault(); n.focus(); n.click();
@@ -19618,11 +19678,16 @@ if(cnBar){
 }
 root.addEventListener('keydown', function(e){
   var b = e.target.closest('.cn-tab'); if(!b || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
-  var l = [].slice.call(b.parentNode.querySelectorAll('.cn-tab')), n = l[(l.indexOf(b) + (e.key === 'ArrowRight' ? 1 : l.length - 1)) % l.length]; n.focus(); n.click();
+  var l = [].slice.call(b.parentNode.querySelectorAll('.cn-tab')); if(l.length < 2) return; var n = l[(l.indexOf(b) + (e.key === 'ArrowRight' ? 1 : l.length - 1)) % l.length]; n.focus(); n.click();
 });
 root.addEventListener('click', function(e){
   var s = e.target.closest('[data-cnsub]'), ts = e.target.closest('[data-cntsub]');
-  if(s) go(s.dataset.cnsub, null); else if(ts) go('teams', ts.dataset.cntsub);
+  var ps = e.target.closest('[data-cnpsub]'), bk = e.target.closest('[data-cnback]');
+  var evb = e.target.closest('#cnEview [data-ev]'), mk = e.target.closest('[data-cncreate]');
+  if(evb){ ef.view = evb.dataset.ev; drawEvents(); return; }   /* Saved / Registered icons (tap again to go back to all events) */
+  if(mk){ mtOpenForm(); return; }
+  if(bk){ go(bk.dataset.cnback, bk.dataset.cnback); return; }   /* Back from Requests: People → Discover, Teams → My Team */
+  if(s) go(s.dataset.cnsub, null); else if(ps) go('people', ps.dataset.cnpsub); else if(ts) go('teams', (ts.dataset.cntsub === 'requests' && st.tab === 'teams' && st.tsub === 'requests') ? 'teams' : ts.dataset.cntsub);   /* Requests is a toggle: tap again to go back to the teams */
 });
 window.addEventListener('hashchange', function(){ var r = parse(location.hash.replace('#', '')); if(r) go(r[0], r[1], {noHash:true}); });
 window.addEventListener('cse:sectionchange', function(e){ var d = e.detail || {};
@@ -19662,8 +19727,12 @@ function tmBuild(){
   out.sort(function(a, b){ return b.created - a.created; }); myTeams = out;
 }
 function tmPending(){ return TM.inc.filter(function(r){ return r.status === 'pending' && TM.all[r.teamId] || r.status === 'pending' && TM.mine[r.teamId]; }).length + TM.invIn.filter(function(r){ return r.status === 'pending'; }).length; }
-function tmBadge(){ var b = document.getElementById('cnTmN'); if(!b) return; var n = tmPending(); try{ n += (CS.incL.length + unreadN()); }catch(e){}   /* Network = team requests + connection requests/updates */
-  b.setAttribute('aria-label', 'Pending team and connection activity'); b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; }
+function tmBadge(){
+  var put = function(id, n, label){ var b = document.getElementById(id); if(!b) return; b.setAttribute('aria-label', label); b.textContent = n > 9 ? '9+' : n; b.style.display = n ? '' : 'none'; };
+  var c = 0; try{ c = CS.incL.length + unreadN(); }catch(e){}
+  put('cnTmN', tmPending(), 'Pending team requests and invitations');   /* Teams = join requests + invitations */
+  put('cnPeN', c, 'Pending connection requests and updates');           /* People = connection requests + updates */
+}
 function tmPaint(){
   if(tmT) return;
   tmT = setTimeout(function(){
@@ -19859,7 +19928,7 @@ document.addEventListener('click', function(e){
   if(d.hkIvdec != null){ tAct('teamInviteDecide', {teamId: d.hkIvdec, accept: false}, 'Invitation declined.').then(function(){ ivChanged(); }); return; }
   if(d.hkIvcan != null){ tAct('teamInviteCancel', {teamId: d.hkIvcan, to: d.to}, 'Invitation cancelled.').then(function(){ ivChanged(); }); return; }
   if(d.hkVt != null){ mtView(d.hkVt); return; }
-  if(d.hkGo != null){ hkClose(); if(d.hkGo === 'events') go('events'); else go('teams', d.hkGo === 'people' ? 'people' : 'teams'); return; }
+  if(d.hkGo != null){ hkClose(); if(d.hkGo === 'events') go('events'); else if(d.hkGo === 'people') go('people', 'people'); else go('teams', 'teams'); return; }
   if(d.hkNew != null){ hkClose(); go('teams', 'teams'); setTimeout(function(){ var nb = document.querySelector('[data-mt-new]'); if(nb) nb.click(); }, 350); return; }
   if(d.hkClose != null){ hkClose(); return; }
   if(!ek) return;
@@ -19918,9 +19987,7 @@ function drawMyTeam(){
       rq = myTeams.filter(function(t){ var r = myReq(t); return !isOwner(t) && !isMem(t) && r && !r.dismissed; }), total = led.length + jc.length + rq.length,
       pendAll = led.reduce(function(n, t){ return n + pendN(t); }, 0);
   var sub = !TM.uid ? 'Sign in with your student account to create or join teams.' : TM.err ? 'Reconnecting to Campus Loop… your teams and requests will appear automatically.' : pendAll ? 'You have <b>' + pendAll + '</b> join request' + (pendAll === 1 ? '' : 's') + ' waiting for your review.' : total ? 'The teams you lead, the teams you have joined and your join requests, all in one place.' : 'Lead your own team for a hackathon or competition, or join one from Find Teams.';
-  var html = '<div class="mt-hero"><div><h2>' + ic('users') + 'MY TEAM</h2><p>' + sub + '</p></div>' +
-    '<button type="button" class="mt-create" data-mt-new="1">' + ic('plus') + 'Create Team</button></div>';
-  html += hkBanner() + ivInHTML();
+  var html = hkBanner();   /* the big My Team bar is gone: Create Team lives under the Requests pill in the header */
   if(total){
     var h = function(icon, t, n){ return '<h3 class="mt-h">' + ic(icon) + t + '<span class="n">' + n + '</span></h3>'; };
     if(led.length) html += h('crown', 'Teams I lead', led.length) + '<div class="cn-grid">' + led.map(function(t){ return mtCreated(t, myTeams.indexOf(t)); }).join('') + '</div>';
@@ -19928,7 +19995,6 @@ function drawMyTeam(){
     if(rq.length) html += h('clock', 'My join requests', rq.length) + '<div class="cn-grid">' + rq.map(function(t){ return mtReqCard(t, myTeams.indexOf(t)); }).join('') + '</div>';
   }
   if(!total && TM.uid && !TM.ok.mine && !TM.err) html += '<div class="cn-grid">' + mtSkel(2) + '</div>';
-  else if(!total && !TM.invIn.some(hkPend) && (!TM.uid || TM.ok.mine) && !TM.err) html += hkStart();
   mtc.innerHTML = html;
 }
 /* ---- Team Chat (frontend only, localStorage "csec_teamchat_<id>"). Only the leader and accepted members can open it. ---- */
@@ -20421,7 +20487,7 @@ function initMyTeam(){
   drawMyTeam();
 }
 initModal(); initTeams(); initMyTeam(); initReqs(); initEvents(); mhInit(); tmTick(); setInterval(tmTick, 3000);
-var boot = parse(window.__cnBoot || ''); if(boot){ boot[0] = normTab(boot[0], boot[1]); st.tab = TABS.indexOf(boot[0]) > -1 ? boot[0] : 'teams'; if(boot[1] === 'events') st.sub = 'events'; if(boot[0] === 'teams' && (boot[1] === 'teams' || boot[1] === 'requests' || boot[1] === 'connections')) st.tsub = boot[1]; }
+var boot = parse(window.__cnBoot || ''); if(boot) applyNav(boot[0], boot[1]);
 sync();
 /* Shared read API for the unified Home dashboard. It reads the SAME EV records Connect → Events renders (no copy, no second store).
    Anything that adds, edits or removes an event should call eventsChanged() so Events and Home redraw together. */
@@ -21685,7 +21751,7 @@ html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) #sec
 (function(){
   'use strict';
   var EASE = 'cubic-bezier(.22,1,.36,1)', ready = false;
-  var TARGET = {cnMyTeam:1, cnTgrid:1, cnTsum:1, cnTempty:1, cnTreq:1, cnTconn:1, cnPgrid:1, cnPsum:1, cnPempty:1};
+  var TARGET = {cnMyTeam:1, cnTgrid:1, cnTsum:1, cnTempty:1, cnTreq:1, cnPreq:1, cnTconn:1, cnPgrid:1, cnPsum:1, cnPempty:1};
   function reduced(){ try{ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
   function arm(){ setTimeout(function(){ ready = true; }, 900); }
   if(document.readyState === 'complete') arm(); else window.addEventListener('load', arm, {once:true});
@@ -21937,6 +22003,41 @@ html:not([data-theme="dark"]) body[data-section="connect"]:not(#_):not(#__) #sec
   [data-theme="dark"] #sectionConnect :is(#cnEview,#cnEmode).cn-seg{background:rgba(56,44,100,.94)}
 }
 @media (prefers-reduced-motion:reduce){#sectionConnect :is(#cnEview,#cnEmode).cn-seg button{transition:none}}
+</style>
+
+<style id="cnPolishNov27">
+/* ===== 1) Events: Saved / Registered icons - slightly larger, label under the icon ===== */
+html body #sectionConnect #cnEview{gap:8px}
+html body #sectionConnect #cnEview .cn-tab.cn-rq-mini{position:relative;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:62px;padding:7px 12px 6px;border-radius:16px;line-height:1}
+html body #sectionConnect #cnEview .cn-tab.cn-rq-mini svg{width:19px;height:19px}
+html body #sectionConnect #cnEview .cn-evl{font-size:.68rem;font-weight:700;letter-spacing:.01em;line-height:1.1;white-space:nowrap}
+html body #sectionConnect #cnEview .cn-tab.cn-rq-mini .n{position:absolute;top:-6px;right:-6px;display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;border-radius:99px;font-size:.62rem}
+html body #sectionConnect .cn-shell:has(#cnEview:not(.hidden)) .cn-intro{padding-right:172px}
+
+/* ===== 2) Teams: bigger Create Team button with gradient + glow (hover / focus / press) ===== */
+html body #sectionConnect #cnTsub .cn-mk{
+  gap:7px;padding:9px 19px;font-size:.9rem;
+  background:linear-gradient(120deg,#7950D9 0%,#8B65E8 30%,#B07CFF 65%,#E879F9 100%);
+  background-size:230% 100%;background-position:0% 50%;
+  box-shadow:0 6px 14px -8px rgba(121,80,217,.6),inset 0 1px 0 rgba(255,255,255,.28);
+  transition:background-position .45s ease,box-shadow .25s ease,transform .2s ease}
+html body #sectionConnect #cnTsub .cn-mk svg{width:16px;height:16px;stroke-width:2.6;transition:transform .3s ease}
+html body #sectionConnect #cnTsub .cn-mk:hover,
+html body #sectionConnect #cnTsub .cn-mk:focus-visible,
+html body #sectionConnect #cnTsub .cn-mk:active{
+  background-position:100% 50%;transform:translateY(-1px);
+  box-shadow:0 0 0 3px rgba(167,139,250,.30),0 0 16px 3px rgba(167,139,250,.65),0 0 34px 8px rgba(232,121,249,.38),inset 0 1px 0 rgba(255,255,255,.4)}
+html body #sectionConnect #cnTsub .cn-mk:hover svg,
+html body #sectionConnect #cnTsub .cn-mk:focus-visible svg{transform:rotate(90deg)}
+html body #sectionConnect #cnTsub .cn-mk:active{transform:scale(.97)}
+html body #sectionConnect #cnTsub .cn-mk:focus-visible{outline:2px solid #C4B5FD;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){html body #sectionConnect #cnTsub .cn-mk,html body #sectionConnect #cnTsub .cn-mk svg{transition:none}html body #sectionConnect #cnTsub .cn-mk:hover,html body #sectionConnect #cnTsub .cn-mk:active{transform:none}}
+
+/* ===== 3) Teams: remove the blank band (empty "My Team" <section> inherited the global 64px section padding) ===== */
+html body #sectionConnect #cnMyTeam.mt-wrap{padding:0}
+html body #sectionConnect #cnMyTeam.mt-wrap:empty{display:none;margin:0}
+/* intro reserves just enough height for the Requests + Create Team stack, so the search bar sits right under it */
+html body #sectionConnect .cn-shell:has(#cnTsub:not(.hidden)) .cn-intro{padding-right:160px;min-height:88px;margin-bottom:6px}
 </style>
 </body>
 </html>

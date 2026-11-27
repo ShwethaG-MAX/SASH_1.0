@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "version": "1.3.2",
-  "releaseUrl": "https://cse-c-hub.web.app/app-releases/1.3.2.zip",
-  "sha256": "d6c269603eab5c6f09f5a41c7c46bb2c065191793ca7c9c8625f33cf347ab68d",
-  "size": 1674327,
+  "version": "1.3.3",
+  "releaseUrl": "https://cse-c-hub.web.app/app-releases/1.3.3.zip",
+  "sha256": "be925fdc6a1ccc78e412e3e5cab4ff0b920579b838fcf659073e9cee9edb9370",
+  "size": 1674390,
   "minimumAppVersion": 8,
   "rollback": false,
-  "publishedAt": "2026-11-26T15:08:35.141Z",
-  "signature": "MEUCIQD872YNbvCILFJYyC3VCpj4wlVciJOf3DWCnrzWUIIxxQIgDde21rmY7k35cJHT67n9Rk4W54y7qLu7lJsAdIZzmJk="
+  "publishedAt": "2026-11-26T15:47:48.519Z",
+  "signature": "MEUCIAmxZ22BtvaBbMWKLCYAHEWhNVZxRBkKKWmuU1KomOscAiEAvPuFbMKRL3H5hy5DP5Ql6HP/wLZZDOOY95kfWgwygXU="
 }
