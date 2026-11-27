@@ -22105,7 +22105,7 @@ html body #sectionConnect .cn-shell:has(#cnTsub:not(.hidden)) .cn-intro{padding-
 
 /* ===== 4) Home: "Talk to Sheynix" - flowing olive -> blue gradient (same motion as Create Team) ===== */
 :root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk{
-  background:linear-gradient(90deg,#8A9B4A 0%,#6FA77E 25%,#4F8FE0 50%,#6FA77E 75%,#8A9B4A 100%);
+  background:linear-gradient(90deg,rgba(138,155,74,.62) 0%,rgba(111,167,126,.62) 25%,rgba(79,143,224,.62) 50%,rgba(111,167,126,.62) 75%,rgba(138,155,74,.62) 100%);
   background-size:200% 100%;background-repeat:repeat-x;background-position:0% 50%;
   animation:cnMkFlow 5s linear infinite;
   color:#0E1608;text-shadow:0 1px 0 rgba(255,255,255,.18);
@@ -22117,6 +22117,26 @@ html body #sectionConnect .cn-shell:has(#cnTsub:not(.hidden)) .cn-intro{padding-
   animation-duration:2s;
   box-shadow:0 0 0 3px rgba(138,155,74,.28),0 0 16px 3px rgba(111,167,126,.55),0 0 32px 8px rgba(79,143,224,.40),inset 0 1px 0 rgba(255,255,255,.4)}
 @media (prefers-reduced-motion:reduce){:root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk{animation:none}}
+
+/* ===== Section switcher icons: flowing gradient chips (same motion as Create Team / Talk to Sheynix). Home is untouched.
+   Campus = sky blue + navy blue · Connect = sky blue + pink. Lighter tones, slightly translucent. ===== */
+@keyframes secIcoFlow{from{background-position:0% 50%}to{background-position:200% 50%}}
+html body .sec-btn[data-sec="campus"] .sec-ico,
+html body .sec-btn[data-sec="connect"] .sec-ico{
+  background-size:200% 100%;background-repeat:repeat-x;background-position:0% 50%;
+  animation:secIcoFlow 5s linear infinite;color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+html body .sec-btn[data-sec="campus"] .sec-ico{
+  background-image:linear-gradient(90deg,rgba(125,211,252,1) 0%,rgba(56,102,190,1) 25%,rgba(30,58,138,1) 50%,rgba(56,102,190,1) 75%,rgba(125,211,252,1) 100%)}
+html body .sec-btn[data-sec="connect"] .sec-ico{
+  background-image:linear-gradient(90deg,rgba(125,211,252,1) 0%,rgba(186,170,240,1) 25%,rgba(249,168,212,1) 50%,rgba(186,170,240,1) 75%,rgba(125,211,252,1) 100%)}
+html body .sec-btn[data-sec="campus"] .sec-ico svg,
+html body .sec-btn[data-sec="connect"] .sec-ico svg{filter:drop-shadow(0 1px 1.5px rgba(10,20,60,.45))}
+html body .sec-btn[data-sec="campus"]:hover .sec-ico,
+html body .sec-btn[data-sec="connect"]:hover .sec-ico{animation-duration:2.2s}
+html body .sec-btn[data-sec="campus"].active .sec-ico{box-shadow:0 4px 12px -4px rgba(56,102,190,.65),inset 0 1px 0 rgba(255,255,255,.4)}
+html body .sec-btn[data-sec="connect"].active .sec-ico{box-shadow:0 4px 12px -4px rgba(244,114,182,.6),inset 0 1px 0 rgba(255,255,255,.4)}
+@media (prefers-reduced-motion:reduce){html body .sec-btn[data-sec="campus"] .sec-ico,html body .sec-btn[data-sec="connect"] .sec-ico{animation:none}}
 
 /* ===== 5) Events: Saved / Registered open as their own full-screen window (with Back) ===== */
 body.cn-evp-open #cnModeWrap{visibility:hidden}
