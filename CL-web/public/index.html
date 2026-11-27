@@ -22014,30 +22014,48 @@ html body #sectionConnect #cnEview .cn-evl{font-size:.68rem;font-weight:700;lett
 html body #sectionConnect #cnEview .cn-tab.cn-rq-mini .n{position:absolute;top:-6px;right:-6px;display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;border-radius:99px;font-size:.62rem}
 html body #sectionConnect .cn-shell:has(#cnEview:not(.hidden)) .cn-intro{padding-right:172px}
 
-/* ===== 2) Teams: bigger Create Team button with gradient + glow (hover / focus / press) ===== */
+/* ===== 2) Teams: bigger Create Team button - flowing blue -> pink gradient, glow on hover / focus / press ===== */
+@keyframes cnMkFlow{from{background-position:0% 50%}to{background-position:200% 50%}}
 html body #sectionConnect #cnTsub .cn-mk{
   gap:7px;padding:9px 19px;font-size:.9rem;
-  background:linear-gradient(120deg,#7950D9 0%,#8B65E8 30%,#B07CFF 65%,#E879F9 100%);
-  background-size:230% 100%;background-position:0% 50%;
-  box-shadow:0 6px 14px -8px rgba(121,80,217,.6),inset 0 1px 0 rgba(255,255,255,.28);
-  transition:background-position .45s ease,box-shadow .25s ease,transform .2s ease}
+  background:linear-gradient(90deg,#3B82F6 0%,#6D5EF5 25%,#C45BE8 50%,#F472B6 75%,#3B82F6 100%);
+  background-size:200% 100%;background-repeat:repeat-x;background-position:0% 50%;
+  animation:cnMkFlow 4.5s linear infinite;
+  text-shadow:0 1px 2px rgba(20,10,60,.35);
+  box-shadow:0 6px 14px -8px rgba(99,102,241,.65),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:box-shadow .25s ease,transform .2s ease}
 html body #sectionConnect #cnTsub .cn-mk svg{width:16px;height:16px;stroke-width:2.6;transition:transform .3s ease}
 html body #sectionConnect #cnTsub .cn-mk:hover,
 html body #sectionConnect #cnTsub .cn-mk:focus-visible,
 html body #sectionConnect #cnTsub .cn-mk:active{
-  background-position:100% 50%;transform:translateY(-1px);
-  box-shadow:0 0 0 3px rgba(167,139,250,.30),0 0 16px 3px rgba(167,139,250,.65),0 0 34px 8px rgba(232,121,249,.38),inset 0 1px 0 rgba(255,255,255,.4)}
+  animation-duration:1.8s;transform:translateY(-1px);
+  box-shadow:0 0 0 3px rgba(129,140,248,.30),0 0 16px 3px rgba(96,165,250,.60),0 0 34px 8px rgba(244,114,182,.42),inset 0 1px 0 rgba(255,255,255,.4)}
 html body #sectionConnect #cnTsub .cn-mk:hover svg,
 html body #sectionConnect #cnTsub .cn-mk:focus-visible svg{transform:rotate(90deg)}
 html body #sectionConnect #cnTsub .cn-mk:active{transform:scale(.97)}
 html body #sectionConnect #cnTsub .cn-mk:focus-visible{outline:2px solid #C4B5FD;outline-offset:3px}
-@media (prefers-reduced-motion:reduce){html body #sectionConnect #cnTsub .cn-mk,html body #sectionConnect #cnTsub .cn-mk svg{transition:none}html body #sectionConnect #cnTsub .cn-mk:hover,html body #sectionConnect #cnTsub .cn-mk:active{transform:none}}
+@media (prefers-reduced-motion:reduce){html body #sectionConnect #cnTsub .cn-mk{animation:none}html body #sectionConnect #cnTsub .cn-mk,html body #sectionConnect #cnTsub .cn-mk svg{transition:none}html body #sectionConnect #cnTsub .cn-mk:hover,html body #sectionConnect #cnTsub .cn-mk:active{transform:none}}
 
 /* ===== 3) Teams: remove the blank band (empty "My Team" <section> inherited the global 64px section padding) ===== */
 html body #sectionConnect #cnMyTeam.mt-wrap{padding:0}
 html body #sectionConnect #cnMyTeam.mt-wrap:empty{display:none;margin:0}
 /* intro reserves just enough height for the Requests + Create Team stack, so the search bar sits right under it */
 html body #sectionConnect .cn-shell:has(#cnTsub:not(.hidden)) .cn-intro{padding-right:160px;min-height:88px;margin-bottom:6px}
+
+/* ===== 4) Home: "Talk to Sheynix" - flowing olive -> blue gradient (same motion as Create Team) ===== */
+:root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk{
+  background:linear-gradient(90deg,#8A9B4A 0%,#6FA77E 25%,#4F8FE0 50%,#6FA77E 75%,#8A9B4A 100%);
+  background-size:200% 100%;background-repeat:repeat-x;background-position:0% 50%;
+  animation:cnMkFlow 5s linear infinite;
+  color:#0E1608;text-shadow:0 1px 0 rgba(255,255,255,.18);
+  box-shadow:0 6px 14px -8px rgba(79,143,224,.55),inset 0 1px 0 rgba(255,255,255,.28);
+  transition:box-shadow .25s ease,transform .2s ease}
+:root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk:hover,
+:root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk:focus-visible,
+:root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk:active{
+  animation-duration:2s;
+  box-shadow:0 0 0 3px rgba(138,155,74,.28),0 0 16px 3px rgba(111,167,126,.55),0 0 32px 8px rgba(79,143,224,.40),inset 0 1px 0 rgba(255,255,255,.4)}
+@media (prefers-reduced-motion:reduce){:root[data-appearance="default"] #homeMode #living-avatar .av-actions .av-talk{animation:none}}
 </style>
 </body>
 </html>
