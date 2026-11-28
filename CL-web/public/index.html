@@ -5499,6 +5499,8 @@ const SY_CSBS_RESOURCES = (function(){ const rows = [["24CB360","Drive Folder","
   return rows.map((r,i)=>({id:'csbs-'+(i+1), subject:r[0], category:r[1], title:r[2], desc:'', url:r[3], icon:r[4]})); })();
 // Second-year ISE: the "All Subject Syllabus" banner (same banner CSE shows) — one combined syllabus file for the branch.
 const SY_SYLLABUS_ALL = {
+  // Second-year CSBS: each subject's own 'Syllabus' file (from the study-materials sheet) powers that subject card's "View Syllabus" link; subjects without a syllabus file keep "Syllabus coming soon".
+  CSBS: SY_CSBS_RESOURCES.filter(r=>r.category==='Syllabus').map(r=>{ const sj=SY_STUDY_SUBJECTS.CSBS.find(x=>x.code===r.subject); return sj ? {subject:sj.name, url:r.url} : null; }).filter(Boolean),
   ISE: [{subject:'All Subjects', title:'All Subject Syllabus', description:'Complete syllabus collection for all subjects in one place.', url:'https://drive.google.com/file/d/1SQDvEDoy5fAtcd7FeqHrbRk4qGqkTZJv/view?usp=sharing', highlight:true}],
   // Second-year CSE AIML: one syllabus file per subject (subject = exact name in SY_STUDY_SUBJECTS.CSEAIML → shows "View Syllabus" on the subject card).
   CSEAIML: [
@@ -5520,7 +5522,7 @@ function studyScopeApply(){
   if(ACAD && String(ACAD.year) === '2' && SY_STUDY_SUBJECTS[ACAD.branch]){
     subjects.splice(0, subjects.length, ...SY_STUDY_SUBJECTS[ACAD.branch]);
     resources.splice(0, resources.length, ...(ACAD.branch === 'CSEAIML'
-      ? syCseResSnap.filter(r=>SY_AIML_COPY_CODES[r.subject]).map(r=>({...r, id:'aiml-'+r.id, subject:SY_AIML_COPY_CODES[r.subject]})) : (ACAD.branch === 'CSBS' ? SY_CSBS_RESOURCES.slice() : [])));
+      ? syCseResSnap.filter(r=>SY_AIML_COPY_CODES[r.subject]).map(r=>({...r, id:'aiml-'+r.id, subject:SY_AIML_COPY_CODES[r.subject]})) : (ACAD.branch === 'CSBS' ? SY_CSBS_RESOURCES.filter(r=>r.category!=='Syllabus') : [])));
     syllabus.splice(0, syllabus.length, ...(SY_SYLLABUS_ALL[ACAD.branch] || []));
     return;
   }
