@@ -4304,8 +4304,8 @@ html.ws-on .mg-scene,html.ws-on .mg-scene *,html.ws-on .mg-grid,html.ws-on .mg-n
       <button type="button" class="cn-tab cn-rq-mini" data-cnpsub="requests" title="Connection requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnConN" aria-label="pending connection requests"></span></button>
     </div>
     <div class="cn-subtabs hidden" id="cnTsub" data-no-motion role="tablist" aria-label="Teams sections">
-      <button type="button" class="cn-tab cn-rq-mini" role="tab" data-cntsub="requests" title="Team requests and invitations" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnRqN" aria-label="pending team requests and invitations"></span></button>
       <button type="button" class="cn-mk" data-cncreate="1" title="Create a team"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create Team</button>
+      <button type="button" class="cn-tab cn-rq-mini" role="tab" data-cntsub="requests" title="Team requests and invitations" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Requests<span class="rq-n hidden" id="cnRqN" aria-label="pending team requests and invitations"></span></button>
     </div>
     <div class="cn-evicons hidden" id="cnEview" data-no-motion role="group" aria-label="Saved and registered events"></div>
     <section class="mt-wrap hidden" id="cnMyTeam" aria-label="My Team"></section>
@@ -19821,6 +19821,94 @@ root.addEventListener('click', function(e){
   if(bk){ go(bk.dataset.cnback, bk.dataset.cnback); return; }   /* Back from Requests: People → Discover, Teams → My Team */
   if(s) go(s.dataset.cnsub, null); else if(ps) go('people', ps.dataset.cnpsub); else if(ts) go('teams', (ts.dataset.cntsub === 'requests' && st.tab === 'teams' && st.tsub === 'requests') ? 'teams' : ts.dataset.cntsub);   /* Requests is a toggle: tap again to go back to the teams */
 });
+/* ---------- Swipe between the Connect modes (phones): People | Teams | Events | Articles ----------
+   Same gesture as Campus: horizontal drag follows the finger 1:1, release past 50px (or a quick flick) switches to the
+   neighbouring mode, otherwise it springs back; first/last mode rubber-bands. Connect swaps panes inside one page, so the
+   page content slides out, the new mode renders while it is off-screen, then slides in from the other side. */
+(function(){
+  var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  var shell = root.querySelector('.cn-shell');
+  if(!isTouch || !shell) return;
+  var THRESH = 50, FLING_V = 0.45, RUBBER = 0.3, RUBBER_MAX = 70, EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)';
+  var SKIP = 'input, textarea, select, [contenteditable="true"], .cn-subtabs, #cnEview, #cnModeWrap, [role="dialog"], [aria-modal="true"], [class*="-ov"], [class*="overlay"], [class*="modal"]';
+  var reducedMQ = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var canAnimate = typeof shell.animate === 'function';
+  var tracking = false, decided = null, startX = 0, startY = 0, dx = 0, lastX = 0, lastT = 0, vx = 0, raf = 0, busy = false, anims = [];
+
+  function neighbour(sign){ var i = TABS.indexOf(st.tab); return i < 0 ? null : (TABS[sign < 0 ? i + 1 : i - 1] || null); }   // finger left → next, finger right → previous
+  function hScroller(el){
+    for(; el && el !== root && el !== document.body; el = el.parentElement){
+      if(el.scrollWidth > el.clientWidth + 2){ var ox = getComputedStyle(el).overflowX; if(ox === 'auto' || ox === 'scroll') return true; }
+    }
+    return false;
+  }
+  function blocked(t){
+    if(!active() || window.__tourActive || sw.open || busy) return true;
+    var b = document.body.classList;
+    if(b.contains('cn-modal-open') || b.contains('cn-evp-open') || document.querySelector('#evPage.on, .rg-ov')) return true;
+    var ns = t.closest('[data-no-swipe]'); if(ns && ns !== root) return true;       // the section itself is marked for the Campus layer; nested overlays are not ours
+    return !!t.closest(SKIP) || hScroller(t);
+  }
+  function setX(x){ shell.style.transform = 'translate3d(' + x + 'px,0,0)'; }
+  function reset(){
+    anims.forEach(function(a){ a.onfinish = null; try{ a.cancel(); }catch(e){} }); anims = [];
+    shell.style.transform = ''; root.style.overflowX = ''; busy = false;
+  }
+  function frame(){ raf = 0; if(!tracking || decided !== 'horizontal') return;
+    var x = neighbour(dx < 0 ? -1 : 1) ? dx : Math.max(-RUBBER_MAX, Math.min(RUBBER_MAX, dx * RUBBER));
+    setX(x);
+  }
+  function slide(from, to, ms, done){
+    if(!canAnimate){ setX(to); done(); return; }
+    var a = shell.animate([{transform: 'translate3d(' + from + 'px,0,0)'}, {transform: 'translate3d(' + to + 'px,0,0)'}], {duration: ms, easing: EASE, fill: 'forwards'});
+    anims.push(a); a.onfinish = function(){ done(); };
+  }
+  function release(cancelled){
+    if(raf){ cancelAnimationFrame(raf); raf = 0; }
+    var sign = dx < 0 ? -1 : 1, W = root.clientWidth || window.innerWidth;
+    var fling = Math.abs(vx) > FLING_V && Math.abs(dx) >= 24 && vx * sign > 0;
+    var next = (!cancelled && (Math.abs(dx) >= THRESH || fling) && !(vx * sign < -0.2)) ? neighbour(sign) : null;
+    var x0 = neighbour(sign) ? Math.max(-W, Math.min(W, dx)) : Math.max(-RUBBER_MAX, Math.min(RUBBER_MAX, dx * RUBBER));
+    busy = true;
+    if(!next){ slide(x0, 0, 240, reset); return; }                                       // not far enough / no neighbour: spring back
+    if(reducedMQ && reducedMQ.matches){ reset(); go(next, next === 'teams' ? 'teams' : null); jumpToTop(); return; }
+    slide(x0, sign * W, Math.round(160 + 90 * Math.min(1, Math.abs(sign * W - x0) / W)), function(){   // slide out …
+      anims.forEach(function(a){ a.onfinish = null; try{ a.cancel(); }catch(e){} }); anims = [];
+      setX(-sign * W);                                                                   // … new mode renders while off-screen …
+      go(next, next === 'teams' ? 'teams' : null); jumpToTop();
+      requestAnimationFrame(function(){ slide(-sign * W, 0, 280, reset); });             // … and slides in from the other side
+    });
+  }
+  root.addEventListener('touchstart', function(e){
+    tracking = false; try{ swallowClickUntil = 0; }catch(x){}
+    if(e.touches.length !== 1 || blocked(e.target)) return;
+    var t = e.touches[0]; startX = t.clientX; startY = t.clientY; dx = 0; lastX = 0; lastT = e.timeStamp; vx = 0; tracking = true; decided = null;
+  }, {passive:true});
+  root.addEventListener('touchmove', function(e){
+    if(!tracking || e.touches.length !== 1) return;
+    var t = e.touches[0], mx = t.clientX - startX, my = t.clientY - startY;
+    if(decided === null){
+      if(Math.abs(mx) < 10 && Math.abs(my) < 10) return;
+      decided = Math.abs(mx) > Math.abs(my) ? 'horizontal' : 'vertical';
+      if(decided === 'vertical'){ tracking = false; return; }                           // let the page scroll normally
+      root.style.overflowX = 'clip';                                                     // the off-screen half never widens the page
+    }
+    var dt = e.timeStamp - lastT; if(dt > 0) vx = 0.5 * vx + 0.5 * ((mx - lastX) / dt);
+    lastX = mx; lastT = e.timeStamp; dx = mx;
+    if(e.cancelable) e.preventDefault();                                                 // clearly horizontal: take it from the browser
+    if(!raf) raf = requestAnimationFrame(frame);
+  }, {passive:false});
+  root.addEventListener('touchend', function(){
+    if(!tracking) return; tracking = false;
+    if(decided !== 'horizontal'){ decided = null; return; }
+    decided = null; try{ swallowClickUntil = performance.now() + 400; }catch(x){}        // the drag must not also click the card it started on
+    release(false);
+  }, {passive:true});
+  root.addEventListener('touchcancel', function(){
+    var was = tracking && decided === 'horizontal'; tracking = false; decided = null;
+    if(was) release(true);
+  }, {passive:true});
+})();
 window.addEventListener('hashchange', function(){ var r = parse(location.hash.replace('#', '')); if(r) go(r[0], r[1], {noHash:true}); });
 window.addEventListener('cse:sectionchange', function(e){ var d = e.detail || {};
   if(d.section === 'connect'){ sync(); if(d.previous !== 'connect') setHash(); }
