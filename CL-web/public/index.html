@@ -5093,14 +5093,15 @@ const FY_BRANCHES = [
   { id: 'CSBS',   name: 'CSBS – Computer Science and Business Systems',                            sections: ['R1','R2'] },
 ];
 // Second-year branches (Semester III). CSE keeps its original sections A–G (stored as plain letters, unchanged).
-// CSE AIML (section H) and ISE (sections A, B, C) are stored under namespaced keys — see sySecKey() — so ISE A/B/C never collide with CSE A/B/C.
+// CSE AIML (section H), ISE (sections A, B, C) and CSBS (sections A, B) are stored under namespaced keys — see sySecKey() — so ISE A/B/C never collide with CSE A/B/C.
 const SY_BRANCHES = [
   { id: 'CSE',     name: 'CSE – Computer Science and Engineering', sections: ['A','B','C','D','E','F','G'] },
   { id: 'CSEAIML', name: 'CSE AIML – Computer Science and Engineering (Artificial Intelligence and Machine Learning)', sections: ['H'] },
   { id: 'ISE',     name: 'ISE – Information Science and Engineering', sections: ['A','B','C'] },
+  { id: 'CSBS',    name: 'CSBS – Computer Science and Business Systems', sections: ['A','B'] },
   // Every other branch offered in first year is also selectable in second year. They have no sections, timetable or study materials yet
   // ('Available in future'); quizOnly = name-only profile, every other Campus Loop feature (quiz, chats, Connect, events, calendar …) works as usual.
-  ...FY_BRANCHES.filter(b => ['CSE','CSEAIML','ISE'].indexOf(b.id) === -1).map(b => ({ id: b.id, name: b.name, sections: [], quizOnly: true })),
+  ...FY_BRANCHES.filter(b => ['CSE','CSEAIML','ISE','CSBS'].indexOf(b.id) === -1).map(b => ({ id: b.id, name: b.name, sections: [], quizOnly: true })),
 ];
 
 // Internal (stored / Firestore) section key. Second-year keys stay the plain letters A–G (unchanged, backward compatible).
@@ -5388,7 +5389,7 @@ return {AVAILABLE_SEMESTERS,ACADEMIC_YEARS,FY_CYCLES,FY_BRANCHES,SY_BRANCHES,fyS
 const {AVAILABLE_SEMESTERS,ACADEMIC_YEARS,FY_CYCLES,FY_BRANCHES,SY_BRANCHES,fySecKey,fySecLabel,FY_ALL_SECTION_LABELS,FY_SECTION_KEYS,FY_TT,FY_SUBJECTS,FY_VERIFY,FY_SECTION_CYCLE} = __FYD;
 
 // Second-year sections of the non-CSE branches: stored / Firestore key 'SY-<BRANCH>_<SECTION>' (SY-ISE_A, SY-ISE_B, SY-ISE_C, SY-AIML_H).
-const SY_KEY_TAG = { CSEAIML:'AIML', ISE:'ISE' };
+const SY_KEY_TAG = { CSEAIML:'AIML', ISE:'ISE', CSBS:'CSBS' };
 function sySecKey(branch, label){ return 'SY-' + (SY_KEY_TAG[branch] || branch) + '_' + label; }
 const SY_SECTION_INFO = {};   // key -> {branch, label}
 SY_BRANCHES.forEach(b=>{ if(b.id !== 'CSE') b.sections.forEach(l=>{ SY_SECTION_INFO[sySecKey(b.id, l)] = {branch:b.id, label:l}; }); });
@@ -5464,6 +5465,16 @@ function fyStudySubjects(cycle, branch){
 // Swap the study data in place (first-year shows first-year subjects only; no second-year material can leak in).
 // Second-year ISE / CSE AIML: subject cards follow each branch's timetable (theory subjects only, official titles). No links, no CSE material.
 const SY_STUDY_SUBJECTS = {
+  CSBS: [
+    {code:'24CB310', name:'Formal Language & Automata Theory', icon:'🔣', desc:'Automata, regular languages, grammars and the theory of computation.'},
+    {code:'24CB320', name:'Computer Organization & Architecture', icon:'🖥️', desc:'How hardware and instructions actually work together.'},
+    {code:'24CB330', name:'Object Oriented Programming', icon:'💻', desc:'Classes, objects, inheritance and polymorphism.'},
+    {code:'24CB340', name:'Computational Statistics', icon:'📊', desc:'Probability, statistical inference and data analysis with computation.'},
+    {code:'24CB350', name:'Software Engineering', icon:'🛠️', desc:'Requirements, design, testing and the process of building software.'},
+    {code:'24CB360', name:'Financial & Cost Accounting', icon:'💰', desc:'Financial statements, cost concepts and accounting for business systems.'},
+    {code:'24HU311', name:'Universal Human Values (UHV)-II', icon:'🤝', desc:'Human values, ethics and harmony in self, family, society and nature.'},
+    {code:'SEP', name:'Sem Exam Papers', icon:'📝', desc:'Semester End Examination (SEE) question papers for all subjects.'},
+  ],
   ISE: [
     {code:'24MA313', name:'Engineering Mathematics III', icon:'📐', desc:'Core mathematics for engineering problem solving.'},
     {code:'24IS310', name:'Computer Organization & Architecture', icon:'🖥️', desc:'How hardware and instructions actually work together.'},
@@ -5483,6 +5494,9 @@ const SY_STUDY_SUBJECTS = {
     {code:'25HU311', name:'Universal Human Values', icon:'🤝', desc:'Human values, ethics and harmony in self, family, society and nature.'},
   ],
 };
+// CSBS Second Year study links (source: "Campus Loop - CSBS Second Year Study Materials" sheet). category = the folder shown inside the subject card.
+const SY_CSBS_RESOURCES = (function(){ const rows = [["24CB360","Drive Folder","Financial & Cost Accounting – full Drive folder","https://drive.google.com/drive/folders/11PbxGDI07btsmIKyQh4YBeh5S-gjkp0V","📁"],["24CB360","Syllabus","Syllabus","https://drive.google.com/file/d/1i5Sb7AuD3NknJwtGiF48PjXcWEiGG3Np/view?usp=drivesdk","📋"],["24CB360","Notes","F .M full notes","https://drive.google.com/file/d/1n7fwP9akeOu-XtapC96Sc5Tfv66caLha/view?usp=drivesdk","📄"],["24CB360","Notes","Notes","https://drive.google.com/file/d/1DKwDdu8IpmSKboK9to84pNDtY3lEnKgp/view?usp=drivesdk","📄"],["24CB360","Notes","1st half","https://drive.google.com/file/d/1lGesxutzBK0mlTYxpJhYdYQnO-LKoKpj/view?usp=drivesdk","📄"],["24CB360","Notes","2nd half","https://drive.google.com/file/d/1f2kBWgXRQwWxkQMNOhqovh7advwOZ4zu/view?usp=drivesdk","📄"],["24CB360","Notes","FM_CIE_2","https://drive.google.com/file/d/1veNLQ0Gox5SS-tYtRuXpp7IxcgFFKTXx/view?usp=drivesdk","📄"],["24CB360","CIE Portion","CIE 2 portion","https://drive.google.com/file/d/1adcJdaHHj_G5od1G-qQpkm5HBnT_WhhR/view?usp=drivesdk","🎯"],["24CB360","Question Paper","Question Paper – Drive folder","https://drive.google.com/drive/folders/140-yng0NyS6RhG__Dsp0qYH2jQUTns-m","📁"],["24CB360","Question Paper","CIE 1 PAPER","https://drive.google.com/file/d/18cFky2CmeMDCc2DcE-B0nrxWHbaM0noW/view?usp=drivesdk","📝"],["24CB360","Question Paper","CIE 1 RETEST","https://drive.google.com/file/d/1p36VG0IeprK2Z71gFrnbpeXCKwgmP4Je/view?usp=drivesdk","📝"],["24CB360","Question Paper","CIE 2 PAPER","https://drive.google.com/file/d/133kKobzXE_YtqUu0j20NagKBrCQvW9Lt/view?usp=drivesdk","📝"],["24HU311","Drive Folder","Universal Human Values – full Drive folder","https://drive.google.com/drive/folders/1mHnIFt2PJwYu0mViDm851x97wlIq00fl","📁"],["24HU311","Syllabus","Syllabus","https://drive.google.com/file/d/1macbIhL84-vcfEYsWffu2XFR9KsCcWBF/view?usp=drivesdk","📋"],["24HU311","Report Templates","Template","https://docs.google.com/presentation/d/1fdM9ouUfVi6FcP7icDo0BEyalG93kXiW/edit?usp=drivesdk&rtpof=true&sd=true","📊"],["24HU311","Report Templates","Phase -1 Report Format","https://docs.google.com/document/d/1SmU5K8WStqUbH_fseF4VFG-zkdUxtCD1/edit?usp=drivesdk&rtpof=true&sd=true","📝"],["24HU311","Notes","Notes – Drive folder","https://drive.google.com/drive/folders/1SmmLHICTd8hNtaY0pRDy0pDdhZ81vJTV","📁"],["24HU311","Notes","Chapter 1","https://drive.google.com/file/d/1fbx1UtZZQKY5tw2rtHCa0RjqxWGA1Yjt/view?usp=drivesdk","📄"],["24HU311","Notes","UHV Handout 1-Introduction to Value Education-1","https://drive.google.com/file/d/1-pmI9B533qK-yMGC1Gs0C3w1TY63mMsa/view?usp=drivesdk","📄"],["24HU311","Notes","UHV Handout 2-Harmony in the Human Being","https://drive.google.com/file/d/1tspV442iYucWnzbhSw_R0WFnufcMGJSp/view?usp=drivesdk","📄"],["24HU311","Notes","UHV Handout 3-Harmony in the Family","https://drive.google.com/file/d/15SiVfSfzrNoDJutDAFi-9o_LXZE4qKwz/view?usp=drivesdk","📄"],["24HU311","Notes","UHV Handout 4-Harmony in the Society","https://drive.google.com/file/d/1RlDwZWb0wIvXcMZYlgjtP8xgagOR7Y7K/view?usp=drivesdk","📄"],["24HU311","Notes","UHV Unit 5-Harmony in the Nature and Existence","https://drive.google.com/file/d/119oGE4Huhv6mvfVwp1i8DBYB-Kn-zxq4/view?usp=drivesdk","📄"],["24HU311","Question Paper","Question Paper – Drive folder","https://drive.google.com/drive/folders/1QNm8lr_C9bCgkszEadyE9TSsnXOhETTl","📁"],["24HU311","Question Paper","CIE 1 PAPER","https://drive.google.com/file/d/1JfFM1viMpX0MyuSJVdtZLX9d9PdRwjZm/view?usp=drivesdk","📝"],["24HU311","Question Paper","CIE 2 UHV","https://drive.google.com/file/d/1kKyxPfdkFFpnUxx3RTp4ZCNih-baa0vo/view?usp=drivesdk","📝"],["24CB350","Drive Folder","Software Engineering – full Drive folder","https://drive.google.com/drive/folders/11kARwnt9gxuMvZOqhpPjSMiJpGQFeRpl","📁"],["24CB350","Syllabus","Syllabus","https://drive.google.com/file/d/1SNzizeJmJv382v_hZTeK0DJaUfBzjGs3/view?usp=drivesdk","📋"],["24CB350","Textbook","Software Engineering Book","https://drive.google.com/file/d/1xyRpB11QeEavxCp7tF5fnqtFTn2HTsw4/view?usp=drivesdk","📚"],["24CB350","Notes","S.E full notes","https://drive.google.com/file/d/1z5L1xwfaG-B1M34ehgXPpPksEJ3iIbNX/view?usp=drivesdk","📄"],["24CB350","Notes","SE module1","https://drive.google.com/file/d/1ci99RXQXfsoDJYXR8YylIxbOLkQDurY3/view?usp=drivesdk","📄"],["24CB350","Notes","Notes","https://drive.google.com/file/d/1sXGA0_aqLMDRTYgEI-byBS8OoBb6KGLu/view?usp=drivesdk","📄"],["24CB350","Notes","unit 3 & 4 imp notes","https://drive.google.com/file/d/1HZ-nGzV_ppb8-s5FXyR0jSUTzqIkq_QY/view?usp=drivesdk","📄"],["24CB350","Notes","CIE 2 KA liya kuch toh","https://drive.google.com/file/d/1SJzOMU_OjEiECQrb6gm0LAlU6lR6qShb/view?usp=drivesdk","📄"],["24CB350","Notes","Software Engineering_Notes","https://docs.google.com/document/d/1AcBVuvTbOGm40YtgcieQf_g16TabSePg/edit?usp=drivesdk&rtpof=true&sd=true","📝"],["24CB350","Notes / Handwritten","Handwritten Notes Senior","https://drive.google.com/file/d/18Y1h8cMGUOu6ZW1aONBG6WESRC3eIyQX/view?usp=drivesdk","✍️"],["24CB350","CIE Portion","cie 2 portion","https://drive.google.com/file/d/1uUJotm5iSz8zyUU8-Th2yWlmtLbk1v5h/view?usp=drivesdk","🎯"],["24CB350","Question Paper","Question Paper – Drive folder","https://drive.google.com/drive/folders/1X7nDtkFwEg1B1eI8U6Ng11LM7s1zWQry","📁"],["24CB350","Question Paper","CIE 1 Paper","https://drive.google.com/file/d/1D2ZrAu6yC4nqc1jV3JazVlRB2OjJz37P/view?usp=drivesdk","📝"],["24CB350","Question Paper","CIE 2 PAPER","https://drive.google.com/file/d/19_0vA7EmlGHEDrm69l2544msZ9o0XMMW/view?usp=drivesdk","📝"],["24CB350","Question Bank","Question Bank (1)","https://drive.google.com/file/d/1z7iel4lfS32o1MpNtv7kjYt2jGC_N80f/view?usp=drivesdk","❓"],["24CB350","Question Bank","Question Bank (2)","https://drive.google.com/file/d/1q4BBE7hewUGNSrn4iId6mViZz59qRXB1/view?usp=drivesdk","❓"],["24CB350","Question Bank","Question bank for unit 1","https://drive.google.com/file/d/1MKdFRoW5EefsSIuJ39NgjWC_TumSlJH-/view?usp=drivesdk","❓"],["24CB350","Question Bank","Question for unit 3 & 4","https://drive.google.com/file/d/1l_1Qu4-AOsAUKjD8ifVWNaDfnA24L0CM/view?usp=drivesdk","❓"],["24CB340","Drive Folder","Computational Statistics – full Drive folder","https://drive.google.com/drive/folders/1B4R6wHUnkiWGzkUQfitieXluiOlotBQ2","📁"],["24CB340","Syllabus","Syllabus","https://drive.google.com/file/d/1ESer9JHYfFJI12tzPgEhL1jRqp8KMGCI/view?usp=drivesdk","📋"],["24CB340","Notes","1st chapter","https://drive.google.com/file/d/1Ty9ftMHlSYPfaU3XWKNGpCkOTmegqzI3/view?usp=drivesdk","📄"],["24CB340","Notes","unit 2- 1st part","https://drive.google.com/file/d/1G6OnUL45v5VEyeeQ3_3UPw9cPWysPQwZ/view?usp=drivesdk","📄"],["24CB340","Notes","compStat1","https://drive.google.com/file/d/1DAVpyaqNEAvOYTi05GSRxjJiLqJuK3tE/view?usp=drivesdk","📄"],["24CB340","Notes / Handwritten","Handwritten Notes Seniors","https://drive.google.com/file/d/1CfIMwAo_ozET97UD3_9jz9Uk5pSMajvN/view?usp=drivesdk","✍️"],["24CB340","CIE Portion","cie 2 portion","https://drive.google.com/file/d/1Xi7nuYxIFL_iotN4VA7YFcCM0OMQfKTJ/view?usp=drivesdk","🎯"],["24CB340","Assignment","Self Learning Components Solution","https://drive.google.com/file/d/1wjiOmwJxC37_3uAsZOTlz8441H4gBDa-/view?usp=drivesdk","✅"],["24CB340","PPT","PPT – Drive folder","https://drive.google.com/drive/folders/1pdMX6m9yZjvVqRXpI5atoCCcsxi9w7Ve","📁"],["24CB340","PPT","unit-2 second part","https://docs.google.com/presentation/d/1u-TgHuV_vgiZyTJqLKwm6iP-4GrCNqx-/edit?usp=drivesdk&rtpof=true&sd=true","📊"],["24CB340","PPT","unit-3","https://docs.google.com/presentation/d/1khlpQm1lsWVHXVnprKsXtaDcAUg5tWaW/edit?usp=drivesdk&rtpof=true&sd=true","📊"],["24CB340","PPT","unit-4","https://docs.google.com/presentation/d/1f_uGKMD_8y1islNNRKVzD75Yy8QY7cGU/edit?usp=drivesdk&rtpof=true&sd=true","📊"],["24CB340","PPT","unit 5","https://docs.google.com/presentation/d/1YpZSqdvFBVR5SbzlIqme654GePkMjPOl/edit?usp=drivesdk&rtpof=true&sd=true","📊"],["24CB340","Question Paper","Question Paper – Drive folder","https://drive.google.com/drive/folders/1RxKsuSzgjA_KEp0Rn3UWPJwmetx-qs7s","📁"],["24CB340","Question Paper","CIE 1 paper","https://drive.google.com/file/d/1RvhDHARdM9RQ05Xlgt4RRrSRaE69xODu/view?usp=drivesdk","📝"],["24CB340","Question Paper","CIE 2 PAPER","https://drive.google.com/file/d/1RYlffc2VD29s7I99La_dN6Vofpvp6lO9/view?usp=drivesdk","📝"],["24CB340","Lab","Lab – Drive folder","https://drive.google.com/drive/folders/15-XP1vl6Mz_y94edumkdrJ2a5ZhFXOCj","📁"],["24CB340","Lab","LAB SYLLABUS","https://drive.google.com/file/d/1XNLOEQD9kgrfsP3edMnhDC6i0TtRj38l/view?usp=drivesdk","🖼️"],["24CB340","Lab","24CB340_lab manual","https://drive.google.com/file/d/1SIsGxP4RsjcYsZSdgA5kHhCM21TZOWgR/view?usp=drivesdk","🧪"],["24CB340","Lab","programs","https://drive.google.com/file/d/1NAsaSGBi06HixVqB2JPZ9iKyQkQngtWV/view?usp=drivesdk","💻"],["24CB340","Lab","1-8progams.ipynb","https://drive.google.com/file/d/1efMPhSx6cIDGcdG6Ulc07xDOqHhyrLV-/view?usp=drivesdk","💻"],["24CB340","Lab","Python Cheatsheet","https://drive.google.com/file/d/1fSm2Ojht-SuiU1zgjRxzSZ-6mkI-uqTz/view?usp=drivesdk","🐍"],["24CB340","Lab","codewithharry notes python","https://drive.google.com/file/d/1A0D0QPWvi32rb0rPIpCjsL4g9XEperwU/view?usp=drivesdk","🐍"],["24CB340","Lab","Python crash course pdf","https://drive.google.com/file/d/1W0xU7GFaCUvI81izyEkY_6vwPJHZ2u9w/view?usp=drivesdk","🐍"],["24CB330","Drive Folder","Object Oriented Programming – full Drive folder","https://drive.google.com/drive/folders/1yXBcHq_USkSkdN0lg2NbR2ydyH93rPb0","📁"],["24CB330","Syllabus","Syllabus","https://drive.google.com/file/d/1glMKvuVy4EoDfdiVQVVczFNVrIQmYv80/view?usp=drivesdk","📋"],["24CB330","Notes","Programming in C++ - Module 01","https://drive.google.com/file/d/1C-LzeAK3P8G9DomwgdKYyFMtsaibhq_q/view?usp=drivesdk","📄"],["24CB330","Notes","OOPs in C++","https://drive.google.com/file/d/1aH46TyLSiXhwawEOlu9JNAuydxbm-wmZ/view?usp=drivesdk","📄"],["24CB330","Notes","Oops Notes from beginning","https://drive.google.com/file/d/1wKhU1DxD4YbnlyDtYhJrdayD5dbijD_g/view?usp=drivesdk","📄"],["24CB330","Notes","C++ OOP Study Notes (Units 1–3)","https://drive.google.com/file/d/1r5gbDL0gLrCMsSfKK3Ry5alW7QXM7RZG/view?usp=drivesdk","📄"],["24CB330","Notes","1ST HALF NOTES","https://drive.google.com/file/d/1gE0RVkah8W_muoGA8Go0mmm0n2eAlKck/view?usp=drivesdk","📄"],["24CB330","Notes","oops event","https://drive.google.com/file/d/1lUsLSPUaxyaWwKKkx88mZ8d93LxdeDUO/view?usp=drivesdk","📄"],["24CB330","Notes","Event_problem_list_theory","https://drive.google.com/file/d/1Dy3WYgBxnu596J4BkF1uL7HArELGgLJo/view?usp=drivesdk","📄"],["24CB330","Notes / Handwritten","Handwritten notes Senior","https://drive.google.com/file/d/1hgZZv43VF2xhsegOKCrrjjll70vb_woi/view?usp=drivesdk","✍️"],["24CB330","Question Paper","Question Paper – Drive folder","https://drive.google.com/drive/folders/1sVgqhzZQKm4a-q7bsYbT5yRZjB_nphz4","📁"],["24CB330","Question Paper","CIE 1 OOPS","https://drive.google.com/file/d/15Ga6b3VoPj4_6ttyZIa9nc362uKtfXES/view?usp=drivesdk","📝"],["24CB330","Question Paper","CIE 2 PAPER","https://drive.google.com/file/d/1S7w0SxRctKmQ0dHWP3LxqINJjqqszsv-/view?usp=drivesdk","📝"],["24CB330","Lab","Lab – Drive folder","https://drive.google.com/drive/folders/1fbBKHTq24L4K4olyzalddzKCjYRqh4bS","📁"],["24CB330","Lab","LAB SYLLABUS","https://drive.google.com/file/d/1VZ-huojV-Vz3RKmVvPYcJUpbmC_db4pI/view?usp=drivesdk","📋"],["24CB330","Lab","lab micro","https://drive.google.com/file/d/1Y-D9A86xzWgAjUYUU7nfh1vhwkGFV3eW/view?usp=drivesdk","🧪"],["24CB330","Lab","oops_programs.zip","https://drive.google.com/file/d/1NZmjc2SZpuIv-9YKiGp__H6bkyDNwDho/view?usp=drivesdk","🗜️"],["24CB320","Drive Folder","Computer Organization & Architecture – full Drive folder","https://drive.google.com/drive/folders/19t861Lw_dap0gct8gA44pt1dLL3dLEIN","📁"],["24CB320","Notes","Evything covered imp notes","https://drive.google.com/file/d/10CDP5VAbvycu2M33BqkSHccCcVBoTFUO/view?usp=drivesdk","📄"],["24CB320","Notes","Full notes easy to study","https://drive.google.com/file/d/1BDgF2aIFOHDD5j1aoQwgL7N93QcsfHrr/view?usp=drivesdk","📄"],["SEP","Drive Folder","3rd Sem Notes – full Drive folder","https://drive.google.com/drive/folders/1HKJvjCYxwFL37Q18XwD2PBj7UzxigzNf","📁"],["SEP","Sem Exam Papers 2026","24CB Sem exam papers 2026 – Drive folder","https://drive.google.com/drive/folders/1s-gyUfIn4pFgAzHfolnu3ejDtH3-27F1","📁"],["SEP","Sem Exam Papers 2026","SEE 24CB310 – Formal Language & Automata Theory","https://drive.google.com/file/d/1HBAJXGu36JBJC8cRGcMUmscFy_whimLZ/view?usp=drivesdk","📝"],["SEP","Sem Exam Papers 2026","SEE 24CB320 – Computer Organization & Architecture","https://drive.google.com/file/d/12MtcsK4wOlKjFD9_MNFUvuP6EmFgqeHI/view?usp=drivesdk","📝"],["SEP","Sem Exam Papers 2026","SEE 24CB330 – Object Oriented Programming","https://drive.google.com/file/d/1SXL4DLpHN_gtRrERc0CJ-5dM80SENHE_/view?usp=drivesdk","📝"],["SEP","Sem Exam Papers 2026","SEE 24CB340 – Computational Statistics","https://drive.google.com/file/d/1SUJuLPPpfZ67MlPOg3ZXPskh7oO05s8l/view?usp=drivesdk","📝"],["SEP","Sem Exam Papers 2026","SEE 24CB350 – Software Engineering","https://drive.google.com/file/d/11J47EBNwiOm3gKrXNU1iGlHn5csvVEBk/view?usp=drivesdk","📝"],["SEP","Sem Exam Papers 2026","SEE 24CB360 – Financial & Cost Accounting","https://drive.google.com/file/d/1Kr1B0rHBntpJyLq0LyBSXRtOyuC_I0ip/view?usp=drivesdk","📝"],["SEP","Sem Exam Papers 2026","SEE 24HU311 – Universal Human Values (UHV)-II","https://drive.google.com/file/d/1h4qQPVTByVbIsSsFFEAHP0jkE72FEoN5/view?usp=drivesdk","📝"],["SEP","Semester End Paper","Semester End Paper – Drive folder","https://drive.google.com/drive/folders/1M9KiFvSFKvyIaphuGGLhgj2LYqsAUI2C","📁"],["SEP","Semester End Paper","2022 SEE PYQ","https://drive.google.com/file/d/14UaTuCI1VbDHCfufTH3Sypoj2AjR-lbR/view?usp=drivesdk","📝"],["24CB310","Drive Folder","Formal Language & Automata Theory – full Drive folder","https://drive.google.com/drive/folders/1P9IHAu4NjahKrgN_hp84jmqhm0KqD_GC","📁"],["24CB310","Syllabus","Syllabus","https://drive.google.com/file/d/1w2hrOy8i95wxTg3V1V32jgeXIu_Rjkk1/view?usp=drivesdk","📋"],["24CB310","Textbook","FLAT Textbook","https://drive.google.com/file/d/1HH1xTk2Gk9SJ21JgCsdSgE6zuAztM6Ps/view?usp=drivesdk","📚"],["24CB310","Notes","IMP Notes – FLAT everything covered","https://drive.google.com/file/d/1gFuxwbrOCRDfdprJpQpS0UjjLcCCC_tz/view?usp=drivesdk","📄"],["24CB310","Notes","Complete FLAT notes","https://drive.google.com/file/d/1JkSiQdGfuvFHe0TicHD3szqSb8MdQnE_/view?usp=drivesdk","📄"],["24CB310","Notes","Notes","https://drive.google.com/file/d/1msp6qVbXfm_akjjji9E7iq_82NFkJSua/view?usp=drivesdk","📄"],["24CB310","Notes","FLAT Unit 1","https://drive.google.com/file/d/11aNNoTLVrtdzt-u2eSKPLMI_pd6SC7er/view?usp=drivesdk","📄"],["24CB310","Notes","Unit 1 & 2 notes","https://drive.google.com/file/d/16YqtqMrcNqfF2q79lzTbnKUPo8GwjCFW/view?usp=drivesdk","📄"],["24CB310","Notes","Unit 3, 4 & 5 notes","https://drive.google.com/file/d/11xRlvr2X4C4gAeqHI7mZzBHx1ppgyCem/view?usp=drivesdk","📄"],["24CB310","Notes / Handwritten","FLAT Handwritten Notes Senior","https://drive.google.com/file/d/1wslkUCd7lC-eS7qOXZcJ5F8blc7eYbQ9/view?usp=drivesdk","✍️"],["24CB310","Notes / Handwritten","Senior Notes – Unit 4","https://drive.google.com/file/d/1dfBp6znnXT89d7BKKlpe5qmJ7hacSSdq/view?usp=drivesdk","✍️"],["24CB310","Notes / Handwritten","Senior Notes – Unit 5","https://drive.google.com/file/d/1prPeCBDvDOh2ch6U6TI1pDVI-2qSQMN4/view?usp=drivesdk","✍️"],["24CB310","CIE Portion","CIE 1 portion","https://drive.google.com/file/d/1cvlUIhsC2nEL2oXzT3RXROjA_6FgU63e/view?usp=drivesdk","🎯"],["24CB310","CIE Portion","CIE 2 portion","https://drive.google.com/file/d/1ZFsJnfIfRV37R6cy_gc5oH2qQCC77Gu_/view?usp=drivesdk","🎯"],["24CB310","Question Paper","Question Paper – Drive folder","https://drive.google.com/drive/folders/1W1kydgIAcvdOFjwzab5b5oNH1P65bvMs","📁"],["24CB310","Question Paper","CIE 1 PAPER","https://drive.google.com/file/d/1W8m502BqGykGnzpNtW-y3Rq_pLpmV33C/view?usp=drivesdk","📝"],["24CB310","Question Paper","CIE 2 PAPER","https://drive.google.com/file/d/1U41crGY18DjLhy2nU1eM0c8pwx2q-U9p/view?usp=drivesdk","📝"]];
+  return rows.map((r,i)=>({id:'csbs-'+(i+1), subject:r[0], category:r[1], title:r[2], desc:'', url:r[3], icon:r[4]})); })();
 // Second-year ISE: the "All Subject Syllabus" banner (same banner CSE shows) — one combined syllabus file for the branch.
 const SY_SYLLABUS_ALL = {
   ISE: [{subject:'All Subjects', title:'All Subject Syllabus', description:'Complete syllabus collection for all subjects in one place.', url:'https://drive.google.com/file/d/1SQDvEDoy5fAtcd7FeqHrbRk4qGqkTZJv/view?usp=sharing', highlight:true}],
@@ -5506,7 +5520,7 @@ function studyScopeApply(){
   if(ACAD && String(ACAD.year) === '2' && SY_STUDY_SUBJECTS[ACAD.branch]){
     subjects.splice(0, subjects.length, ...SY_STUDY_SUBJECTS[ACAD.branch]);
     resources.splice(0, resources.length, ...(ACAD.branch === 'CSEAIML'
-      ? syCseResSnap.filter(r=>SY_AIML_COPY_CODES[r.subject]).map(r=>({...r, id:'aiml-'+r.id, subject:SY_AIML_COPY_CODES[r.subject]})) : []));
+      ? syCseResSnap.filter(r=>SY_AIML_COPY_CODES[r.subject]).map(r=>({...r, id:'aiml-'+r.id, subject:SY_AIML_COPY_CODES[r.subject]})) : (ACAD.branch === 'CSBS' ? SY_CSBS_RESOURCES.slice() : [])));
     syllabus.splice(0, syllabus.length, ...(SY_SYLLABUS_ALL[ACAD.branch] || []));
     return;
   }
@@ -5517,7 +5531,7 @@ function studyScopeApply(){
   resources.splice(0, resources.length, ...fyStudyResources(fyc, ACAD.branch));
   syllabus.splice(0, syllabus.length);
 }
-function smScopeKey(){ if(ACAD && ACAD.year === '1') return 'FY1'; if(isQuizOnlyBranch()) return 'SY-NONE-' + ACAD.branch; if(ACAD && String(ACAD.year) === '2' && (ACAD.branch === 'ISE' || ACAD.branch === 'CSEAIML')) return 'SY-' + ACAD.branch; return 'SY'; }
+function smScopeKey(){ if(ACAD && ACAD.year === '1') return 'FY1'; if(isQuizOnlyBranch()) return 'SY-NONE-' + ACAD.branch; if(ACAD && String(ACAD.year) === '2' && (ACAD.branch === 'ISE' || ACAD.branch === 'CSEAIML' || ACAD.branch === 'CSBS')) return 'SY-' + ACAD.branch; return 'SY'; }
 function smScopeOk(r){ return (r.scope || 'SY') === smScopeKey(); }
 
 const subjects = [
@@ -6518,7 +6532,7 @@ function fyVerifyMark(v){ const t = FY_VERIFY[v] || 'Please verify this entry wi
 function fyAnyVerify(){ return Object.values(timetable).some(l=>l.some(c=>c.v)); }
 
 // ---------- academic profile wizard (Year → Branch → Semester → Cycle[first year only]) ----------
-// Sections a student of this year/branch can pick (same lists as the profile form): 1st year = the branch's sections, 2nd year CSE = A–G, CSE AIML = H, ISE = A–C.
+// Sections a student of this year/branch can pick (same lists as the profile form): 1st year = the branch's sections, 2nd year CSE = A–G, CSE AIML = H, ISE = A–C, CSBS = A–B.
 function acadSectionChoices(year, branch){
   if(year === '1'){ const br = FY_BRANCHES.find(b=>b.id === branch); return (br ? br.sections : []).map(l=>({value:fySecKey(l), text:l, note:(FY_SECTION_CYCLE[l] === 'C' ? 'Chemistry cycle timetable' : FY_SECTION_CYCLE[l] === 'P' ? 'Physics cycle timetable' : '')})); }
   const sb = SY_BRANCHES.find(b=>b.id === branch);
@@ -6730,6 +6744,17 @@ const sectionTimetables = {
 // ISE: transcribed from the official PDF "3SEM_2026_27.pdf" (Tentative timetable, effective 07-09-2026) — page 1 = A, page 2 = B, page 3 = C.
 // Each section is its own record; nothing is shared between sections. Same shape the renderers already use for `timetable`.
 const SY_SUBJECTS = {
+  CSBS: {
+    '24CB310':{name:'Formal Language & Automata Theory', credits:'4', type:'Lecture'},
+    '24CB320':{name:'Computer Organization & Architecture', credits:'4', type:'Lecture'},
+    '24CB330':{name:'Object Oriented Programming', credits:'4', type:'Lecture'},
+    '24CB340':{name:'Computational Statistics', credits:'4', type:'Lecture'},
+    '24CB350':{name:'Software Engineering', credits:'4', type:'Lecture'},
+    '24CB360':{name:'Financial & Cost Accounting', credits:'4', type:'Lecture'},
+    '24HU311':{name:'Universal Human Values (UHV)-II', credits:'2', type:'Lecture'},
+    '24CB330L':{name:'Object Oriented Programming Lab', credits:'1', type:'Lab'},
+    '24CB340L':{name:'Computational Statistics Lab', credits:'1', type:'Lab'},
+  },
   CSEAIML: {
     '25MA313':{name:'Engineering Mathematics-III', credits:'3', type:'Lecture'},
     '25AI310':{name:'Object Oriented Programming using C++', credits:'3', type:'Lecture'},
@@ -6761,7 +6786,28 @@ const syL  = (s, code, fac, room, note) => { const o = { start:s, end:_SY_END[s]
 // or a plain string + batch ('B1'/'B2') when only that batch attends this block (ISE C data-structures lab).
 const syLab = (s, e, code, fac, batch, loc, room, note) => { const o = { start:s, end:e, code, type:'Lab', fac }; if(batch) o.onlyBatch = batch; if(loc) o.loc = loc; if(room) o.room = room; if(note) o.note = note; return o; };
 const _ISE_COMMON = { NA:'Mr. Nagarjun A', GTS:'Mr. Gurukar Tejas', RSA:'Ms. Anusha R S', VP:'Ms. Vinutha Prakash' };
+// CSBS (III Sem, 'A' and 'B'): transcribed from the department's "Tentative Timetable (Effective from 21-09-2026)" images.
+// The sheet prints a room per day, applied below. The lab shares its code with the theory subject on the sheet (24CB330 / 24CB340) -> lab = '<code>L' here.
+const _CSBS_INI = { SG:'Ms. Sindhu G', MPS:'Ms. Malapriya S', DSV:'Dr. D S Vinod', LMS:'Ms. Lavanya M S', SN:'Ms. Shruthi N', KD:'Prof. Kaveri D', VRK:'Ms. Vyshali Rao K P', PSJ:'Dr. Parvathi S J' };
+// Section A's sheet does not print which lab batch does which lab -> flagged with the ⚠ mark (listing order used; each batch does both labs, swapped on Saturday).
+const _csbsLabA = (...a) => Object.assign(syLab(...a), { v:'CSBS_BATCH' });
 const SY_TT = {
+  'SY-CSBS_A': { room:'IS103', ini:_CSBS_INI, days:{
+    Monday:[ _csbsLabA('11:50','13:30','24CB330L','GTS/F3','B1'), _csbsLabA('11:50','13:30','24CB340L','F2/SN','B2'), syL('14:30','24CB320','MPS'), syL('15:30','24HU311','VRK'), syL('16:30','24CB310','SG') ],
+    Tuesday:[ syL('7:30','24CB340','LMS'), syL('8:30','24CB320','MPS'), syL('9:30','24HU311','VRK'), syL('11:00','24CB350','SN'), syL('11:50','24CB310','SG'), syL('12:40','24CB330','DSV') ],
+    Wednesday:[ syL('11:00','24CB310','SG'), syL('11:50','24CB340','LMS'), syL('12:40','24CB320','MPS'), syL('14:30','24CB350','SN'), syL('15:30','24CB360','KD'), syL('16:30','24CB360','KD') ],
+    Thursday:[ syL('9:30','24CB340','LMS'), syL('11:00','24CB330','DSV'), syL('11:50','24CB350','SN') ],
+    Friday:[ syL('7:30','24CB360','KD'), syL('8:30','24CB360','KD'), syL('9:30','24CB350','SN') ],
+    Saturday:[ _csbsLabA('8:30','10:30','24CB340L','TSK/GTS','B1'), _csbsLabA('8:30','10:30','24CB330L','VRK/MPS','B2'), syL('11:00','24CB330','DSV'), syL('11:50','24CB320','MPS'), syL('12:40','24CB310','SG') ],
+  }},
+  'SY-CSBS_B': { room:'IS103', ini:_CSBS_INI, days:{
+    Monday:[ syLab('11:00','13:30','24CB330L','MN/LMP','B1','Hardware Lab'), syL('14:30','24CB340','LMS'), syL('15:30','24CB360','KD'), syL('16:30','24CB360','KD') ],
+    Tuesday:[ syLab('11:00','13:30','24CB340L','LMS/F2','B2','Hardware Lab'), syL('14:30','24CB320','MPS'), syL('15:30','24CB310','SG'), syL('16:30','24HU311','SN') ],
+    Wednesday:[ syL('11:00','24CB320','MPS'), syL('11:50','24HU311','SN'), syL('12:40','24CB330','DSV'), syL('14:30','24CB310','SG'), syL('15:30','24CB340','LMS'), syL('16:30','24CB350','SN') ],
+    Thursday:[ syL('7:30','24CB310','SG'), syL('8:30','24CB350','SN'), syL('9:30','24CB330','DSV') ],
+    Friday:[ syL('11:00','24CB350','SN'), syL('11:50','24CB320','MPS'), syL('12:40','24CB340','LMS'), syL('14:30','24CB330','DSV'), syL('15:30','24CB320','MPS'), syL('16:30','24CB310','SG') ],
+    Saturday:[ syL('7:30','24CB360','KD'), syL('8:30','24CB360','KD'), syL('9:30','24CB350','SN'), syLab('11:00','12:40','24CB340L','F1/PSJ','B1'), syLab('11:00','12:40','24CB330L','RM/F2','B2') ],
+  }},
   'SY-ISE_A': { room:'IS002', ini:Object.assign({ SAS:'Ms. Sindhu A S', SR:'Dr. Shyla Raj' }, _ISE_COMMON), days:{
     Monday:[syL('11:00','24IS310','SAS'), syL('11:50','24IS320','NA'), syL('12:40','24HU311','SR'), syL('14:30','24MA313'), syLab('15:30','17:30','24IS330L',{B1:'UKK+LMS',B2:'RJP+PSJ'})],
     Tuesday:[syL('7:30','24IS350','VP'), syL('8:30','24IS330','GTS'), syL('9:30','24IS340','RSA')],
@@ -6795,6 +6841,15 @@ const SY_TT = {
     Saturday:[],
   }},
 };
+// CSBS: the sheets print a room for each day. Classes in a room other than the section's default get a per-class room (shown as "Room X").
+(function csbsDayRooms(){
+  const R = {
+    'SY-CSBS_A': { Monday:'IS103', Tuesday:'IS103', Wednesday:'IS102', Thursday:'IS101', Friday:'IS103', Saturday:'IS102' },
+    'SY-CSBS_B': { Monday:'IS001', Tuesday:'IS002', Wednesday:'IS103', Thursday:'IS102', Friday:'IS103', Saturday:'IS102' },
+  };
+  Object.keys(R).forEach(sec=>{ const rec = SY_TT[sec]; Object.keys(R[sec]).forEach(d=>{ if(R[sec][d] !== rec.room) (rec.days[d] || []).forEach(c=>{ if(!c.room) c.room = R[sec][d]; }); }); });
+  FY_VERIFY.CSBS_BATCH = 'The sheet prints this lab block without saying which batch does which lab. Batch 1 / Batch 2 are assigned in the order the labs are listed — please confirm with the department.';
+})();
 // Faculty text for a class: initials -> full name (ISE: from the sheet's subject table); lab faculty is printed as initials only and is shown as printed.
 function syFacText(c, rec){
   const f = c.fac;
@@ -6813,6 +6868,7 @@ function syApplyData(){
     days[d] = rec.days[d].filter(c=>!c.onlyBatch || c.onlyBatch === bid).map(c=>{
       const o = { start:c.start, end:c.end, code:c.code, prof:syFacText(c, rec) };
       if(c.type) o.type = c.type;
+      if(c.v) o.v = c.v;
       const notes = [];
       if(c.onlyBatch) notes.push('Batch ' + c.onlyBatch.slice(1) + ' lab');
       if(c.loc) notes.push(c.loc);
@@ -6840,7 +6896,7 @@ function syApplyData(){
       });
     });
   });
-  if(probs.length) console.warn('[Timetable] ISE/AIML validation issues:', probs); else console.log('[Timetable] ISE/AIML validation OK');
+  if(probs.length) console.warn('[Timetable] ISE/AIML/CSBS validation issues:', probs); else console.log('[Timetable] ISE/AIML/CSBS validation OK');
 })();
 
 // Internal validation: overlaps, invalid slots, unknown subject codes, batch-lab integrity. Logs problems only.
@@ -7043,7 +7099,7 @@ function profileSectionChoices(){
   if(sb && sb.id !== 'CSE') return sb.sections.map(l=>({value:sySecKey(sb.id, l), text:l}));      // CSE AIML → H · ISE → A, B, C
   return SECTIONS.map(s=>({value:s, text:s}));
 }
-// Second-year branches without academic content yet (every branch except CSE / CSE AIML / ISE): name only. Their quiz group comes from year+branch in userProfiles.
+// Second-year branches without academic content yet (every branch except CSE / CSE AIML / ISE / CSBS): name only. Their quiz group comes from year+branch in userProfiles.
 function renderQuizOnlyProfile(card, opts){
   const wantU = !opts.guest && !!window.cseUname && (cseUname.eligible() || (card.id === 'lgStudentForm' && !opts.editing));
   const p = 'pq' + card.id, br = (SY_BRANCHES.find(b=>b.id === ACAD.branch) || {}).name || ACAD.branch, saved = !!currentUser.name;
@@ -12685,7 +12741,7 @@ function smFoldersFor(subjectName){
   if(!units.length && sub.code!=='PYQ') for(let i=1;i<=5;i++) units.push(i);
   if(!data.length) cats.push('Previous Year Questions');
   // Second-year ISE / CSE AIML: also offer the folders that already hold imported Drive materials for this subject (e.g. "Notes / Handwritten").
-  if(smScopeKey()==='SY-ISE' || smScopeKey()==='SY-CSEAIML') smDocs.forEach(r=>{ if(r.subject===subjectName && smScopeOk(r) && r.folder && r.folder!==SM_GENERAL && r.resourceType!=='dfolder' && !cats.includes(r.folder)) cats.push(r.folder); });
+  if(smScopeKey()==='SY-ISE' || smScopeKey()==='SY-CSEAIML' || smScopeKey()==='SY-CSBS') smDocs.forEach(r=>{ if(r.subject===subjectName && smScopeOk(r) && r.folder && r.folder!==SM_GENERAL && r.resourceType!=='dfolder' && !cats.includes(r.folder)) cats.push(r.folder); });
   if(sub.code==='OOP' && !cats.includes('Textbook')) cats.push('Textbook');
   cats.sort((a,b)=>{ const x=SM_CAT_ORDER.indexOf(a), y=SM_CAT_ORDER.indexOf(b); return (x<0?99:x)-(y<0?99:y); });
   // Second-year CSE (scope 'SY'): every subject always has a 'General Resources' folder (same name old un-foldered resources already use).
@@ -12699,6 +12755,8 @@ function smFolderRank(f){
   // Drive-style names ("TextBooks", "Question Paper", "Notes / Handwritten"): rank like the matching standard folder; deeper levels sort just after their parent.
   const parts=String(f).split(' / '), ALIAS={textbooks:'Textbook', textbook:'Textbook', 'question paper':'Previous Year Questions', notes:'Notes'};
   const std=ALIAS[parts[0].trim().toLowerCase()], i=std?SM_CAT_ORDER.indexOf(std):-1;
+  const XI=['syllabus','ppt','cie portion','lab','question bank','report templates','sem exam papers 2026','semester end paper','drive folder'].indexOf(parts[0].trim().toLowerCase());
+  if(i<0 && XI>=0) return 149+XI*0.01+(parts.length-1)*0.001;      // CSBS folders: syllabus / PPT / CIE / lab … keep a sensible order
   return 100+(i<0?50:i)+(parts.length-1)*0.01;
 }
 // One unified list per subject: shared Firestore resources (newest first) + the built-in links.
@@ -14166,7 +14224,7 @@ html.chat-open #commChatPanel .chat-list{scroll-behavior:auto;overflow-anchor:au
       panel('lgHome'); refreshAcadLine(); }});
   }
   (function fillInviteSections(){ var sel=$('crInvSec'); if(!sel) return;
-    sel.innerHTML='<optgroup label="Second year (CSE)">'+['A','B','C','D','E','F','G'].map(function(x){return '<option value="'+x+'">'+x+'</option>';}).join('')+'</optgroup><optgroup label="Second year (CSE AIML)">'+SY_SECTION_KEYS.filter(function(k){return SY_SECTION_INFO[k].branch==='CSEAIML';}).map(function(k){return '<option value="'+k+'">'+escapeHtml(SY_SECTION_INFO[k].label)+'</option>';}).join('')+'</optgroup><optgroup label="Second year (ISE)">'+SY_SECTION_KEYS.filter(function(k){return SY_SECTION_INFO[k].branch==='ISE';}).map(function(k){return '<option value="'+k+'">'+escapeHtml(SY_SECTION_INFO[k].label)+'</option>';}).join('')+'</optgroup><optgroup label="First year">'+FY_SECTION_KEYS.map(function(k){return '<option value="'+k+'">'+escapeHtml(fySecLabel(k))+'</option>';}).join('')+'</optgroup>'; })();
+    sel.innerHTML='<optgroup label="Second year (CSE)">'+['A','B','C','D','E','F','G'].map(function(x){return '<option value="'+x+'">'+x+'</option>';}).join('')+'</optgroup><optgroup label="Second year (CSE AIML)">'+SY_SECTION_KEYS.filter(function(k){return SY_SECTION_INFO[k].branch==='CSEAIML';}).map(function(k){return '<option value="'+k+'">'+escapeHtml(SY_SECTION_INFO[k].label)+'</option>';}).join('')+'</optgroup><optgroup label="Second year (ISE)">'+SY_SECTION_KEYS.filter(function(k){return SY_SECTION_INFO[k].branch==='ISE';}).map(function(k){return '<option value="'+k+'">'+escapeHtml(SY_SECTION_INFO[k].label)+'</option>';}).join('')+'</optgroup><optgroup label="Second year (CSBS)">'+SY_SECTION_KEYS.filter(function(k){return SY_SECTION_INFO[k].branch==='CSBS';}).map(function(k){return '<option value="'+k+'">'+escapeHtml(SY_SECTION_INFO[k].label)+'</option>';}).join('')+'</optgroup><optgroup label="First year">'+FY_SECTION_KEYS.map(function(k){return '<option value="'+k+'">'+escapeHtml(fySecLabel(k))+'</option>';}).join('')+'</optgroup>'; })();
   var FLAG='cse_login_seen';
   function seen(){ try{ return localStorage.getItem(FLAG)==='1'; }catch(e){ return false; } }
   function mark(){ try{ localStorage.setItem(FLAG,'1'); }catch(e){} }
